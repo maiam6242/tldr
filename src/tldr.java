@@ -3,10 +3,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.util.ArrayList;
 
 // UI imports
 import javax.swing.*;
@@ -27,6 +25,11 @@ public class tldr implements ActionListener {
   private static JButton textFileBtn;
   private static JButton mergeBtn;
   private static JTextArea console;
+  private static String currText = "";
+  private static ArrayList<String> keywords = new ArrayList<String>();
+  private static FileDialog fileDialog;
+  private static File file;
+  private static File keywordsFile;
 
   private static boolean testing = true;
 
@@ -283,12 +286,22 @@ public class tldr implements ActionListener {
     /**
      * Controls response to button clicks for each of the buttons.
      */
+
+    // Responds to search button being clicked
+    // Get user-inputted keywords, get selected keywords from preloaded list, and search file (if file exists)
     if (event.getSource() == searchBtn)
     {
       if (testing) System.out.println("Search button clicked.");
       getInputtedKeywords();
       getSelectedKeywords();
-      searchKeywords();
+      if (keywords.size() > 0)
+      {
+        searchKeywords();
+      }
+      else
+      {
+        print("ERROR: Please select or input keywords.");
+      }
     }
 
     if (event.getSource() == searchFileBtn)
@@ -300,13 +313,18 @@ public class tldr implements ActionListener {
     if (event.getSource() == textFileBtn)
     {
       if (testing) System.out.println("Open text file button clicked.");
-      openKeywordsFile();
+      try {
+        openKeywordsFile();
+      } catch (IOException e) {
+        print(e.getMessage());
+        e.printStackTrace();
+      }
     }
 
     if (event.getSource() == mergeBtn)
     {
       if (testing) System.out.println("Merge files button clicked.");
-      // mergePDFFiles();
+       mergePDFFiles();
     }
 
     getOfficeVersion();
@@ -315,6 +333,31 @@ public class tldr implements ActionListener {
 
   }
 
+  public void print(String s)
+  {
+    console.setText(currText + s + "\n");
+    currText += s + "\n";
+    System.out.println(s);
+  }
+
+  public void print(ArrayList<String> strings)
+  {
+    for (String s : strings)
+    {
+      console.setText(currText + s + "\n");
+      currText += s + "\n";
+      System.out.println(s);
+    }
+  }
+
+  public void print(String[] strings) {
+    for (String s : strings)
+    {
+      console.setText(currText + s + "\n");
+      currText += s + "\n";
+      System.out.println(s);
+    }
+  }
   private int getOfficeVersion()
   {
     /** Checks what (if any) version of office is on the system.
@@ -364,12 +407,47 @@ public class tldr implements ActionListener {
   }
   private void getInputtedKeywords()
   {
+    String keywordString = "";
+    keywordString = keywordField.getText();
+    String[] keywordsArray = keywordString.split(",");
+    trim(keywordsArray);
+    for (String keyword : keywordsArray)
+    {
+      if (!keyword.equals(""))
+      {
+        keywords.add(keyword);
+      }
+    }
+    trim(keywords);
+  }
 
+  private void trim(String[] arr)
+  {
+    for (int i = 0; i < arr.length; i++)
+    {
+      arr[i] = arr[i].trim();
+    }
+  }
+
+  private void trim(ArrayList<String> arr)
+  {
+    for (int i = 0; i < arr.size(); i++)
+    {
+      arr.set(i, arr.get(i).trim());
+    }
   }
 
   private void getSelectedKeywords()
   {
-
+    ArrayList<String> selectedKeywords = new ArrayList<String>();
+    if (preloadedList.getSelectedValuesList().size() > 0)
+    {
+      selectedKeywords = (ArrayList<String>) preloadedList.getSelectedValuesList();
+      for (String keyword : selectedKeywords)
+      {
+        keywords.add(keyword);
+      }
+    }
   }
 
   private void searchKeywords()
@@ -411,20 +489,54 @@ public class tldr implements ActionListener {
 
   private void openSearchFile()
   {
+    fileDialog = new FileDialog(frame, "Open a PDF File", FileDialog.LOAD);
+    fileDialog.setFile("*.pdf");
+    fileDialog.setVisible(true);
+
+    if (fileDialog.getFile().indexOf(".pdf") != -1)
+    {
+      String path = fileDialog.getDirectory() + fileDialog.getFile();
+      file = new File(path);
+      print("Selected File: " + file.getName());
+    }
+  }
+
+  private void openKeywordsFile() throws IOException {
+    fileDialog = new FileDialog(frame, "Open Text File with Keywords", FileDialog.LOAD);
+    fileDialog.setFile("*.txt");
+    fileDialog.setVisible(true);
+
+    if (fileDialog.getFile().indexOf(".txt") != -1)
+    {
+      keywordsFile = new File(fileDialog.getDirectory() + fileDialog.getFile());
+      readKeywords();
+    }
+  }
+
+  private static void readKeywords() throws IOException {
+    BufferedReader reader = new BufferedReader(new FileReader(keywordsFile));
+    String str = "";
+    while ((str = reader.readLine()) != null)
+    {
+      keywords.add(str);
+    }
+    reader.close();
 
   }
 
-  private void openKeywordsFile()
-  {
-
-  }
-
-  private String mergePDFFiles(File[] files)
+  private String mergePDFFiles()
   {
     /** Takes as many PDF files as provided and merges them into one file
     *   Input: array of values
     *   Returns: path of the created file
     */
+
+    fileDialog = new FileDialog(frame, "Open Files to Merge");
+    fileDialog.setFile("*.pdf");
+    fileDialog.setMultipleMode(true);
+    fileDialog.setVisible(true);
+    File[] files = fileDialog.getFiles();
+
     String fileName = "";
 
     //creates a name for the file

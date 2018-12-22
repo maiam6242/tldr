@@ -1,4 +1,6 @@
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.text.PDFTextStripper;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -30,6 +32,7 @@ public class tldr implements ActionListener {
   private static FileDialog fileDialog;
   private static File file;
   private static File keywordsFile;
+  private static ArrayList<SearchThread> threads = new ArrayList<SearchThread>();
 
   private static boolean testing = true;
 
@@ -38,7 +41,8 @@ public class tldr implements ActionListener {
     initializeGUI();
   }
 
-  public void initializeGUI() {
+  public void initializeGUI()
+  {
     /**
      * Initializes the user interface using Java Swing.
      */
@@ -195,7 +199,8 @@ public class tldr implements ActionListener {
 
   }
 
-  private String[] fillPreloaded() {
+  private String[] fillPreloaded()
+  {
     /**
      * Fills list of preloaded keywords with keywords (currently hardcoded).
     **/
@@ -282,13 +287,18 @@ public class tldr implements ActionListener {
   }
 
   @Override
-  public void actionPerformed(ActionEvent event) {
+  public void actionPerformed(ActionEvent event)
+  {
     /**
      * Controls response to button clicks for each of the buttons.
      */
 
-    // Responds to search button being clicked
-    // Get user-inputted keywords, get selected keywords from preloaded list, and search file (if file exists)
+    /**
+     * Responds to user clicking the search button with the following steps:
+     * 1. Gets all user-inputted keywords
+     * 2. Gets all user-selected keywords from preloaded list
+     * 3. Searches file for keywords
+     */
     if (event.getSource() == searchBtn)
     {
       if (testing) System.out.println("Search button clicked.");
@@ -296,7 +306,12 @@ public class tldr implements ActionListener {
       getSelectedKeywords();
       if (keywords.size() > 0)
       {
-        searchKeywords();
+        try {
+          searchKeywords();
+        } catch (IOException e) {
+          print(e.getMessage());
+          e.printStackTrace();
+        }
       }
       else
       {
@@ -304,12 +319,23 @@ public class tldr implements ActionListener {
       }
     }
 
+    /**
+     * Responds to the user clicking the button to open PDF file:
+     * 1. Opens file dialog
+     * 2. Retrieves selected file
+     */
     if (event.getSource() == searchFileBtn)
     {
       if (testing) System.out.println("Open file button clicked.");
       openSearchFile();
     }
 
+    /**
+     * Responds to user clicking the button to open a text file:
+     * 1. Opens file dialog
+     * 2. Retrieves selected text file
+     * 3. Reads text file and retrieves keywords found in file
+     */
     if (event.getSource() == textFileBtn)
     {
       if (testing) System.out.println("Open text file button clicked.");
@@ -321,6 +347,12 @@ public class tldr implements ActionListener {
       }
     }
 
+    /**
+     * Responds to user clicking the button to merge files:
+     * 1. Opens file dialog
+     * 2. Retrieves files
+     * 3. Merges files
+     */
     if (event.getSource() == mergeBtn)
     {
       if (testing) System.out.println("Merge files button clicked.");
@@ -335,6 +367,9 @@ public class tldr implements ActionListener {
 
   public void print(String s)
   {
+    /**
+     * Prints a string to the user console and Eclipse console.
+     */
     console.setText(currText + s + "\n");
     currText += s + "\n";
     System.out.println(s);
@@ -342,6 +377,9 @@ public class tldr implements ActionListener {
 
   public void print(ArrayList<String> strings)
   {
+    /**
+     * Prints an ArrayList of strings to the user console and Eclipse console.
+     */
     for (String s : strings)
     {
       console.setText(currText + s + "\n");
@@ -350,7 +388,11 @@ public class tldr implements ActionListener {
     }
   }
 
-  public void print(String[] strings) {
+  public void print(String[] strings)
+  {
+    /**
+     * Prints an array of strings to the user console and Eclipse console.
+     */
     for (String s : strings)
     {
       console.setText(currText + s + "\n");
@@ -358,6 +400,7 @@ public class tldr implements ActionListener {
       System.out.println(s);
     }
   }
+
   private int getOfficeVersion()
   {
     /** Checks what (if any) version of office is on the system.
@@ -403,12 +446,20 @@ public class tldr implements ActionListener {
 
   private void createExcelFile()
   {
-
+    // TODO: Implement create excel file method
   }
+
   private void getInputtedKeywords()
   {
+    /**
+     * Retrieves user-inputted keywords
+     */
+
+    // Gets user-inputted string from text field
     String keywordString = "";
     keywordString = keywordField.getText();
+
+    // Adds each individual inputted keyword to list of keywords
     String[] keywordsArray = keywordString.split(",");
     trim(keywordsArray);
     for (String keyword : keywordsArray)
@@ -418,11 +469,16 @@ public class tldr implements ActionListener {
         keywords.add(keyword);
       }
     }
+
+    // Removes white space from keywords
     trim(keywords);
   }
 
   private void trim(String[] arr)
   {
+    /**
+     * Removes white space from words in a String array.
+     */
     for (int i = 0; i < arr.length; i++)
     {
       arr[i] = arr[i].trim();
@@ -431,6 +487,9 @@ public class tldr implements ActionListener {
 
   private void trim(ArrayList<String> arr)
   {
+    /**
+     * Removes white space from words in an ArrayList of strings.
+     */
     for (int i = 0; i < arr.size(); i++)
     {
       arr.set(i, arr.get(i).trim());
@@ -439,7 +498,14 @@ public class tldr implements ActionListener {
 
   private void getSelectedKeywords()
   {
+    /**
+     * Retrieves user-selected keywords from preloaded list and adds them to list of keywords to search.
+     */
+
+    // Retrieves selected words
     ArrayList<String> selectedKeywords = new ArrayList<String>();
+
+    // Adds words to list of keywords
     if (preloadedList.getSelectedValuesList().size() > 0)
     {
       selectedKeywords = (ArrayList<String>) preloadedList.getSelectedValuesList();
@@ -450,8 +516,7 @@ public class tldr implements ActionListener {
     }
   }
 
-  private void searchKeywords()
-  {
+  private void searchKeywords() throws IOException {
     /**
     1. Extract pages from PDF
     2. Split up pages into increments of 20
@@ -459,12 +524,14 @@ public class tldr implements ActionListener {
     4. Start each thread
     **/
 
-    createThreads();
+    // TODO: Implement search keywords method
+    createThreads(separateContent());
     runThreads();
   }
 
   private void runThreads()
   {
+    // TODO: Implement run threads method
 //    for (Thread t : threads)
 //    {
 //      t.start();
@@ -476,23 +543,62 @@ public class tldr implements ActionListener {
 //    }
   }
 
-  private void createThreads()
-  {
-    separateContent();
-
+  private void createThreads(ArrayList<ArrayList<PDPage>> pageGroups) throws IOException {
+    // TODO: Implement create threads method
+    if (pageGroups != null)
+    {
+      for (ArrayList<PDPage> pageGroup : pageGroups)
+      {
+        threads.add(new SearchThread(pageGroup, keywords));
+      }
+    }
   }
 
-  private void separateContent()
-  {
+  private ArrayList<ArrayList<PDPage>> separateContent() throws IOException {
+    // TODO: Implement separate content method
+    if (file != null)
+    {
+      PDDocument doc = PDDocument.load(file);
+      PDFTextStripper textStripper = new PDFTextStripper();
 
+//      ArrayList<SearchThread> threads = new ArrayList<SearchThread>();
+      ArrayList<ArrayList<PDPage>> pageGroups = new ArrayList<ArrayList<PDPage>>();
+      int numGroups = doc.getNumberOfPages()/20;
+      int index = 0;
+      for (int i = 0; i < numGroups; i++)
+      {
+        ArrayList<PDPage> pageGroup = new ArrayList<PDPage>();
+        for (index = i * 20; index < i*20 + 20; index++)
+        {
+          pageGroup.add(doc.getPage(index + 1));
+        }
+        pageGroups.add(pageGroup);
+      }
+
+      ArrayList<PDPage> pageGroup = new ArrayList<PDPage>();
+      for (int i = index; i < doc.getNumberOfPages(); i++)
+      {
+        pageGroup.add(doc.getPage(i));
+      }
+      pageGroups.add(pageGroup);
+
+      return pageGroups;
+
+    }
+    return null;
   }
-
   private void openSearchFile()
   {
+    /**
+     * Creates file dialog so user can select a PDF file.
+     */
+
+    // Opens file dialog with correct configuration: only PDF files, only one file
     fileDialog = new FileDialog(frame, "Open a PDF File", FileDialog.LOAD);
     fileDialog.setFile("*.pdf");
     fileDialog.setVisible(true);
 
+    // Gets selected file
     if (fileDialog.getFile().indexOf(".pdf") != -1)
     {
       String path = fileDialog.getDirectory() + fileDialog.getFile();
@@ -501,11 +607,18 @@ public class tldr implements ActionListener {
     }
   }
 
-  private void openKeywordsFile() throws IOException {
+  private void openKeywordsFile() throws IOException
+  {
+    /**
+     * Creates file dialog so user can select a text file.
+     */
+
+    // Opens file dialog with correct configuration: only text files, only one file
     fileDialog = new FileDialog(frame, "Open Text File with Keywords", FileDialog.LOAD);
     fileDialog.setFile("*.txt");
     fileDialog.setVisible(true);
 
+    // Gets selected file and reads keywords within file
     if (fileDialog.getFile().indexOf(".txt") != -1)
     {
       keywordsFile = new File(fileDialog.getDirectory() + fileDialog.getFile());
@@ -513,7 +626,11 @@ public class tldr implements ActionListener {
     }
   }
 
-  private static void readKeywords() throws IOException {
+  private static void readKeywords() throws IOException
+  {
+    /**
+     * Retrieves keywords from inputted text file and adds keywords to list of keywords.
+     */
     BufferedReader reader = new BufferedReader(new FileReader(keywordsFile));
     String str = "";
     while ((str = reader.readLine()) != null)

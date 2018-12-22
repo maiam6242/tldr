@@ -2,11 +2,11 @@ import org.apache.pdfbox.pdmodel.PDPage;
 
 import java.util.ArrayList;
 
-public class SearchThreads implements Runnable {
+public class SearchThread implements Runnable {
   private ArrayList<PDPage> pages;
   private ArrayList<String> keywords;
 
-  public SearchThreads(ArrayList<PDPage> pages, ArrayList<String> keywords)
+  public SearchThread(ArrayList<PDPage> pages, ArrayList<String> keywords)
   {
     this.pages = pages;
     this.keywords = keywords;

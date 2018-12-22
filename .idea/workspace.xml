@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="300" />
-    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="461" />
+    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="339" />
+    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="690" />
+    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="569" />
+    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="570" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b7b1bf24-21d6-4966-a3be-3c33b8ea19c1" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/searchThreads.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/SearchThreads.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/tldr/SearchThreads.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/tldr/tldr.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/tldr/tldr.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/SearchThreads.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/SearchThread.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/tldr.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/tldr.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tldrRunner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/tldrRunner.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tldr.iml" beforeDir="false" afterPath="$PROJECT_DIR$/tldr.iml" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -25,9 +26,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/tldr.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="194">
-              <caret line="287" column="61" selection-start-line="287" selection-start-column="61" selection-end-line="287" selection-end-column="61" />
+            <state relative-caret-position="102">
+              <caret line="551" column="59" lean-forward="true" selection-start-line="551" selection-start-column="59" selection-end-line="551" selection-end-column="59" />
               <folding>
+                <element signature="e#931#939#0" expanded="true" />
+                <element signature="e#1170#1184#0" expanded="true" />
                 <element signature="method#initializeGUI#0;class#tldr#0" />
                 <element signature="method#initializeFrame#0;class#tldr#0" />
                 <element signature="e#753#773#0" />
@@ -37,18 +40,37 @@
                 <element signature="method#fillPreloaded#0;class#tldr#0" />
                 <element signature="method#initializeButtons#0;class#tldr#0" />
                 <element signature="method#initializeConsole#0;class#tldr#0" />
+                <element signature="e#11910#12075#0" />
+                <element signature="e#12124#12342#0" />
+                <element signature="e#12417#12624#0" />
                 <element signature="method#getOfficeVersion#0;class#tldr#0" />
                 <element signature="method#createExcelFile#0;class#tldr#0" />
-                <element signature="method#getInputtedKeywords#0;class#tldr#0" />
-                <element signature="method#getSelectedKeywords#0;class#tldr#0" />
-                <element signature="method#searchKeywords#0;class#tldr#0" />
+                <element signature="e#14406#14782#0" />
+                <element signature="e#14970#15116#0" />
+                <element signature="e#15120#15258#0" />
+                <element signature="e#15393#15772#0" />
+                <element signature="e#15510#15518#0" expanded="true" />
                 <element signature="method#runThreads#0;class#tldr#0" />
-                <element signature="method#createThreads#0;class#tldr#0" />
-                <element signature="method#separateContent#0;class#tldr#0" />
-                <element signature="method#openSearchFile#0;class#tldr#0" />
-                <element signature="method#openKeywordsFile#0;class#tldr#0" />
-                <element signature="method#mergePDFFiles#0;class#tldr#0" />
+                <element signature="e#17207#17226#0" expanded="true" />
+                <element signature="e#17440#17448#0" expanded="true" />
+                <element signature="e#17785#17793#0" expanded="true" />
+                <element signature="e#16490#16906#0" />
+                <element signature="e#16910#17289#0" />
+                <element signature="e#17670#17956#0" />
+                <element signature="e#17960#19293#0" />
                 <element signature="method#makeFile#0;class#tldr#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/SearchThread.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="102">
+              <caret line="6" column="37" selection-start-line="6" selection-start-column="37" selection-end-line="6" selection-end-column="37" />
+              <folding>
+                <element signature="imports" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -58,19 +80,7 @@
         <entry file="file://$PROJECT_DIR$/src/tldrRunner.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="102">
-              <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/SearchThreads.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="10" column="23" lean-forward="true" selection-start-line="10" selection-start-column="23" selection-end-line="10" selection-end-column="23" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
+              <caret line="6" selection-start-line="6" selection-end-line="6" />
             </state>
           </provider>
         </entry>
@@ -85,15 +95,16 @@
       <list>
         <option value="$PROJECT_DIR$/src/searchThreads.java" />
         <option value="$PROJECT_DIR$/src/tldrRunner.java" />
+        <option value="$PROJECT_DIR$/src/SearchThreads.java" />
+        <option value="$PROJECT_DIR$/src/SearchThread.java" />
         <option value="$PROJECT_DIR$/src/tldr.java" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="15" />
-    <option name="y" value="30" />
-    <option name="width" value="1890" />
-    <option name="height" value="960" />
+    <option name="x" value="-11" />
+    <option name="width" value="980" />
+    <option name="height" value="1031" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -121,7 +132,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1545452066623" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1545507309904" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../preflight-2.0.12.jar!/" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
@@ -181,7 +192,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1295" height="695" extended-state="6" />
+    <frame x="-7" y="0" width="653" height="687" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Image Layers" />
@@ -189,7 +200,7 @@
       <window_info id="UI Designer" />
       <window_info id="Capture Tool" />
       <window_info id="Favorites" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2242915" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.05059022" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Version Control" weight="0.32972974" />
       <window_info anchor="bottom" id="Terminal" weight="0.32972974" />
@@ -197,7 +208,7 @@
       <window_info anchor="bottom" id="Messages" weight="0.32792792" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3285968" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.33333334" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -213,16 +224,6 @@
     </layout>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/SearchThreads.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="10" column="23" lean-forward="true" selection-start-line="10" selection-start-column="23" selection-end-line="10" selection-end-column="23" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://C:/Program Files/Java/jdk1.8.0_191/src.zip!/java/awt/event/ActionListener.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="186">
@@ -233,15 +234,27 @@
     <entry file="file://$PROJECT_DIR$/src/tldrRunner.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
-          <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
+          <caret line="6" selection-start-line="6" selection-end-line="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/SearchThread.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="37" selection-start-line="6" selection-start-column="37" selection-end-line="6" selection-end-column="37" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/tldr.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="194">
-          <caret line="287" column="61" selection-start-line="287" selection-start-column="61" selection-end-line="287" selection-end-column="61" />
+        <state relative-caret-position="102">
+          <caret line="551" column="59" lean-forward="true" selection-start-line="551" selection-start-column="59" selection-end-line="551" selection-end-column="59" />
           <folding>
+            <element signature="e#931#939#0" expanded="true" />
+            <element signature="e#1170#1184#0" expanded="true" />
             <element signature="method#initializeGUI#0;class#tldr#0" />
             <element signature="method#initializeFrame#0;class#tldr#0" />
             <element signature="e#753#773#0" />
@@ -251,17 +264,24 @@
             <element signature="method#fillPreloaded#0;class#tldr#0" />
             <element signature="method#initializeButtons#0;class#tldr#0" />
             <element signature="method#initializeConsole#0;class#tldr#0" />
+            <element signature="e#11910#12075#0" />
+            <element signature="e#12124#12342#0" />
+            <element signature="e#12417#12624#0" />
             <element signature="method#getOfficeVersion#0;class#tldr#0" />
             <element signature="method#createExcelFile#0;class#tldr#0" />
-            <element signature="method#getInputtedKeywords#0;class#tldr#0" />
-            <element signature="method#getSelectedKeywords#0;class#tldr#0" />
-            <element signature="method#searchKeywords#0;class#tldr#0" />
+            <element signature="e#14406#14782#0" />
+            <element signature="e#14970#15116#0" />
+            <element signature="e#15120#15258#0" />
+            <element signature="e#15393#15772#0" />
+            <element signature="e#15510#15518#0" expanded="true" />
             <element signature="method#runThreads#0;class#tldr#0" />
-            <element signature="method#createThreads#0;class#tldr#0" />
-            <element signature="method#separateContent#0;class#tldr#0" />
-            <element signature="method#openSearchFile#0;class#tldr#0" />
-            <element signature="method#openKeywordsFile#0;class#tldr#0" />
-            <element signature="method#mergePDFFiles#0;class#tldr#0" />
+            <element signature="e#17207#17226#0" expanded="true" />
+            <element signature="e#17440#17448#0" expanded="true" />
+            <element signature="e#17785#17793#0" expanded="true" />
+            <element signature="e#16490#16906#0" />
+            <element signature="e#16910#17289#0" />
+            <element signature="e#17670#17956#0" />
+            <element signature="e#17960#19293#0" />
             <element signature="method#makeFile#0;class#tldr#0" />
           </folding>
         </state>

@@ -1,4 +1,8 @@
+import org.apache.pdfbox.pdmodel.PDDocument;
+
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class tldr {
@@ -77,7 +81,7 @@ public class tldr {
 
     if (event.getSource() == btnMergeFiles)
     {
-      mergeFiles();
+      mergePDFFiles();
     }
 
     getOfficeVersion();
@@ -190,9 +194,66 @@ public class tldr {
 
   }
 
-  private void mergeFiles()
+  private String mergePDFFiles(File[] files)
   {
+    /** Takes as many PDF files as provided and merges them into one file
+    *   Input: array of values
+    *   Returns: path of the created file
+    */
+    String fileName = "";
 
+    //creates a name for the file
+    for (int fileNumber = 0; fileNumber<files.length; fileNumber++)
+    {
+        fileName += files[fileNumber].getName().split("pdf");
+    }
+
+    //creates file itself
+    File mergedFile = makeFile(fileName, ".pdf");
+
+    //checks if file was created successfully and creates a file if not
+   try
+   {
+       if (!mergedFile.exists())
+       {
+            mergedFile.createNewFile();
+       }
+   }
+
+   catch(IOException exception)
+   {
+      exception.printStackTrace();
+   }
+
+   mergedFile.setWritable(true);
+   mergedFile.setReadable(true);
+
+   //creates the documents so that they are accessible
+   try{
+       PDDocument merged = new PDDocument();
+       merged = PDDocument.load(files[0]);
+   }
+   catch(IOException exception){
+       exception.printStackTrace();
+  }
+
+
+   for(int fileNum = 1; fileNum < files.length; fileNum ++)
+   {
+
+   }
+    return fileName;
+  }
+
+  private File makeFile(String fileName, String fileExtension)
+  {
+      /** Creates a file in home directory
+       *  Input: name of file and the extension type
+       *  Returns: newly made File
+       */
+
+      File newFile = new File(System.getProperty("user.home")+ File.separator + fileName + fileExtension);
+      return newFile;
   }
 
 }

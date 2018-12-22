@@ -4,7 +4,8 @@ import java.io.InputStreamReader;
 public class tldr {
 
   private static JFrame frame;
-  public tldr() {
+  public tldr()
+  {
     initializeGUI();
   }
 
@@ -91,6 +92,7 @@ public class tldr {
      *  Returns 0 if no office is installed and the version number if office is installed
      *  The version number is the last two digits of the year that the office package came out (83-Present)
      */
+
     //TODO: work on making this work regardless of OS (rn windows dependent) and understanding functionality a little bit better
     try{
 
@@ -123,7 +125,7 @@ public class tldr {
         error.printStackTrace();
     }
 
-
+    return 0;
 
   }
 

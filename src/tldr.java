@@ -1,6 +1,8 @@
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -33,6 +35,10 @@ public class tldr implements ActionListener {
   private static File file;
   private static File keywordsFile;
   private static ArrayList<SearchThread> threads = new ArrayList<SearchThread>();
+  private static File CSV = null;
+  private static HSSFWorkbook HSSF = null;
+  private static XSSFWorkbook XSSF = null;
+  private static FileWriter fileWriter;
 
   private static boolean testing = true;
 
@@ -41,7 +47,7 @@ public class tldr implements ActionListener {
     initializeGUI();
   }
 
-  public void initializeGUI()
+  private void initializeGUI()
   {
     /**
      * Initializes the user interface using Java Swing.
@@ -358,10 +364,43 @@ public class tldr implements ActionListener {
       if (testing) System.out.println("Merge files button clicked.");
        mergePDFFiles();
     }
+  }
 
-    getOfficeVersion();
-    //the version of office determines the file type and creation methods
-    createExcelFile();
+  public void summarySheet()
+
+  {
+    // creates file based on Office Version Installed
+
+    int officeVersion = getOfficeVersion();
+
+
+    try {
+
+        //this is a .CSV file
+        if (officeVersion == 0)
+        {
+          createCSVFile();
+        }
+
+        //this is a .XLS file
+        if(officeVersion <= 7 || officeVersion > 83)
+        {
+          createHSSFFile();
+        }
+
+        //this is a .XLSX file
+        if(officeVersion > 7)
+        {
+          createXSSFFile();
+        }
+
+     }
+
+    catch (IOException exception)
+    {
+      exception.printStackTrace();
+    }
+
 
   }
 
@@ -428,7 +467,7 @@ public class tldr implements ActionListener {
       }
 
       //determine what version the office installed is
-      String fileType[] = officeVersion.split("=");
+      String[] fileType = officeVersion.split("=");
       process = Runtime.getRuntime().exec(new String [] {"cmd.exe", "/c", "ftype", fileType[1]});
       officeVersionReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
       String fileAssociation = officeVersionReader.readLine();
@@ -450,6 +489,38 @@ public class tldr implements ActionListener {
     // TODO: Implement create excel file method
   }
 
+  private String createCSVFile(File toBeCSV)
+  {
+    /** Creates a file of type CSV
+     *  Input: PDF File with name that is wanted (Name inputted to search)
+     *  Returns: path of CSV File
+     */
+
+    //creates CSV File with same name as inputted PDF file
+    int indexOfPDF = toBeCSV.getName().lastIndexOf(".pdf");
+    File CSVFile = new File(toBeCSV.getName().substring(0,indexOfPDF));
+    CSVFile.setReadable(true);
+    CSVFile.setWritable(true);
+    CSVFile.setExecutable(true);
+
+    //writes a header to the file
+    try
+    {
+      fileWriter = new FileWriter(CSVFile);
+      fileWriter.append("Document Name, Keyword, Page, Line Number, File Path");
+      fileWriter.append("\n");
+      fileWriter.flush();
+    }
+    catch(IOException exception)
+    {
+      exception.printStackTrace();
+    }
+    //writes the created CSV file to static CSV to be accessed for writing later
+
+    CSV = CSVFile;
+    return CSVFile.getAbsolutePath();
+  }
+
   private void getInputtedKeywords()
   {
     /**
@@ -457,8 +528,7 @@ public class tldr implements ActionListener {
      */
 
     // Gets user-inputted string from text field
-    String keywordString = "";
-    keywordString = keywordField.getText();
+    String keywordString = keywordField.getText();
 
     // Adds each individual inputted keyword to list of keywords
     String[] keywordsArray = keywordString.split(",");
@@ -504,7 +574,7 @@ public class tldr implements ActionListener {
      */
 
     // Retrieves selected words
-    ArrayList<String> selectedKeywords = new ArrayList<String>();
+    ArrayList<String> selectedKeywords;
 
     // Adds words to list of keywords
     if (preloadedList.getSelectedValuesList().size() > 0)
@@ -517,7 +587,8 @@ public class tldr implements ActionListener {
     }
   }
 
-  private void searchKeywords() throws IOException {
+  private void searchKeywords() throws IOException
+  {
     /**
     1. Extract pages from PDF
     2. Split up pages into increments of 20
@@ -544,7 +615,8 @@ public class tldr implements ActionListener {
 //    }
   }
 
-  private void createThreads(ArrayList<ArrayList<PDPage>> pageGroups) {
+  private void createThreads(ArrayList<ArrayList<PDPage>> pageGroups)
+  {
     // TODO: Implement create threads method
 
     try
@@ -561,7 +633,8 @@ public class tldr implements ActionListener {
     }
   }
 
-  private ArrayList<ArrayList<PDPage>> separateContent() throws IOException {
+  private ArrayList<ArrayList<PDPage>> separateContent() throws IOException
+  {
     // TODO: Implement separate content method
     if (file != null)
     {
@@ -569,12 +642,12 @@ public class tldr implements ActionListener {
       PDFTextStripper textStripper = new PDFTextStripper();
 
 //      ArrayList<SearchThread> threads = new ArrayList<SearchThread>();
-      ArrayList<ArrayList<PDPage>> pageGroups = new ArrayList<ArrayList<PDPage>>();
+      ArrayList<ArrayList<PDPage>> pageGroups = new ArrayList<>();
       int numGroups = doc.getNumberOfPages()/20;
       int index = 0;
       for (int i = 0; i < numGroups; i++)
       {
-        ArrayList<PDPage> pageGroup = new ArrayList<PDPage>();
+        ArrayList<PDPage> pageGroup = new ArrayList<>();
         for (index = i * 20; index < i*20 + 20; index++)
         {
           pageGroup.add(doc.getPage(index + 1));
@@ -582,7 +655,7 @@ public class tldr implements ActionListener {
         pageGroups.add(pageGroup);
       }
 
-      ArrayList<PDPage> pageGroup = new ArrayList<PDPage>();
+      ArrayList<PDPage> pageGroup = new ArrayList<>();
       for (int i = index; i < doc.getNumberOfPages(); i++)
       {
         pageGroup.add(doc.getPage(i));
@@ -594,6 +667,7 @@ public class tldr implements ActionListener {
     }
     return null;
   }
+
   private void openSearchFile()
   {
     /**
@@ -606,7 +680,8 @@ public class tldr implements ActionListener {
     fileDialog.setVisible(true);
 
     // Gets selected file
-    if (fileDialog.getFile().indexOf(".pdf") != -1)
+    if (fileDialog.getFile().contains(".pdf"))
+
     {
       String path = fileDialog.getDirectory() + fileDialog.getFile();
       file = new File(path);
@@ -626,7 +701,8 @@ public class tldr implements ActionListener {
     fileDialog.setVisible(true);
 
     // Gets selected file and reads keywords within file
-    if (fileDialog.getFile().indexOf(".txt") != -1)
+    if (fileDialog.getFile().contains(".txt"))
+
     {
       keywordsFile = new File(fileDialog.getDirectory() + fileDialog.getFile());
       readKeywords();
@@ -639,7 +715,7 @@ public class tldr implements ActionListener {
      * Retrieves keywords from inputted text file and adds keywords to list of keywords.
      */
     BufferedReader reader = new BufferedReader(new FileReader(keywordsFile));
-    String str = "";
+    String str;
     while ((str = reader.readLine()) != null)
     {
       keywords.add(str);
@@ -648,10 +724,11 @@ public class tldr implements ActionListener {
 
   }
 
-  private String mergePDFFiles() {
+  private String mergePDFFiles()
+  {
     /** Takes as many PDF files as provided and merges them into one file
      *   Input: array of values
-     *   Returns: path of the created file
+     *   Returns: path of the created file, if exception thrown, returns blank string
      */
 
     fileDialog = new FileDialog(frame, "Open Files to Merge");
@@ -663,8 +740,8 @@ public class tldr implements ActionListener {
     String fileName = "";
 
     //creates a name for the file
-    for (int fileNumber = 0; fileNumber < files.length; fileNumber++) {
-      fileName += files[fileNumber].getName().split("pdf");
+    for (File file: files) {
+      fileName += file.getName().split("pdf");
     }
 
     //creates file itself
@@ -689,21 +766,23 @@ public class tldr implements ActionListener {
 
       //iterates through the files and adds to first file page by page
       for (int fileNum = 1; fileNum < files.length; fileNum++) {
-        PDDocument doc = PDDocument.load(files[fileNum]);
+          PDDocument doc = PDDocument.load(files[fileNum]);
 
-        for(int pageNumber = 0; pageNumber< doc.getNumberOfPages(); pageNumber++)
-        {
-          merged.addPage(doc.getPage(pageNumber));
-
+          for (int pageNumber = 0; pageNumber < doc.getNumberOfPages(); pageNumber++) {
+              merged.addPage(doc.getPage(pageNumber));
+          }
       }
+        merged.save(mergedFile);
+        merged.close();
 
-    }
+        return mergedFile.getAbsolutePath();
+
     }
     catch(IOException exception)
     {
       exception.printStackTrace();
     }
-  return fileName;
+  return "";
   }
 
   private File makeFile(String fileName, String fileExtension)
@@ -713,8 +792,8 @@ public class tldr implements ActionListener {
        *  Returns: newly made File
        */
 
-      File newFile = new File(System.getProperty("user.home")+ File.separator + fileName + fileExtension);
-      return newFile;
+      return new File(System.getProperty("user.home")+ File.separator + fileName + fileExtension);
+
   }
 
 }

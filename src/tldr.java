@@ -2,6 +2,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,8 +11,6 @@ import java.io.*;
 import java.util.ArrayList;
 
 // UI imports
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 
 public class tldr implements ActionListener {
 
@@ -58,7 +58,7 @@ public class tldr implements ActionListener {
 
   private void initializeFrame()
   {
-    /**
+     /**
      * Creates and configures the window.
      */
 
@@ -413,6 +413,7 @@ public class tldr implements ActionListener {
 
       //creates process which looks for the office version then reads it, WINDOWS DEPENDENT
 
+      //TODO: look more at process and runtime fcns
       Process process = Runtime.getRuntime().exec(new String [] {"cmd.exe", "/c", "assoc", ".xls"} );
       BufferedReader officeVersionReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
       String officeVersion = officeVersionReader.readLine();
@@ -543,14 +544,20 @@ public class tldr implements ActionListener {
 //    }
   }
 
-  private void createThreads(ArrayList<ArrayList<PDPage>> pageGroups) throws IOException {
+  private void createThreads(ArrayList<ArrayList<PDPage>> pageGroups) {
     // TODO: Implement create threads method
-    if (pageGroups != null)
+
+    try
     {
-      for (ArrayList<PDPage> pageGroup : pageGroups)
-      {
-        threads.add(new SearchThread(pageGroup, keywords));
+      if (pageGroups != null) {
+        for (ArrayList<PDPage> pageGroup : pageGroups) {
+          threads.add(new SearchThread(pageGroup, keywords));
+        }
       }
+    }
+    catch(Exception exception)
+    {
+      exception.printStackTrace();
     }
   }
 
@@ -641,12 +648,11 @@ public class tldr implements ActionListener {
 
   }
 
-  private String mergePDFFiles()
-  {
+  private String mergePDFFiles() {
     /** Takes as many PDF files as provided and merges them into one file
-    *   Input: array of values
-    *   Returns: path of the created file
-    */
+     *   Input: array of values
+     *   Returns: path of the created file
+     */
 
     fileDialog = new FileDialog(frame, "Open Files to Merge");
     fileDialog.setFile("*.pdf");
@@ -657,46 +663,47 @@ public class tldr implements ActionListener {
     String fileName = "";
 
     //creates a name for the file
-    for (int fileNumber = 0; fileNumber<files.length; fileNumber++)
-    {
-        fileName += files[fileNumber].getName().split("pdf");
+    for (int fileNumber = 0; fileNumber < files.length; fileNumber++) {
+      fileName += files[fileNumber].getName().split("pdf");
     }
 
     //creates file itself
     File mergedFile = makeFile(fileName, ".pdf");
 
     //checks if file was created successfully and creates a file if not
-   try
-   {
-       if (!mergedFile.exists())
-       {
-            mergedFile.createNewFile();
-       }
-   }
-
-   catch(IOException exception)
-   {
+    try {
+      if (!mergedFile.exists()) {
+        mergedFile.createNewFile();
+      }
+    } catch (IOException exception) {
       exception.printStackTrace();
-   }
+    }
 
-   mergedFile.setWritable(true);
-   mergedFile.setReadable(true);
+    mergedFile.setWritable(true);
+    mergedFile.setReadable(true);
 
-   //creates the documents so that they are accessible
-   try{
-       PDDocument merged = new PDDocument();
-       merged = PDDocument.load(files[0]);
-   }
-   catch(IOException exception){
-       exception.printStackTrace();
-  }
+    //creates the documents so that they are accessible
+    try {
+      PDDocument merged;
+      merged = PDDocument.load(files[0]);
 
+      //iterates through the files and adds to first file page by page
+      for (int fileNum = 1; fileNum < files.length; fileNum++) {
+        PDDocument doc = PDDocument.load(files[fileNum]);
 
-   for(int fileNum = 1; fileNum < files.length; fileNum ++)
-   {
+        for(int pageNumber = 0; pageNumber< doc.getNumberOfPages(); pageNumber++)
+        {
+          merged.addPage(doc.getPage(pageNumber));
 
-   }
-    return fileName;
+      }
+
+    }
+    }
+    catch(IOException exception)
+    {
+      exception.printStackTrace();
+    }
+  return fileName;
   }
 
   private File makeFile(String fileName, String fileExtension)

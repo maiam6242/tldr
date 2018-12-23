@@ -14,7 +14,7 @@ import java.util.ArrayList;
 
 // UI imports
 
-public class tldr implements ActionListener {
+class tldr implements ActionListener {
 
   private static JFrame frame;
   private static JPanel contentPane;
@@ -30,11 +30,11 @@ public class tldr implements ActionListener {
   private static JButton mergeBtn;
   private static JTextArea console;
   private static String currText = "";
-  private static ArrayList<String> keywords = new ArrayList<String>();
+  private static ArrayList<String> keywords = new ArrayList<>();
   private static FileDialog fileDialog;
   private static File file;
   private static File keywordsFile;
-  private static ArrayList<SearchThread> threads = new ArrayList<SearchThread>();
+  private static ArrayList<SearchThread> threads = new ArrayList<>();
   private static File CSV = null;
   private static HSSFWorkbook HSSF = null;
   private static XSSFWorkbook XSSF = null;
@@ -49,8 +49,8 @@ public class tldr implements ActionListener {
 
   private void initializeGUI()
   {
-    /**
-     * Initializes the user interface using Java Swing.
+    /*
+      Initializes the user interface using Java Swing.
      */
     initializeFrame();
     initializeLabels();
@@ -64,8 +64,8 @@ public class tldr implements ActionListener {
 
   private void initializeFrame()
   {
-     /**
-     * Creates and configures the window.
+     /*
+      Creates and configures the window.
      */
 
     // Creates the frame
@@ -99,8 +99,8 @@ public class tldr implements ActionListener {
 
   private void initializeLabels()
   {
-    /**
-     * Creates and positions all the labels (title label and instruction labels).
+    /*
+      Creates and positions all the labels (title label and instruction labels).
      */
 
     // Creates title label
@@ -143,8 +143,8 @@ public class tldr implements ActionListener {
 
   private void initializeTextField()
   {
-    /**
-     * Creates and configures text field where user can input keywords.
+    /*
+      Creates and configures text field where user can input keywords.
      */
 
     // Create keyword text field
@@ -174,11 +174,11 @@ public class tldr implements ActionListener {
 
   private void initializeDropDown()
   {
-    /**
-     * Initializes the dropdown from which user can select from preloaded keywords.
+    /*
+      Initializes the dropdown from which user can select from preloaded keywords.
      */
 
-    preloadedList = new JList<String>(fillPreloaded());
+    preloadedList = new JList<>(fillPreloaded());
     // Configures positioning of list within the grid bag layout
     GridBagConstraints gbc_preloadedList = new GridBagConstraints();
     gbc_preloadedList.insets = new Insets(0, 0, 5, 5);
@@ -207,9 +207,9 @@ public class tldr implements ActionListener {
 
   private String[] fillPreloaded()
   {
-    /**
-     * Fills list of preloaded keywords with keywords (currently hardcoded).
-    **/
+    /*
+      Fills list of preloaded keywords with keywords (currently hardcoded).
+    */
 
     String[] words = new String[] { "daddy", "folks", "family", "stack", "trap", "B", "king", "queen", "renegade",
             "P", "peace", "money", "100", "rose", "cash", "the life", "the game", "John", "trick", "track",
@@ -222,8 +222,8 @@ public class tldr implements ActionListener {
 
   private void initializeButtons()
   {
-    /**
-     * Creates and configures all the buttons
+    /*
+      Creates and configures all the buttons
      */
 
     // Configures GridBagConstraints object that'll be reused for all the objects (for simplicity)
@@ -272,8 +272,8 @@ public class tldr implements ActionListener {
 
   private void initializeConsole()
   {
-    /**
-     * Creates console where output messages are printed.
+    /*
+      Creates console where output messages are printed.
      */
 
     // Creates console and configures settings
@@ -295,15 +295,15 @@ public class tldr implements ActionListener {
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    /**
-     * Controls response to button clicks for each of the buttons.
+    /*
+      Controls response to button clicks for each of the buttons.
      */
 
-    /**
-     * Responds to user clicking the search button with the following steps:
-     * 1. Gets all user-inputted keywords
-     * 2. Gets all user-selected keywords from preloaded list
-     * 3. Searches file for keywords
+    /*
+      Responds to user clicking the search button with the following steps:
+      1. Gets all user-inputted keywords
+      2. Gets all user-selected keywords from preloaded list
+      3. Searches file for keywords
      */
     if (event.getSource() == searchBtn)
     {
@@ -325,10 +325,10 @@ public class tldr implements ActionListener {
       }
     }
 
-    /**
-     * Responds to the user clicking the button to open PDF file:
-     * 1. Opens file dialog
-     * 2. Retrieves selected file
+    /*
+      Responds to the user clicking the button to open PDF file:
+      1. Opens file dialog
+      2. Retrieves selected file
      */
     if (event.getSource() == searchFileBtn)
     {
@@ -336,11 +336,11 @@ public class tldr implements ActionListener {
       openSearchFile();
     }
 
-    /**
-     * Responds to user clicking the button to open a text file:
-     * 1. Opens file dialog
-     * 2. Retrieves selected text file
-     * 3. Reads text file and retrieves keywords found in file
+    /*
+      Responds to user clicking the button to open a text file:
+      1. Opens file dialog
+      2. Retrieves selected text file
+      3. Reads text file and retrieves keywords found in file
      */
     if (event.getSource() == textFileBtn)
     {
@@ -353,11 +353,11 @@ public class tldr implements ActionListener {
       }
     }
 
-    /**
-     * Responds to user clicking the button to merge files:
-     * 1. Opens file dialog
-     * 2. Retrieves files
-     * 3. Merges files
+    /*
+      Responds to user clicking the button to merge files:
+      1. Opens file dialog
+      2. Retrieves files
+      3. Merges files
      */
     if (event.getSource() == mergeBtn)
     {
@@ -404,10 +404,10 @@ public class tldr implements ActionListener {
 
   }
 
-  public void print(String s)
+  private void print(String s)
   {
-    /**
-     * Prints a string to the user console and Eclipse console.
+    /*
+      Prints a string to the user console and Eclipse console.
      */
     console.setText(currText + s + "\n");
     currText += s + "\n";
@@ -416,8 +416,8 @@ public class tldr implements ActionListener {
 
   public void print(ArrayList<String> strings)
   {
-    /**
-     * Prints an ArrayList of strings to the user console and Eclipse console.
+    /*
+      Prints an ArrayList of strings to the user console and Eclipse console.
      */
     for (String s : strings)
     {
@@ -429,8 +429,8 @@ public class tldr implements ActionListener {
 
   public void print(String[] strings)
   {
-    /**
-     * Prints an array of strings to the user console and Eclipse console.
+    /*
+      Prints an array of strings to the user console and Eclipse console.
      */
     for (String s : strings)
     {
@@ -442,9 +442,9 @@ public class tldr implements ActionListener {
 
   private int getOfficeVersion()
   {
-    /** Checks what (if any) version of office is on the system.
-     *  Returns 0 if no office is installed and the version number if office is installed
-     *  The version number is the last two digits of the year that the office package came out (83-Present)
+    /* Checks what (if any) version of office is on the system.
+       Returns 0 if no office is installed and the version number if office is installed
+       The version number is the last two digits of the year that the office package came out (83-Present)
      */
 
     //TODO: work on making this work regardless of OS (rn windows dependent) and understanding functionality a little bit better
@@ -491,9 +491,9 @@ public class tldr implements ActionListener {
 
   private String createCSVFile(File toBeCSV)
   {
-    /** Creates a file of type CSV
-     *  Input: PDF File with name that is wanted (Name inputted to search)
-     *  Returns: path of CSV File
+    /* Creates a file of type CSV
+       Input: PDF File with name that is wanted (Name inputted to search)
+       Returns: path of CSV File
      */
 
     //creates CSV File with same name as inputted PDF file
@@ -523,8 +523,8 @@ public class tldr implements ActionListener {
 
   private void getInputtedKeywords()
   {
-    /**
-     * Retrieves user-inputted keywords
+    /*
+      Retrieves user-inputted keywords
      */
 
     // Gets user-inputted string from text field
@@ -547,8 +547,8 @@ public class tldr implements ActionListener {
 
   private void trim(String[] arr)
   {
-    /**
-     * Removes white space from words in a String array.
+    /*
+      Removes white space from words in a String array.
      */
     for (int i = 0; i < arr.length; i++)
     {
@@ -558,8 +558,8 @@ public class tldr implements ActionListener {
 
   private void trim(ArrayList<String> arr)
   {
-    /**
-     * Removes white space from words in an ArrayList of strings.
+    /*
+      Removes white space from words in an ArrayList of strings.
      */
     for (int i = 0; i < arr.size(); i++)
     {
@@ -569,8 +569,8 @@ public class tldr implements ActionListener {
 
   private void getSelectedKeywords()
   {
-    /**
-     * Retrieves user-selected keywords from preloaded list and adds them to list of keywords to search.
+    /*
+      Retrieves user-selected keywords from preloaded list and adds them to list of keywords to search.
      */
 
     // Retrieves selected words
@@ -579,22 +579,19 @@ public class tldr implements ActionListener {
     // Adds words to list of keywords
     if (preloadedList.getSelectedValuesList().size() > 0)
     {
-      selectedKeywords = (ArrayList<String>) preloadedList.getSelectedValuesList();
-      for (String keyword : selectedKeywords)
-      {
-        keywords.add(keyword);
-      }
+      selectedKeywords = (ArrayList<String>)preloadedList.getSelectedValuesList();
+      keywords.addAll(selectedKeywords);
     }
   }
 
   private void searchKeywords() throws IOException
   {
-    /**
+    /*
     1. Extract pages from PDF
     2. Split up pages into increments of 20
     3. Create a thread for each increment (possibly put in ArrayList?)
     4. Start each thread
-    **/
+    */
 
     // TODO: Implement search keywords method
     createThreads(separateContent());
@@ -670,8 +667,8 @@ public class tldr implements ActionListener {
 
   private void openSearchFile()
   {
-    /**
-     * Creates file dialog so user can select a PDF file.
+    /*
+      Creates file dialog so user can select a PDF file.
      */
 
     // Opens file dialog with correct configuration: only PDF files, only one file
@@ -691,8 +688,8 @@ public class tldr implements ActionListener {
 
   private void openKeywordsFile() throws IOException
   {
-    /**
-     * Creates file dialog so user can select a text file.
+    /*
+      Creates file dialog so user can select a text file.
      */
 
     // Opens file dialog with correct configuration: only text files, only one file
@@ -711,8 +708,8 @@ public class tldr implements ActionListener {
 
   private static void readKeywords() throws IOException
   {
-    /**
-     * Retrieves keywords from inputted text file and adds keywords to list of keywords.
+    /*
+      Retrieves keywords from inputted text file and adds keywords to list of keywords.
      */
     BufferedReader reader = new BufferedReader(new FileReader(keywordsFile));
     String str;
@@ -726,9 +723,9 @@ public class tldr implements ActionListener {
 
   private String mergePDFFiles()
   {
-    /** Takes as many PDF files as provided and merges them into one file
-     *   Input: array of values
-     *   Returns: path of the created file, if exception thrown, returns blank string
+    /* Takes as many PDF files as provided and merges them into one file
+        Input: array of values
+        Returns: path of the created file, if exception thrown, returns blank string
      */
 
     fileDialog = new FileDialog(frame, "Open Files to Merge");
@@ -787,9 +784,9 @@ public class tldr implements ActionListener {
 
   private File makeFile(String fileName, String fileExtension)
   {
-      /** Creates a file in home directory
-       *  Input: name of file and the extension type
-       *  Returns: newly made File
+      /* Creates a file in home directory
+         Input: name of file and the extension type
+         Returns: newly made File
        */
 
       return new File(System.getProperty("user.home")+ File.separator + fileName + fileExtension);

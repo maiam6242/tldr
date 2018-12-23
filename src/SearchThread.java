@@ -2,7 +2,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 
 import java.util.ArrayList;
 
-public class SearchThread implements Runnable {
+class SearchThread implements Runnable {
   private ArrayList<PDPage> pages;
   private ArrayList<String> keywords;
 
@@ -19,7 +19,7 @@ public class SearchThread implements Runnable {
   }
 
   public void run() {
-    /**
+    /*
     for (page : pages)
     {
     extractTextFromPage()
@@ -32,7 +32,7 @@ public class SearchThread implements Runnable {
   }
   }
   }
-    **/
+    */
     {
 
     }

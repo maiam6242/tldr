@@ -2,7 +2,11 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -42,9 +46,10 @@ class tldr implements ActionListener {
 
   private static boolean testing = true;
 
-  public tldr()
+  tldr()
+
   {
-    initializeGUI();
+     initializeGUI();
   }
 
   private void initializeGUI()
@@ -205,17 +210,18 @@ class tldr implements ActionListener {
 
   }
 
+  @Contract(pure = true)
   private String[] fillPreloaded()
   {
     /*
       Fills list of preloaded keywords with keywords (currently hardcoded).
     */
 
-    String[] words = new String[] { "daddy", "folks", "family", "stack", "trap", "B", "king", "queen", "renegade",
-            "P", "peace", "money", "100", "rose", "cash", "the life", "the game", "John", "trick", "track",
-            "turnout", "square", "304", "16", "HGO", "PGO", "MOB", "MOE", "bitch", "hoe", "bottom bitch",
-            "bottom girl", "automatic", "AP", "hocialize", "hocializing", "boot", "new bunny", "SMH", "SMPH",
-            "choose up" };
+    String[] words = new String[]{"100", "16", "304", "AP", "B", "HGO", "John", "MOB", "MOE",
+            "P", "PGO", "SMH", "SMPH", "automatic", "bitch", "boot", "bottom bitch", "bottom girl", "cash", "choose up",
+            "daddy", "family", "folks", "hocialize", "hocializing", "hoe", "king", "money", "new bunny", "peace", "queen",
+            "renegade", "rose", "square", "stack", "the game", "the life", "track", "trap", "trick",
+            "turnout"};
 
     return words;
   }
@@ -292,7 +298,6 @@ class tldr implements ActionListener {
     contentPane.add(consoleScrollPane, gbc_console);
   }
 
-  @Override
   public void actionPerformed(ActionEvent event)
   {
     /*
@@ -345,12 +350,9 @@ class tldr implements ActionListener {
     if (event.getSource() == textFileBtn)
     {
       if (testing) System.out.println("Open text file button clicked.");
-      try {
+
         openKeywordsFile();
-      } catch (IOException e) {
-        print(e.getMessage());
-        e.printStackTrace();
-      }
+
     }
 
     /*
@@ -366,45 +368,94 @@ class tldr implements ActionListener {
     }
   }
 
-  public void summarySheet()
+  private void createSummarySheet(File docName)
 
   {
+    /* Creates a file based on the Office Version Installed
+        Input: File (presumably the one inputted originally by user) which will
+        have the same name as summary sheet
+     */
     // creates file based on Office Version Installed
 
-    int officeVersion = getOfficeVersion();
-
-
-    try {
+    int officeVersion;
+    officeVersion = getOfficeVersion();
 
         //this is a .CSV file
         if (officeVersion == 0)
         {
-          createCSVFile();
+          createCSVFile(docName);
         }
 
         //this is a .XLS file
         if(officeVersion <= 7 || officeVersion > 83)
         {
-          createHSSFFile();
+          createHSSFFile(docName);
         }
 
         //this is a .XLSX file
         if(officeVersion > 7)
         {
-          createXSSFFile();
+          createXSSFFile(docName);
         }
+  }
 
-     }
-
-    catch (IOException exception)
+  private void writeSummarySheet()
+  {
+    /*
+    Checks which static variable has been written (which sheet type has been
+    created), gets the content of hash map then writes it to the sheet
+     */
+    //checks if any sheet has been created
+    if(CSV == null && XSSF == null && HSSF == null)
     {
-      exception.printStackTrace();
+      if(testing)
+      System.out.println("Summary sheet not created when writeSheet called");
+      createSummarySheet(file);
+      writeSummarySheet();
     }
 
+    //else writes content to doc type which isn't null
+     else if(CSV != null)
+    {
+      writeCSVFile();
+    }
+
+    else if(XSSF != null)
+    {
+      writeXSSFFile();
+    }
+
+    else if(HSSF != null)
+    {
+      writeHSSFFile();
+    }
+
+  }
+  private void writeCSVFile()
+  {
 
   }
 
-  private void print(String s)
+  private void writeHSSFFile()
+  {
+
+  }
+  private void writeXSSFFile()
+  {
+
+  }
+
+  private void createHSSFFile(File toBeHSSF)
+  {
+
+  }
+
+  private void createXSSFFile(File toBeXSSF)
+  {
+
+  }
+
+  private static void print(String s)
   {
     /*
       Prints a string to the user console and Eclipse console.
@@ -477,6 +528,7 @@ class tldr implements ActionListener {
 
     }
     catch(Exception error){
+        print(error.getMessage());
         error.printStackTrace();
     }
 
@@ -484,14 +536,9 @@ class tldr implements ActionListener {
 
   }
 
-  private void createExcelFile()
-  {
-    // TODO: Implement create excel file method
-  }
-
   private String createCSVFile(File toBeCSV)
   {
-    /* Creates a file of type CSV
+    /* Creates a file of type CSV with header
        Input: PDF File with name that is wanted (Name inputted to search)
        Returns: path of CSV File
      */
@@ -545,7 +592,7 @@ class tldr implements ActionListener {
     trim(keywords);
   }
 
-  private void trim(String[] arr)
+  private void trim(@NotNull String[] arr)
   {
     /*
       Removes white space from words in a String array.
@@ -556,7 +603,7 @@ class tldr implements ActionListener {
     }
   }
 
-  private void trim(ArrayList<String> arr)
+  private void trim(@NotNull ArrayList<String> arr)
   {
     /*
       Removes white space from words in an ArrayList of strings.
@@ -627,40 +674,48 @@ class tldr implements ActionListener {
     catch(Exception exception)
     {
       exception.printStackTrace();
+      print(exception.getMessage());
     }
   }
 
-  private ArrayList<ArrayList<PDPage>> separateContent() throws IOException
+  @Nullable
+  private ArrayList<ArrayList<PDPage>> separateContent()
   {
+    // TODO: put what method does in comment here with inputs & outputs
     // TODO: Implement separate content method
     if (file != null)
     {
-      PDDocument doc = PDDocument.load(file);
-      PDFTextStripper textStripper = new PDFTextStripper();
+        try {
+            PDDocument doc = PDDocument.load(file);
+            // TODO: why is this textStripper created?
+            PDFTextStripper textStripper = new PDFTextStripper();
+
 
 //      ArrayList<SearchThread> threads = new ArrayList<SearchThread>();
-      ArrayList<ArrayList<PDPage>> pageGroups = new ArrayList<>();
-      int numGroups = doc.getNumberOfPages()/20;
-      int index = 0;
-      for (int i = 0; i < numGroups; i++)
-      {
-        ArrayList<PDPage> pageGroup = new ArrayList<>();
-        for (index = i * 20; index < i*20 + 20; index++)
-        {
-          pageGroup.add(doc.getPage(index + 1));
+            ArrayList<ArrayList<PDPage>> pageGroups = new ArrayList<>();
+            int numGroups = doc.getNumberOfPages() / 20;
+            int index = 0;
+            for (int i = 0; i < numGroups; i++) {
+                ArrayList<PDPage> pageGroup = new ArrayList<>();
+                for (index = i * 20; index < i * 20 + 20; index++) {
+                    pageGroup.add(doc.getPage(index + 1));
+                }
+                pageGroups.add(pageGroup);
+            }
+
+            ArrayList<PDPage> pageGroup = new ArrayList<>();
+            for (int i = index; i < doc.getNumberOfPages(); i++) {
+                pageGroup.add(doc.getPage(i));
+            }
+            pageGroups.add(pageGroup);
+
+            return pageGroups;
         }
-        pageGroups.add(pageGroup);
-      }
-
-      ArrayList<PDPage> pageGroup = new ArrayList<>();
-      for (int i = index; i < doc.getNumberOfPages(); i++)
-      {
-        pageGroup.add(doc.getPage(i));
-      }
-      pageGroups.add(pageGroup);
-
-      return pageGroups;
-
+        catch(IOException exception)
+        {
+            exception.printStackTrace();
+            print(exception.getMessage());
+        }
     }
     return null;
   }
@@ -686,7 +741,7 @@ class tldr implements ActionListener {
     }
   }
 
-  private void openKeywordsFile() throws IOException
+  private void openKeywordsFile()
   {
     /*
       Creates file dialog so user can select a text file.
@@ -697,30 +752,57 @@ class tldr implements ActionListener {
     fileDialog.setFile("*.txt");
     fileDialog.setVisible(true);
 
+
+    //checks that file is inputted
+    if(fileDialog.getFile() == null)
+    {
+        print("Please input a text file");
+        if(testing)
+        {
+            System.out.println("No file inputted when 'Text File with Keywords' " +
+                    "button pushed");
+        }
+    }
+
     // Gets selected file and reads keywords within file
-    if (fileDialog.getFile().contains(".txt"))
+    if (fileDialog.getFile()!= null && fileDialog.getFile().contains(".txt"))
 
     {
       keywordsFile = new File(fileDialog.getDirectory() + fileDialog.getFile());
       readKeywords();
     }
+    else
+    {
+        print("Please input a text file");
+        if(testing)
+        {
+            System.out.println("Text file not inputted when 'TextFile with " +
+                    "Keywords' button pushed");
+        }
+    }
   }
 
-  private static void readKeywords() throws IOException
+  private static void readKeywords()
   {
     /*
       Retrieves keywords from inputted text file and adds keywords to list of keywords.
      */
-    BufferedReader reader = new BufferedReader(new FileReader(keywordsFile));
-    String str;
-    while ((str = reader.readLine()) != null)
-    {
-      keywords.add(str);
+    try {
+        BufferedReader reader = new BufferedReader(new FileReader(keywordsFile));
+        String str;
+        while ((str = reader.readLine()) != null) {
+            keywords.add(str);
+        }
+        reader.close();
     }
-    reader.close();
-
+    catch(IOException exception)
+    {
+        exception.printStackTrace();
+        print(exception.getMessage());
+    }
   }
 
+  @NotNull
   private String mergePDFFiles()
   {
     /* Takes as many PDF files as provided and merges them into one file
@@ -746,11 +828,14 @@ class tldr implements ActionListener {
 
     //checks if file was created successfully and creates a file if not
     try {
-      if (!mergedFile.exists()) {
+      if (!mergedFile.exists())
+      {
         mergedFile.createNewFile();
       }
-    } catch (IOException exception) {
+    } catch (IOException exception)
+    {
       exception.printStackTrace();
+      print(exception.getMessage());
     }
 
     mergedFile.setWritable(true);
@@ -778,10 +863,13 @@ class tldr implements ActionListener {
     catch(IOException exception)
     {
       exception.printStackTrace();
+      print(exception.getMessage());
     }
   return "";
   }
 
+  @NotNull
+  @Contract("_, _ -> new")
   private File makeFile(String fileName, String fileExtension)
   {
       /* Creates a file in home directory

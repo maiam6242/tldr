@@ -3,6 +3,8 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -40,8 +42,8 @@ class tldr implements ActionListener {
   private static File keywordsFile;
   private static ArrayList<SearchThread> threads = new ArrayList<>();
   private static File CSV = null;
-  private static HSSFWorkbook HSSF = null;
-  private static XSSFWorkbook XSSF = null;
+  private static Workbook HSSF = null;
+  private static Workbook XSSF = null;
   private static FileWriter fileWriter;
 
   private static boolean testing = true;
@@ -409,7 +411,8 @@ class tldr implements ActionListener {
     if(CSV == null && XSSF == null && HSSF == null)
     {
       if(testing)
-      System.out.println("Summary sheet not created when writeSheet called");
+      System.out.println("Summary sheet not created when writeSummarySheet " +
+              "called");
       createSummarySheet(file);
       writeSummarySheet();
     }
@@ -440,17 +443,50 @@ class tldr implements ActionListener {
   {
 
   }
+
   private void writeXSSFFile()
   {
 
   }
 
-  private void createHSSFFile(File toBeHSSF)
+  private String createHSSFFile(File toBeHSSF)
   {
+      /*Creates a file of type .XLS with header
+      Input: PDF File with name that is wanted (Name inputted to search)
+      Returns: path of HSSF File
+      */
+      int indexOfPDF = toBeHSSF.getName().lastIndexOf(".pdf");
+      File HSSFFile = new File(toBeHSSF.getName().substring(0,indexOfPDF));
+
+      try
+      {
+          HSSF = WorkbookFactory.create(HSSFFile);
+          formatHSSF();
+      }
+      catch(IOException exception)
+      {
+          print(exception.getMessage());
+          exception.printStackTrace();
+      }
+
+      return HSSFFile.getAbsolutePath();
+  }
+
+  private void formatHSSF()
+  {
+      HSSF.createSheet();
+      org.apache.poi.ss.usermodel.Font hssfFont = HSSF.createFont();
+      hssfFont.setFontName("Tahoma");
+
 
   }
 
   private void createXSSFFile(File toBeXSSF)
+  {
+
+  }
+
+  private static void formatXSSF()
   {
 
   }
@@ -561,6 +597,7 @@ class tldr implements ActionListener {
     catch(IOException exception)
     {
       exception.printStackTrace();
+        print(exception.getMessage());
     }
     //writes the created CSV file to static CSV to be accessed for writing later
 

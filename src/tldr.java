@@ -508,7 +508,31 @@ class tldr implements ActionListener {
 
   private static void formatXSSF()
   {
+    Sheet sheet = XSSF.createSheet();
 
+
+    //sets font
+    org.apache.poi.ss.usermodel.Font xssfFont = XSSF.createFont();
+    xssfFont.setFontName("Tahoma");
+
+    //creates and freezes first row
+    Row firstRow = sheet.createRow(1);
+    sheet.createFreezePane(0,1,0,1);
+    firstRow.createCell(0).setCellValue("Document Name");
+    firstRow.createCell(1).setCellValue("Keyword");
+    firstRow.createCell(2).setCellValue("Page");
+    firstRow.createCell(3).setCellValue("Line Number");
+
+    //TODO: Figure out hyperlink file path stuff
+    firstRow.createCell(4).setHyperlink();
+
+    //makes the text wrapped for each cell in header
+    CellStyle wrapStyle = XSSF.createCellStyle();
+    wrapStyle.setWrapText(true);
+    for (Cell cell: firstRow)
+    {
+      cell.setCellStyle(wrapStyle);
+    }
   }
 
   private static void print(String s)
@@ -688,7 +712,7 @@ class tldr implements ActionListener {
     }
   }
 
-  private void searchKeywords() throws IOException
+  private void searchKeywords()
   {
     /*
     1. Extract pages from PDF
@@ -897,6 +921,8 @@ class tldr implements ActionListener {
 
     mergedFile.setWritable(true);
     mergedFile.setReadable(true);
+
+
 
     //creates the documents so that they are accessible
     try {

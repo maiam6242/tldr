@@ -2,9 +2,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -474,11 +474,31 @@ class tldr implements ActionListener {
 
   private void formatHSSF()
   {
-      HSSF.createSheet();
+      Sheet sheet = HSSF.createSheet();
+
+
+      //sets font
       org.apache.poi.ss.usermodel.Font hssfFont = HSSF.createFont();
       hssfFont.setFontName("Tahoma");
 
+      //creates and freezes first row
+      Row firstRow = sheet.createRow(1);
+      sheet.createFreezePane(0,1,0,1);
+      firstRow.createCell(0).setCellValue("Document Name");
+      firstRow.createCell(1).setCellValue("Keyword");
+      firstRow.createCell(2).setCellValue("Page");
+      firstRow.createCell(3).setCellValue("Line Number");
 
+      //TODO: Figure out hyperlink file path stuff
+      firstRow.createCell(4).setHyperlink();
+
+      //makes the text wrapped for each cell in header
+      CellStyle wrapStyle = HSSF.createCellStyle();
+      wrapStyle.setWrapText(true);
+      for (Cell cell: firstRow)
+      {
+          cell.setCellStyle(wrapStyle);
+      }
   }
 
   private void createXSSFFile(File toBeXSSF)

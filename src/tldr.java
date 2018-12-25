@@ -1,12 +1,8 @@
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -78,6 +74,7 @@ class tldr implements ActionListener {
     // Creates the frame
     // Initialize JFrame object
     frame = new JFrame();
+
     // Configures frame to close when process terminates
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     // Sets size of frame
@@ -87,8 +84,10 @@ class tldr implements ActionListener {
     contentPane = new JPanel();
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
+
     // Adds content pane to frame
     frame.setContentPane(contentPane);
+
 
     // Configures grid bag layout
     GridBagLayout gbl_contentPane = new GridBagLayout();
@@ -219,13 +218,15 @@ class tldr implements ActionListener {
       Fills list of preloaded keywords with keywords (currently hardcoded).
     */
 
-    String[] words = new String[]{"100", "16", "304", "AP", "B", "HGO", "John", "MOB", "MOE",
+    String[] HTwords = new String[]{"100", "16", "304", "AP", "B", "HGO",
+            "John", "MOB", "MOE",
             "P", "PGO", "SMH", "SMPH", "automatic", "bitch", "boot", "bottom bitch", "bottom girl", "cash", "choose up",
             "daddy", "family", "folks", "hocialize", "hocializing", "hoe", "king", "money", "new bunny", "peace", "queen",
             "renegade", "rose", "square", "stack", "the game", "the life", "track", "trap", "trick",
             "turnout"};
 
-    return words;
+
+    return HTwords;
   }
 
   private void initializeButtons()
@@ -289,6 +290,7 @@ class tldr implements ActionListener {
     console.setEditable(false);
     console.setLineWrap(true);
 
+
     // Creates scroll ar for console
     JScrollPane consoleScrollPane = new JScrollPane(console);
     GridBagConstraints gbc_console = new GridBagConstraints();
@@ -321,7 +323,7 @@ class tldr implements ActionListener {
       {
         try {
           searchKeywords();
-        } catch (IOException e) {
+        } catch (Exception e) {
           print(e.getMessage());
           e.printStackTrace();
         }
@@ -407,18 +409,9 @@ class tldr implements ActionListener {
     Checks which static variable has been written (which sheet type has been
     created), gets the content of hash map then writes it to the sheet
      */
-    //checks if any sheet has been created
-    if(CSV == null && XSSF == null && HSSF == null)
-    {
-      if(testing)
-      System.out.println("Summary sheet not created when writeSummarySheet " +
-              "called");
-      createSummarySheet(file);
-      writeSummarySheet();
-    }
 
-    //else writes content to doc type which isn't null
-     else if(CSV != null)
+    //writes content to doc type which isn't null
+    if(CSV != null)
     {
       writeCSVFile();
     }
@@ -428,9 +421,20 @@ class tldr implements ActionListener {
       writeXSSFFile();
     }
 
+
     else if(HSSF != null)
     {
       writeHSSFFile();
+    }
+
+    //if no sheet has been created
+    else
+      {
+        if(testing)
+          System.out.println("Summary sheet not created when writeSummarySheet " +
+                  "called");
+        createSummarySheet(file);
+        writeSummarySheet();
     }
 
   }
@@ -474,8 +478,10 @@ class tldr implements ActionListener {
 
   private void formatHSSF()
   {
+    /*
+      Creates a sheet in an HSSF workbook with correct format and header
+   */
       Sheet sheet = HSSF.createSheet();
-
 
       //sets font
       org.apache.poi.ss.usermodel.Font hssfFont = HSSF.createFont();
@@ -489,9 +495,6 @@ class tldr implements ActionListener {
       firstRow.createCell(2).setCellValue("Page");
       firstRow.createCell(3).setCellValue("Line Number");
 
-      //TODO: Figure out hyperlink file path stuff
-      firstRow.createCell(4).setHyperlink();
-
       //makes the text wrapped for each cell in header
       CellStyle wrapStyle = HSSF.createCellStyle();
       wrapStyle.setWrapText(true);
@@ -501,13 +504,34 @@ class tldr implements ActionListener {
       }
   }
 
-  private void createXSSFFile(File toBeXSSF)
-  {
+  private String createXSSFFile(File toBeXSSF)
+  {     /*Creates a file of type .XLXS with header
+      Input: PDF File with name that is wanted (Name inputted to search)
+      Returns: path of XSSF File
+      */
+    int indexOfPDF = toBeXSSF.getName().lastIndexOf(".pdf");
+    File XSSFFile = new File(toBeXSSF.getName().substring(0,indexOfPDF));
+
+    try
+    {
+      HSSF = WorkbookFactory.create(XSSFFile);
+      formatXSSF();
+    }
+    catch(IOException exception)
+    {
+      print(exception.getMessage());
+      exception.printStackTrace();
+    }
+
+    return XSSFFile.getAbsolutePath();
 
   }
 
   private static void formatXSSF()
   {
+    /*
+    Creates a sheet in an XSSF workbook with correct format and header
+     */
     Sheet sheet = XSSF.createSheet();
 
 
@@ -522,9 +546,7 @@ class tldr implements ActionListener {
     firstRow.createCell(1).setCellValue("Keyword");
     firstRow.createCell(2).setCellValue("Page");
     firstRow.createCell(3).setCellValue("Line Number");
-
-    //TODO: Figure out hyperlink file path stuff
-    firstRow.createCell(4).setHyperlink();
+    firstRow.createCell(4).setCellValue("Path to File");
 
     //makes the text wrapped for each cell in header
     CellStyle wrapStyle = XSSF.createCellStyle();
@@ -720,10 +742,19 @@ class tldr implements ActionListener {
     3. Create a thread for each increment (possibly put in ArrayList?)
     4. Start each thread
     */
+  try {
+  // TODO: Implement search keywords method
+  createThreads(separateContent());
+  runThreads();
+  }
 
-    // TODO: Implement search keywords method
-    createThreads(separateContent());
-    runThreads();
+  //add in IOException if that's actually what can be thrown
+  catch(Exception exception)
+    {
+      if(testing)
+        print(exception.getMessage());
+      exception.printStackTrace();
+  }
   }
 
   private void runThreads()

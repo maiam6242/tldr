@@ -33,9 +33,25 @@ class SearchThread implements Runnable {
   }
   }
     */
-    {
-
-    }
 
   }
+
+  private void extractTextFromPage()
+
+  {
+
+  }
+
+  private void snapshotLine()
+
+  {
+
+  }
+
+  private void saveLocToHashMap()
+
+  {
+
+  }
+
 }

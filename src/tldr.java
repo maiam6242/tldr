@@ -31,7 +31,7 @@ class tldr implements ActionListener {
   private static JButton textFileBtn;
   private static JButton mergeBtn;
   private static JTextArea console;
-  private static String currText = "";
+  private static StringBuffer currText;
   private static ArrayList<String> keywords = new ArrayList<>();
   private static FileDialog fileDialog;
   private static File file;
@@ -373,13 +373,13 @@ class tldr implements ActionListener {
   }
 
   private void createSummarySheet(File docName)
-
   {
     /* Creates a file based on the Office Version Installed
         Input: File (presumably the one inputted originally by user) which will
         have the same name as summary sheet
      */
-    // creates file based on Office Version Installed
+
+    // TODO: Implement createSummarySheet correctly
 
     int officeVersion;
     officeVersion = getOfficeVersion();
@@ -409,6 +409,7 @@ class tldr implements ActionListener {
     Checks which static variable has been written (which sheet type has been
     created), gets the content of hash map then writes it to the sheet
      */
+    //TODO: Implement writeSummarySheet
 
     //writes content to doc type which isn't null
     if(CSV != null)
@@ -438,18 +439,31 @@ class tldr implements ActionListener {
     }
 
   }
+
   private void writeCSVFile()
   {
+  /* Writes CSV file with the contents of the hashmap (name, line, page,
+  keyword, file path) each into a new row of a CSV file and save the file
+  */
+
 
   }
 
   private void writeHSSFFile()
   {
+    /*Writes .XLS file with the contents of the hashmap (name, line, page,
+      keyword, file path) each into a new row of a HSSF file and save the file
+    */
+
 
   }
 
   private void writeXSSFFile()
   {
+    /*Writes .XLS file with the contents of the hashmap (name, line, page,
+      keyword, file path) each into a new row of a HSSF file and save the file
+    */
+
 
   }
 
@@ -563,7 +577,8 @@ class tldr implements ActionListener {
       Prints a string to the user console and Eclipse console.
      */
     console.setText(currText + s + "\n");
-    currText += s + "\n";
+    currText.append(s);
+    currText.append( "\n");
     System.out.println(s);
   }
 
@@ -575,7 +590,8 @@ class tldr implements ActionListener {
     for (String s : strings)
     {
       console.setText(currText + s + "\n");
-      currText += s + "\n";
+      currText.append(s);
+      currText.append( "\n");
       System.out.println(s);
     }
   }
@@ -588,7 +604,8 @@ class tldr implements ActionListener {
     for (String s : strings)
     {
       console.setText(currText + s + "\n");
-      currText += s + "\n";
+      currText.append(s);
+      currText.append( "\n");
       System.out.println(s);
     }
   }
@@ -928,15 +945,18 @@ class tldr implements ActionListener {
     fileDialog.setVisible(true);
     File[] files = fileDialog.getFiles();
 
-    String fileName = "";
+    StringBuffer fileName;
 
     //creates a name for the file
     for (File file: files) {
-      fileName += file.getName().split("pdf");
+
+      fileName.append("");
+      fileName.append(file.getName().split("pdf"));
     }
 
+
     //creates file itself
-    File mergedFile = makeFile(fileName, ".pdf");
+    File mergedFile = makeFile(fileName.toString(), ".pdf");
 
     //checks if file was created successfully and creates a file if not
     try {

@@ -31,7 +31,7 @@ class tldr implements ActionListener {
   private static JButton textFileBtn;
   private static JButton mergeBtn;
   private static JTextArea console;
-  private static StringBuffer currText;
+  private static StringBuffer currText = new StringBuffer();
   private static ArrayList<String> keywords = new ArrayList<>();
   private static FileDialog fileDialog;
   private static File file;
@@ -945,12 +945,10 @@ class tldr implements ActionListener {
     fileDialog.setVisible(true);
     File[] files = fileDialog.getFiles();
 
-    StringBuffer fileName;
+    StringBuffer fileName = new StringBuffer();
 
     //creates a name for the file
     for (File file: files) {
-
-      fileName.append("");
       fileName.append(file.getName().split("pdf"));
     }
 

@@ -2,7 +2,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.ss.usermodel.*;
-import org.jetbrains.annotations.*;
+// import org.jetbrains.annotations.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -36,11 +36,12 @@ class tldr implements ActionListener {
   private static FileDialog fileDialog;
   private static File file;
   private static File keywordsFile;
-  private static ArrayList<SearchThread> threads = new ArrayList<>();
+  private static ArrayList<Thread> threads = new ArrayList<>();
   private static File CSV = null;
   private static Workbook HSSF = null;
   private static Workbook XSSF = null;
   private static FileWriter fileWriter;
+  private static PDDocument doc;
 
   private static boolean testing = true;
 
@@ -211,7 +212,6 @@ class tldr implements ActionListener {
 
   }
 
-  @Contract(pure = true)
   private String[] fillPreloaded()
   {
     /*
@@ -712,7 +712,7 @@ class tldr implements ActionListener {
     trim(keywords);
   }
 
-  private void trim(@NotNull String[] arr)
+  private void trim(String[] arr)
   {
     /*
       Removes white space from words in a String array.
@@ -723,7 +723,7 @@ class tldr implements ActionListener {
     }
   }
 
-  private void trim(@NotNull ArrayList<String> arr)
+  private void trim(ArrayList<String> arr)
   {
     /*
       Removes white space from words in an ArrayList of strings.
@@ -761,8 +761,10 @@ class tldr implements ActionListener {
     */
   try {
   // TODO: Implement search keywords method
-  createThreads(separateContent());
-  runThreads();
+    print("Searching for following keywords: ");
+    print(keywords);
+    createThreads(separateContent());
+    runThreads();
   }
 
   //add in IOException if that's actually what can be thrown
@@ -776,6 +778,20 @@ class tldr implements ActionListener {
 
   private void runThreads()
   {
+    System.out.println("Running threads");
+    for (Thread thread : threads)
+    {
+      System.out.println("Current thread: " + thread);
+      thread.start();
+    }
+
+    for (Thread thread : threads) {
+      try {
+        thread.join();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
     // TODO: Implement run threads method
 //    for (Thread t : threads)
 //    {
@@ -788,16 +804,18 @@ class tldr implements ActionListener {
 //    }
   }
 
-  private void createThreads(ArrayList<ArrayList<PDPage>> pageGroups)
+  private void createThreads(ArrayList<ArrayList<Integer>> pageGroups)
   {
+    System.out.println("Creating threads");
     // TODO: Implement create threads method
 
     try
     {
       if (pageGroups != null) {
-        for (ArrayList<PDPage> pageGroup : pageGroups) {
-          threads.add(new SearchThread(pageGroup, keywords));
+        for (ArrayList<Integer> pageGroup : pageGroups) {
+          threads.add(new Thread(new SearchThread(pageGroup, keywords, doc)));
         }
+        System.out.println("Created threads: " + threads.size());
       }
     }
     catch(Exception exception)
@@ -807,36 +825,38 @@ class tldr implements ActionListener {
     }
   }
 
-  @Nullable
-  private ArrayList<ArrayList<PDPage>> separateContent()
+  private ArrayList<ArrayList<Integer>> separateContent()
   {
     // TODO: put what method does in comment here with inputs & outputs
     // TODO: Implement separate content method
     if (file != null)
     {
         try {
-            PDDocument doc = PDDocument.load(file);
+            doc = PDDocument.load(file);
             // TODO: why is this textStripper created?
             PDFTextStripper textStripper = new PDFTextStripper();
 
 
 //      ArrayList<SearchThread> threads = new ArrayList<SearchThread>();
-            ArrayList<ArrayList<PDPage>> pageGroups = new ArrayList<>();
+            ArrayList<ArrayList<Integer>> pageGroups = new ArrayList<>();
             int numGroups = doc.getNumberOfPages() / 20;
             int index = 0;
-            for (int i = 0; i < numGroups; i++) {
-                ArrayList<PDPage> pageGroup = new ArrayList<>();
-                for (index = i * 20; index < i * 20 + 20; index++) {
-                    pageGroup.add(doc.getPage(index + 1));
-                }
-                pageGroups.add(pageGroup);
+            for (int i = 0; i < numGroups; i++)
+            {
+              ArrayList<Integer> pageGroup = new ArrayList<>();
+              for (index = i * 20; index < i * 20 + 20; index++)
+              {
+                pageGroup.add(index);
+              }
+              pageGroups.add(pageGroup);
             }
 
-            ArrayList<PDPage> pageGroup = new ArrayList<>();
-            for (int i = index; i < doc.getNumberOfPages(); i++) {
-                pageGroup.add(doc.getPage(i));
-            }
-            pageGroups.add(pageGroup);
+          ArrayList<Integer> pageGroup = new ArrayList<>();
+          for (int i = numGroups * 20; i < doc.getNumberOfPages(); i++)
+          {
+            pageGroup.add(i + 1);
+          }
+          pageGroups.add(pageGroup);
 
             return pageGroups;
         }
@@ -931,7 +951,6 @@ class tldr implements ActionListener {
     }
   }
 
-  @NotNull
   private String mergePDFFiles()
   {
     /* Takes as many PDF files as provided and merges them into one file
@@ -1000,8 +1019,6 @@ class tldr implements ActionListener {
   return "";
   }
 
-  @NotNull
-  @Contract("_, _ -> new")
   private File makeFile(String fileName, String fileExtension)
   {
       /* Creates a file in home directory

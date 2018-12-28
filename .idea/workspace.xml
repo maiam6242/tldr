@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="339" />
+    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="343" />
+    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="836" />
+    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="689" />
     <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="690" />
-    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="569" />
-    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="570" />
+    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="814" />
+    <bookmark url="file://$PROJECT_DIR$/src/tldr.java" line="856" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b7b1bf24-21d6-4966-a3be-3c33b8ea19c1" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/tldr/SearchThreads.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/tldr/tldr.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/tldr/tldr.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/SearchThreads.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/SearchThread.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/SearchThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/SearchThread.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/tldr.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/tldr.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tldr.iml" beforeDir="false" afterPath="$PROJECT_DIR$/tldr.iml" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -22,53 +23,52 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf>
-      <file pinned="false" current-in-tab="true">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/tldr.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="551" column="59" lean-forward="true" selection-start-line="551" selection-start-column="59" selection-end-line="551" selection-end-column="59" />
+            <state relative-caret-position="84">
+              <caret line="858" column="36" selection-start-line="858" selection-start-column="36" selection-end-line="858" selection-end-column="36" />
               <folding>
-                <element signature="e#931#939#0" expanded="true" />
-                <element signature="e#1170#1184#0" expanded="true" />
-                <element signature="method#initializeGUI#0;class#tldr#0" />
-                <element signature="method#initializeFrame#0;class#tldr#0" />
-                <element signature="e#753#773#0" />
-                <element signature="method#initializeLabels#0;class#tldr#0" />
-                <element signature="method#initializeTextField#0;class#tldr#0" />
-                <element signature="method#initializeDropDown#0;class#tldr#0" />
-                <element signature="method#fillPreloaded#0;class#tldr#0" />
-                <element signature="method#initializeButtons#0;class#tldr#0" />
-                <element signature="method#initializeConsole#0;class#tldr#0" />
-                <element signature="e#11910#12075#0" />
-                <element signature="e#12124#12342#0" />
-                <element signature="e#12417#12624#0" />
-                <element signature="method#getOfficeVersion#0;class#tldr#0" />
-                <element signature="method#createExcelFile#0;class#tldr#0" />
-                <element signature="e#14406#14782#0" />
-                <element signature="e#14970#15116#0" />
-                <element signature="e#15120#15258#0" />
-                <element signature="e#15393#15772#0" />
-                <element signature="e#15510#15518#0" expanded="true" />
-                <element signature="method#runThreads#0;class#tldr#0" />
-                <element signature="e#17207#17226#0" expanded="true" />
-                <element signature="e#17440#17448#0" expanded="true" />
-                <element signature="e#17785#17793#0" expanded="true" />
-                <element signature="e#16490#16906#0" />
-                <element signature="e#16910#17289#0" />
-                <element signature="e#17670#17956#0" />
-                <element signature="e#17960#19293#0" />
-                <element signature="method#makeFile#0;class#tldr#0" />
+                <element signature="imports" expanded="true" />
+                <element signature="e#1542#1827#0" />
+                <element signature="e#1831#3171#0" />
+                <element signature="e#3175#5090#0" />
+                <element signature="e#5094#6023#0" />
+                <element signature="e#6027#7255#0" />
+                <element signature="e#7259#7914#0" />
+                <element signature="e#7918#9794#0" />
+                <element signature="e#9798#10452#0" />
+                <element signature="e#10456#12223#0" />
+                <element signature="e#12227#12962#0" />
+                <element signature="e#12966#13694#0" />
+                <element signature="e#13698#13887#0" />
+                <element signature="e#13891#14090#0" />
+                <element signature="e#14094#14293#0" />
+                <element signature="e#14297#14926#0" />
+                <element signature="e#14930#15788#0" />
+                <element signature="e#15792#16387#0" />
+                <element signature="e#16391#17276#0" />
+                <element signature="e#17280#17522#0" />
+                <element signature="e#17526#17841#0" />
+                <element signature="e#17701#17837#1" />
+                <element signature="e#17845#18147#0" />
+                <element signature="e#18151#19898#0" />
+                <element signature="e#19902#20895#0" />
+                <element signature="e#20899#21435#0" />
+                <element signature="e#21439#21641#0" />
+                <element signature="e#21645#21872#0" />
+                <element signature="e#25341#25686#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/SearchThread.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="6" column="37" selection-start-line="6" selection-start-column="37" selection-end-line="6" selection-end-column="37" />
+            <state relative-caret-position="90">
+              <caret line="44" column="11" lean-forward="true" selection-start-line="44" selection-start-column="11" selection-end-line="44" selection-end-column="11" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -87,6 +87,12 @@
       </file>
     </leaf>
   </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>searchKey</find>
+      <find>document</find>
+    </findStrings>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -96,14 +102,14 @@
         <option value="$PROJECT_DIR$/src/searchThreads.java" />
         <option value="$PROJECT_DIR$/src/tldrRunner.java" />
         <option value="$PROJECT_DIR$/src/SearchThreads.java" />
-        <option value="$PROJECT_DIR$/src/SearchThread.java" />
         <option value="$PROJECT_DIR$/src/tldr.java" />
+        <option value="$PROJECT_DIR$/src/SearchThread.java" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="-11" />
-    <option name="width" value="980" />
+    <option name="width" value="1218" />
     <option name="height" value="1031" />
   </component>
   <component name="ProjectView">
@@ -111,6 +117,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -123,17 +130,20 @@
               <item name="tldr" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="tldr" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+            </path>
           </expand>
           <select />
         </subPane>
       </pane>
       <pane id="PackagesPane" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1545507309904" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../preflight-2.0.12.jar!/" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1545960028390" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../xmpbox-2.0.12.jar!/" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -192,35 +202,35 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="0" width="653" height="687" extended-state="0" />
+    <frame x="-7" y="0" width="812" height="687" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Image Layers" />
-      <window_info id="Designer" />
-      <window_info id="UI Designer" />
-      <window_info id="Capture Tool" />
-      <window_info id="Favorites" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.05059022" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.09840426" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Version Control" weight="0.32972974" />
-      <window_info anchor="bottom" id="Terminal" weight="0.32972974" />
-      <window_info anchor="bottom" id="Event Log" side_tool="true" />
-      <window_info anchor="bottom" id="Messages" weight="0.32792792" />
+      <window_info id="Image Layers" order="2" />
+      <window_info id="Designer" order="3" />
+      <window_info id="UI Designer" order="4" />
+      <window_info id="Capture Tool" order="5" />
+      <window_info id="Favorites" order="6" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32972974" />
       <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.33333334" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32972974" />
-      <window_info anchor="right" id="Palette" />
-      <window_info anchor="right" id="Theme Preview" />
-      <window_info anchor="right" id="Maven" />
-      <window_info anchor="right" id="Capture Analysis" />
-      <window_info anchor="right" id="Palette&#9;" />
+      <window_info anchor="bottom" id="Terminal" order="7" weight="0.32972974" />
+      <window_info anchor="bottom" id="Event Log" order="8" side_tool="true" />
+      <window_info anchor="bottom" id="Version Control" order="9" weight="0.32972974" />
+      <window_info anchor="bottom" id="Messages" order="10" weight="0.32792792" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Palette" order="3" />
+      <window_info anchor="right" id="Maven" order="4" />
+      <window_info anchor="right" id="Theme Preview" order="5" />
+      <window_info anchor="right" id="Capture Analysis" order="6" />
+      <window_info anchor="right" id="Palette&#9;" order="7" />
     </layout>
   </component>
   <component name="editorHistoryManager">
@@ -238,51 +248,50 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/SearchThread.java">
+    <entry file="file://$PROJECT_DIR$/src/tldr.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="6" column="37" selection-start-line="6" selection-start-column="37" selection-end-line="6" selection-end-column="37" />
+        <state relative-caret-position="84">
+          <caret line="858" column="36" selection-start-line="858" selection-start-column="36" selection-end-line="858" selection-end-column="36" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#1542#1827#0" />
+            <element signature="e#1831#3171#0" />
+            <element signature="e#3175#5090#0" />
+            <element signature="e#5094#6023#0" />
+            <element signature="e#6027#7255#0" />
+            <element signature="e#7259#7914#0" />
+            <element signature="e#7918#9794#0" />
+            <element signature="e#9798#10452#0" />
+            <element signature="e#10456#12223#0" />
+            <element signature="e#12227#12962#0" />
+            <element signature="e#12966#13694#0" />
+            <element signature="e#13698#13887#0" />
+            <element signature="e#13891#14090#0" />
+            <element signature="e#14094#14293#0" />
+            <element signature="e#14297#14926#0" />
+            <element signature="e#14930#15788#0" />
+            <element signature="e#15792#16387#0" />
+            <element signature="e#16391#17276#0" />
+            <element signature="e#17280#17522#0" />
+            <element signature="e#17526#17841#0" />
+            <element signature="e#17701#17837#1" />
+            <element signature="e#17845#18147#0" />
+            <element signature="e#18151#19898#0" />
+            <element signature="e#19902#20895#0" />
+            <element signature="e#20899#21435#0" />
+            <element signature="e#21439#21641#0" />
+            <element signature="e#21645#21872#0" />
+            <element signature="e#25341#25686#0" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/tldr.java">
+    <entry file="file://$PROJECT_DIR$/src/SearchThread.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="551" column="59" lean-forward="true" selection-start-line="551" selection-start-column="59" selection-end-line="551" selection-end-column="59" />
+        <state relative-caret-position="90">
+          <caret line="44" column="11" lean-forward="true" selection-start-line="44" selection-start-column="11" selection-end-line="44" selection-end-column="11" />
           <folding>
-            <element signature="e#931#939#0" expanded="true" />
-            <element signature="e#1170#1184#0" expanded="true" />
-            <element signature="method#initializeGUI#0;class#tldr#0" />
-            <element signature="method#initializeFrame#0;class#tldr#0" />
-            <element signature="e#753#773#0" />
-            <element signature="method#initializeLabels#0;class#tldr#0" />
-            <element signature="method#initializeTextField#0;class#tldr#0" />
-            <element signature="method#initializeDropDown#0;class#tldr#0" />
-            <element signature="method#fillPreloaded#0;class#tldr#0" />
-            <element signature="method#initializeButtons#0;class#tldr#0" />
-            <element signature="method#initializeConsole#0;class#tldr#0" />
-            <element signature="e#11910#12075#0" />
-            <element signature="e#12124#12342#0" />
-            <element signature="e#12417#12624#0" />
-            <element signature="method#getOfficeVersion#0;class#tldr#0" />
-            <element signature="method#createExcelFile#0;class#tldr#0" />
-            <element signature="e#14406#14782#0" />
-            <element signature="e#14970#15116#0" />
-            <element signature="e#15120#15258#0" />
-            <element signature="e#15393#15772#0" />
-            <element signature="e#15510#15518#0" expanded="true" />
-            <element signature="method#runThreads#0;class#tldr#0" />
-            <element signature="e#17207#17226#0" expanded="true" />
-            <element signature="e#17440#17448#0" expanded="true" />
-            <element signature="e#17785#17793#0" expanded="true" />
-            <element signature="e#16490#16906#0" />
-            <element signature="e#16910#17289#0" />
-            <element signature="e#17670#17956#0" />
-            <element signature="e#17960#19293#0" />
-            <element signature="method#makeFile#0;class#tldr#0" />
+            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>

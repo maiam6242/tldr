@@ -39,6 +39,8 @@ class tldr implements ActionListener {
   private static ArrayList<Thread> threads = new ArrayList<>();
   private static File CSV = null;
   private static Workbook HSSF = null;
+  private static File HSSFFile;
+  private static File XSSFFile;
   private static Workbook XSSF = null;
   private static FileWriter fileWriter;
   private static PDDocument doc;
@@ -384,24 +386,21 @@ class tldr implements ActionListener {
     int officeVersion;
     officeVersion = getOfficeVersion();
 
-        //this is a .CSV file
-        if (officeVersion == 0)
-        {
-          createCSVFile(docName);
-        }
+      //this is a .CSV file
+      if (officeVersion == 0) {
+        createCSVFile(docName);
+      }
 
-        //this is a .XLS file
-        if(officeVersion <= 7 || officeVersion > 83)
-        {
-          createHSSFFile(docName);
-        }
+      //this is a .XLS file
+      if (officeVersion <= 7 || officeVersion > 83) {
+        createHSSFFile(docName);
+      }
 
-        //this is a .XLSX file
-        if(officeVersion > 7)
-        {
-          createXSSFFile(docName);
-        }
-  }
+      //this is a .XLSX file
+      if (officeVersion > 7) {
+        createXSSFFile(docName);
+      }
+    }
 
   private void writeSummarySheet()
   {
@@ -440,6 +439,57 @@ class tldr implements ActionListener {
 
   }
 
+  private void openSummarySheet()
+  {
+    /* Opens the summary sheet which has been created if desktop is supported
+     */
+
+    if(Desktop.isDesktopSupported()) {
+      Desktop desktop = Desktop.getDesktop();
+
+      try {
+        if (CSV != null) {
+          desktop.open(CSV);
+        }
+      }
+      catch(IOException exception)
+      {
+        print(exception.getMessage());
+        exception.printStackTrace();
+      }
+
+
+      try {
+        if (XSSF != null) {
+          desktop.open(XSSFFile);
+        }
+      }
+      catch(IOException exception)
+      {
+        print(exception.getMessage());
+        exception.printStackTrace();
+      }
+
+
+      try {
+        if (HSSF != null) {
+          desktop.open(HSSFFile);
+        }
+      }
+      catch(IOException exception)
+      {
+        print(exception.getMessage());
+        exception.printStackTrace();
+      }
+    }
+
+    else
+      {
+        print("Cannot open Summary Sheet because Desktop is not supported");
+      }
+
+  }
+
   private void writeCSVFile()
   {
   /* Writes CSV file with the contents of the hashmap (name, line, page,
@@ -474,7 +524,7 @@ class tldr implements ActionListener {
       Returns: path of HSSF File
       */
       int indexOfPDF = toBeHSSF.getName().lastIndexOf(".pdf");
-      File HSSFFile = new File(toBeHSSF.getName().substring(0,indexOfPDF));
+      HSSFFile = new File(toBeHSSF.getName().substring(0,indexOfPDF));
 
       try
       {
@@ -524,7 +574,7 @@ class tldr implements ActionListener {
       Returns: path of XSSF File
       */
     int indexOfPDF = toBeXSSF.getName().lastIndexOf(".pdf");
-    File XSSFFile = new File(toBeXSSF.getName().substring(0,indexOfPDF));
+    XSSFFile = new File(toBeXSSF.getName().substring(0,indexOfPDF));
 
     try
     {
@@ -582,7 +632,7 @@ class tldr implements ActionListener {
     System.out.println(s);
   }
 
-  public void print(ArrayList<String> strings)
+  private void print(ArrayList<String> strings)
   {
     /*
       Prints an ArrayList of strings to the user console and Eclipse console.
@@ -596,7 +646,7 @@ class tldr implements ActionListener {
     }
   }
 
-  public void print(String[] strings)
+  private void print(String[] strings)
   {
     /*
       Prints an array of strings to the user console and Eclipse console.
@@ -840,7 +890,7 @@ class tldr implements ActionListener {
 //      ArrayList<SearchThread> threads = new ArrayList<SearchThread>();
             ArrayList<ArrayList<Integer>> pageGroups = new ArrayList<>();
             int numGroups = doc.getNumberOfPages() / 20;
-            int index = 0;
+            int index;
             for (int i = 0; i < numGroups; i++)
             {
               ArrayList<Integer> pageGroup = new ArrayList<>();

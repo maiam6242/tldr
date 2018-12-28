@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SearchThread implements Runnable {
   private ArrayList<Integer> pages;
@@ -14,7 +15,7 @@ public class SearchThread implements Runnable {
   private PDDocument doc;
   private PDFRenderer renderer;
 
-  public SearchThread(ArrayList<Integer> pages, ArrayList<String> keywords, PDDocument doc)
+  SearchThread(ArrayList<Integer> pages, ArrayList<String> keywords, PDDocument doc)
   {
     this.pages = pages;
     this.keywords = keywords;
@@ -51,7 +52,7 @@ public class SearchThread implements Runnable {
         int width = pageImg.getWidth();
         int height = pageImg.getHeight();
         System.out.println("Width: " + width);
-        System.out.println("Heigt: " + height);
+        System.out.println("Height: " + height);
       } catch (IOException e) {
         // TODO: Respond to catch
         e.printStackTrace();
@@ -62,6 +63,7 @@ public class SearchThread implements Runnable {
   @Override
   public void run() {
     pixelAnalysis();
+
     /*
     for (page : pages)
     {
@@ -95,6 +97,12 @@ public class SearchThread implements Runnable {
 
   {
 
+  }
+
+  public HashMap getHashMap()
+
+  {
+        return null;
   }
 
 }

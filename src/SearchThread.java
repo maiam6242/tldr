@@ -100,9 +100,12 @@ public class SearchThread implements Runnable {
   }
 
   public HashMap getHashMap()
+      /*
+      Returns HashMap for use in main tldr class
+      */
 
   {
-        return null;
+    return null;
   }
 
 }

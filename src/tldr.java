@@ -2,6 +2,9 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.ss.usermodel.*;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 // import org.jetbrains.annotations.*;
 
 import javax.swing.*;
@@ -214,6 +217,7 @@ class tldr implements ActionListener {
 
   }
 
+  @Contract(pure = true)
   private String[] fillPreloaded()
   {
     /*
@@ -443,7 +447,9 @@ class tldr implements ActionListener {
   {
     /* Opens the summary sheet which has been created if desktop is supported
      */
+    //TODO: Implement openSummarySheet
 
+    //checks if desktop is supported
     if(Desktop.isDesktopSupported()) {
       Desktop desktop = Desktop.getDesktop();
 
@@ -454,6 +460,7 @@ class tldr implements ActionListener {
       }
       catch(IOException exception)
       {
+        if(testing)
         print(exception.getMessage());
         exception.printStackTrace();
       }
@@ -466,6 +473,7 @@ class tldr implements ActionListener {
       }
       catch(IOException exception)
       {
+        if (testing)
         print(exception.getMessage());
         exception.printStackTrace();
       }
@@ -476,11 +484,14 @@ class tldr implements ActionListener {
           desktop.open(HSSFFile);
         }
       }
+
       catch(IOException exception)
       {
+        if(testing)
         print(exception.getMessage());
         exception.printStackTrace();
       }
+
     }
 
     else
@@ -493,7 +504,7 @@ class tldr implements ActionListener {
   private void writeCSVFile()
   {
   /* Writes CSV file with the contents of the hashmap (name, line, page,
-  keyword, file path) each into a new row of a CSV file and save the file
+  keyword, file path) each into a new row of a CSV file and saves the file
   */
 
 
@@ -502,7 +513,7 @@ class tldr implements ActionListener {
   private void writeHSSFFile()
   {
     /*Writes .XLS file with the contents of the hashmap (name, line, page,
-      keyword, file path) each into a new row of a HSSF file and save the file
+      keyword, file path) each into a new row of a HSSF file and saves the file
     */
 
 
@@ -511,21 +522,25 @@ class tldr implements ActionListener {
   private void writeXSSFFile()
   {
     /*Writes .XLS file with the contents of the hashmap (name, line, page,
-      keyword, file path) each into a new row of a HSSF file and save the file
+      keyword, file path) each into a new row of a HSSF file and saves the file
     */
 
 
   }
 
-  private String createHSSFFile(File toBeHSSF)
+  @NotNull
+  private String createHSSFFile(@NotNull File toBeHSSF)
   {
       /*Creates a file of type .XLS with header
       Input: PDF File with name that is wanted (Name inputted to search)
       Returns: path of HSSF File
       */
+
+      //creates file with right name
       int indexOfPDF = toBeHSSF.getName().lastIndexOf(".pdf");
       HSSFFile = new File(toBeHSSF.getName().substring(0,indexOfPDF));
 
+      //creates workbook based on that file
       try
       {
           HSSF = WorkbookFactory.create(HSSFFile);
@@ -568,14 +583,18 @@ class tldr implements ActionListener {
       }
   }
 
-  private String createXSSFFile(File toBeXSSF)
+  @NotNull
+  private String createXSSFFile(@NotNull File toBeXSSF)
   {     /*Creates a file of type .XLXS with header
       Input: PDF File with name that is wanted (Name inputted to search)
       Returns: path of XSSF File
       */
+
+    //creates file with right name
     int indexOfPDF = toBeXSSF.getName().lastIndexOf(".pdf");
     XSSFFile = new File(toBeXSSF.getName().substring(0,indexOfPDF));
 
+    //creates workbook based on that file
     try
     {
       HSSF = WorkbookFactory.create(XSSFFile);
@@ -632,7 +651,7 @@ class tldr implements ActionListener {
     System.out.println(s);
   }
 
-  private void print(ArrayList<String> strings)
+  private void print(@NotNull ArrayList<String> strings)
   {
     /*
       Prints an ArrayList of strings to the user console and Eclipse console.
@@ -646,7 +665,7 @@ class tldr implements ActionListener {
     }
   }
 
-  private void print(String[] strings)
+  private void print(@NotNull String[] strings)
   {
     /*
       Prints an array of strings to the user console and Eclipse console.
@@ -705,7 +724,8 @@ class tldr implements ActionListener {
 
   }
 
-  private String createCSVFile(File toBeCSV)
+  @NotNull
+  private String createCSVFile(@NotNull File toBeCSV)
   {
     /* Creates a file of type CSV with header
        Input: PDF File with name that is wanted (Name inputted to search)
@@ -762,7 +782,7 @@ class tldr implements ActionListener {
     trim(keywords);
   }
 
-  private void trim(String[] arr)
+  private void trim(@NotNull String[] arr)
   {
     /*
       Removes white space from words in a String array.
@@ -773,7 +793,7 @@ class tldr implements ActionListener {
     }
   }
 
-  private void trim(ArrayList<String> arr)
+  private void trim(@NotNull ArrayList<String> arr)
   {
     /*
       Removes white space from words in an ArrayList of strings.
@@ -875,6 +895,7 @@ class tldr implements ActionListener {
     }
   }
 
+  @Nullable
   private ArrayList<ArrayList<Integer>> separateContent()
   {
     // TODO: put what method does in comment here with inputs & outputs
@@ -1001,6 +1022,7 @@ class tldr implements ActionListener {
     }
   }
 
+  @NotNull
   private String mergePDFFiles()
   {
     /* Takes as many PDF files as provided and merges them into one file
@@ -1069,6 +1091,8 @@ class tldr implements ActionListener {
   return "";
   }
 
+  @NotNull
+  @Contract("_, _ -> new")
   private File makeFile(String fileName, String fileExtension)
   {
       /* Creates a file in home directory

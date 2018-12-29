@@ -883,7 +883,7 @@ class tldr implements ActionListener {
     {
       if (pageGroups != null) {
         for (ArrayList<Integer> pageGroup : pageGroups) {
-          threads.add(new Thread(new SearchThread(pageGroup, keywords, doc)));
+          threads.add(new Thread(new SearchThread(pageGroup, keywords, doc, file.getName())));
         }
         System.out.println("Created threads: " + threads.size());
       }

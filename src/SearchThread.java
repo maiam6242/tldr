@@ -20,7 +20,7 @@ public class SearchThread implements Runnable {
   private final int WHITE = 0;
   private final int BLACK = 1;
   private PDFTextStripper textStripper;
-  private ArrayList<ArrayList<Integer[]>> docSectionBreaks = new ArrayList<ArrayList<Integer[]>>();
+  private ArrayList<ArrayList<Line>> docSectionBreaks = new ArrayList<>();
   private HashMap<String, ArrayList<Loc>> map;
   private String fileName;
 
@@ -59,10 +59,9 @@ public class SearchThread implements Runnable {
 
   private ArrayList<LayoutFeature> pixelAnalysis(int pageNum)
   {
-    ArrayList<ArrayList<Integer[]>> pageSectionBreaks = new ArrayList<ArrayList<Integer[]>>();
     ArrayList<LayoutFeature> lines = null;
     if (testing) System.out.println("Starting pixel analysis");
-    ArrayList<Integer[]> nearestSectionBreaks = new ArrayList<Integer[]>();
+    ArrayList<Line> pageLineSnapshots = new ArrayList<>();
 
     // Get the current page
     if (testing) System.out.println("On page " + pageNum);
@@ -154,13 +153,13 @@ public class SearchThread implements Runnable {
           int endIndex = endSectionBreak.startIndex();
 
           if (endIndex == 0) endIndex = height;
-          Integer[] lineSnapshotBoundaries = {startIndex, endIndex};
+          line.setSnapshotBoundaries(startIndex, endIndex);
 
           // Find snapshot boundaries for each line
-          nearestSectionBreaks.add(lineSnapshotBoundaries);
+          pageLineSnapshots.add(line);
         }
 
-        docSectionBreaks.add(nearestSectionBreaks);
+        docSectionBreaks.add(pageLineSnapshots);
 
       } catch (IOException e) {
         // TODO: Respond to catch
@@ -398,11 +397,11 @@ public class SearchThread implements Runnable {
 
         try {
           BufferedImage pageImg = renderer.renderImageWithDPI(page, 300);
-          ArrayList<Integer[]> pageSectionBreaks = docSectionBreaks.get(page);
-          Integer[] nearestSectionBreakForLine = pageSectionBreaks.get(line);
+          ArrayList<Line> pageSectionBreaks = docSectionBreaks.get(page);
 
-          int startSnapshotIndex = nearestSectionBreakForLine[0];
-          int endSnapshotIndex = nearestSectionBreakForLine[1];
+          Line pageLine = pageSectionBreaks.get(line);
+          int startSnapshotIndex = pageLine.startSnapshotIndex();
+          int endSnapshotIndex = pageLine.endSnapshotIndex();
 
           int imHeight = endSnapshotIndex - startSnapshotIndex;
           BufferedImage keywordSnapshot = pageImg.getSubimage(0, startSnapshotIndex,

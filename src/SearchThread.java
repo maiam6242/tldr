@@ -3,6 +3,9 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -37,7 +40,7 @@ public class SearchThread implements Runnable {
       if (testing) System.out.println(page);
     }
 
-    map = new HashMap<String, ArrayList<Loc>>();
+    map = new HashMap<>();
     for (String keyword : keywords)
     {
       map.put(keyword, new ArrayList<Loc>());
@@ -346,11 +349,19 @@ public class SearchThread implements Runnable {
 
   }
 
+  @Nullable
   private String matchKeyword(String word) {
     if (testing) System.out.println("Checking this word: " + word);
     word = word.toLowerCase();
     for (String keyword : keywords) {
-      // keyhero(keyword, word))
+
+      /*
+      TODO: Figure out what we want to do here and whether we want to make
+       methods for this like what we did before with the isKeywordHere stuff
+       (think about time and scalability)
+      */
+
+      //keyhero(keyword, word))
       if (word.contains(keyword) || word.contains(keyword.toLowerCase())
               || word.contains(keyword.toUpperCase())) {
         return keyword;
@@ -359,6 +370,7 @@ public class SearchThread implements Runnable {
     return null;
   }
 
+  @Nullable
   private ArrayList<String> extractTextFromPage(int pg)
   {
     textStripper.setStartPage(pg);
@@ -418,6 +430,7 @@ public class SearchThread implements Runnable {
     }
   }
 
+  @NotNull
   private String makeDirectory(String word) {
     File g = new File(System.getProperty("user.home") + File.separator + word);
     g.mkdirs();
@@ -425,6 +438,7 @@ public class SearchThread implements Runnable {
 
   }
 
+  //TODO: edit these a bit to improve on our original implementations
   private String makeFilePath(String j) {
     String name = j;
     File file = new File(System.getProperty("user.home") + File.separator + name);
@@ -434,7 +448,7 @@ public class SearchThread implements Runnable {
     return absolutePath;
   }
 
-  public String makeFilePath(String j, String dirpath) {
+  private String makeFilePath(String j, String dirpath) {
     String name = j;
     File file = new File(dirpath + File.separator + name);
 //		print("Dirpath produced: " + dirpath + File.separator + name);
@@ -444,12 +458,50 @@ public class SearchThread implements Runnable {
     return absolutePath;
   }
 
+  @Contract(pure = true)
   public HashMap getHashMap()
   {
     /*
       Returns HashMap for use in main tldr class
      */
     return map;
+  }
+
+  private boolean analyzeKeywords (@NotNull String keyword, String line)
+  {
+    /*
+    This is basically keyhero... Looks at whether the keyword is one word or
+    multiple and sends it to the right iskeywordhere method
+    Inputs: Keyword(s)
+    Returns: whether or not keyword is in line (return of iskeywordhere methods)
+     */
+  //TODO: Check that both inputs are not null
+
+    int indexOfSpace = keyword.indexOf(" ");
+
+    //there is no space in the word
+    if (indexOfSpace == -1) {
+      return isKeywordHere(keyword, line);
+    }
+    // keyword is actually multiple words
+    else
+    {
+      String [] words = keyword.split(" ");
+      return isKeywordHere(words, line);
+    }
+
+  }
+
+  //TODO: Decide if this is the route that we want to take
+  private boolean isKeywordHere(String [] words, String line)
+  {
+
+    return true;
+  }
+
+  private boolean isKeywordHere(String word, String line)
+  {
+    return true;
   }
 
 }

@@ -16,6 +16,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 // UI imports
 
@@ -47,6 +48,8 @@ class tldr implements ActionListener {
   private static Workbook XSSF = null;
   private static FileWriter fileWriter;
   private static PDDocument doc;
+
+  //private static SearchThread MaiaTest = new SearchThread();
 
   private static boolean testing = true;
 
@@ -506,8 +509,12 @@ class tldr implements ActionListener {
   /* Writes CSV file with the contents of the hashmap (name, line, page,
   keyword, file path) each into a new row of a CSV file and saves the file
   */
-
-
+   // HashMap fullMap = MaiaTest.getHashMap();
+    //for (int counter = 0; counter< fullMap.size(); counter ++)
+    {
+      //TODO: check that the map is written and not null etc etc
+      //map is (keyword, page, line #)
+    }
   }
 
   private void writeHSSFFile()
@@ -1104,4 +1111,13 @@ class tldr implements ActionListener {
 
   }
 
+  //TODO: Figure out how and where to compile content that should go into the
+  // SearchThread object
+
+  //TODO: create a thing that closes the window when process is complete? Is
+  // this actually something that would be useful?
+  public void close()
+  {
+    frame.setVisible(false);
+  }
 }

@@ -1,6 +1,7 @@
 public class Loc {
     private int page;
     private int line;
+    private String filePath;
 
     public Loc(int page, int line)
     {
@@ -28,4 +29,12 @@ public class Loc {
         this.line = line;
     }
 
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public String filePath()
+    {
+        return filePath;
+    }
 }

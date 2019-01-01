@@ -1,11 +1,10 @@
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -15,179 +14,190 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SearchThread implements Runnable {
-  private ArrayList<Integer> pages;
-  private ArrayList<String> keywords;
+
+  private ArrayList<Integer> pageNums = new ArrayList<>();
+  private ArrayList<String> keywords = new ArrayList<>();
   private PDDocument doc;
+  private String fileName;
   private PDFRenderer renderer;
-  private boolean testing = true;
+  private HashMap<String, ArrayList<Loc>> map = new HashMap<>();
+  private PDFTextStripper textStripper;
+  private ArrayList[] pageLines;
+
   private final int WHITE = 0;
   private final int BLACK = 1;
-  private PDFTextStripper textStripper;
-  private ArrayList<ArrayList<Line>> docSectionBreaks = new ArrayList<>();
-  private HashMap<String, ArrayList<Loc>> map;
-  private String fileName;
 
-  SearchThread(ArrayList<Integer> pages, ArrayList<String> keywords, PDDocument doc, String fileName)
+
+  public SearchThread(ArrayList<Integer> pageNums, ArrayList<String> keywords, PDDocument doc, String fileName)
   {
-    this.pages = pages;
-    this.keywords = keywords;
-    this.doc = doc;
-    this.renderer = new PDFRenderer(this.doc);
-    this.fileName = fileName;
+    this.pageNums.addAll(pageNums);
 
-    for (int page : this.pages)
-    {
-      if (testing) System.out.println(page);
-    }
-
-    map = new HashMap<>();
     for (String keyword : keywords)
     {
+      this.keywords.add(keyword);
       map.put(keyword, new ArrayList<Loc>());
     }
 
+    this.doc = doc;
+    this.fileName = fileName;
+    renderer = new PDFRenderer(doc);
     try {
       textStripper = new PDFTextStripper();
+      pageLines = new ArrayList[pageNums.size()];
     } catch (IOException e) {
-      // TODO: Deal w/ exception
       e.printStackTrace();
     }
 
-    //HashMap hashmap = new HashMap<String, ArrayList<Loc>>();
-    // Put all the keywords into HashMap
-
-
-    // save locations of section breaks into arraylist (?) (for each page)
   }
 
-  private ArrayList<LayoutFeature> pixelAnalysis(int pageNum)
+  private void pixelAnalysis()
   {
-    ArrayList<LayoutFeature> lines = null;
-    if (testing) System.out.println("Starting pixel analysis");
-    ArrayList<Line> pageLineSnapshots = new ArrayList<>();
-
-    // Get the current page
-    if (testing) System.out.println("On page " + pageNum);
-    PDPage page = doc.getPage(pageNum-1);
-
+    System.out.println("Starting pixel analysis");
+    for (int pageNum : pageNums)
+    {
       try {
-        // Convert the page to an image
-        BufferedImage pageImg = renderer.renderImageWithDPI((pageNum - 1), 300);
-        File outputFile = new File(System.getProperty("user.home") + "/page-" + pageNum + ".png");
-        ImageIO.write(pageImg, "png", outputFile);
-
-        int height = pageImg.getHeight();
-
-        // Find all the line changes
-        ArrayList<LineChange> lineChanges = findLineChanges(pageImg);
-
-        // Identify spaces, lines, and section breaks
-        ArrayList<ArrayList<LayoutFeature>> layoutFeatures = identifyLayout(lineChanges);
-        ArrayList<LayoutFeature> spaces = layoutFeatures.get(0);
-        lines = layoutFeatures.get(1);
-        ArrayList<LayoutFeature> sectionBreaks = layoutFeatures.get(2);
-
-        if (testing)
-        {
-          System.out.println("There are " + spaces.size() + " spaces.");
-          System.out.println("There are " + sectionBreaks.size() + " section breaks.");
-          System.out.println("There are " + lines.size() + " lines.");
-        }
-
-        for (int i = 0; i < lines.size(); i++)
-        {
-          // For eaach line, find the nearest section breaks on either side
-          Line line = (Line) lines.get(i);
-          int lineStart = line.startIndex();
-          int lineEnd = line.endIndex();
-
-          // Search for the closest section break before this line
-          // Find the index of the section break closest to the start of the line
-          int startMinDistance = 0;
-          int startMinIndex = -1;
-          int endMinDistance = 0;
-          int endMinIndex = -1;
-          for (int sb = 0; sb < sectionBreaks.size(); sb++)
-          {
-            if (sectionBreaks.get(sb).endIndex() < lineStart)
-            {
-              SectionBreak currSectionBreak = (SectionBreak) sectionBreaks.get(sb);
-              int distance = lineStart - currSectionBreak.startIndex();
-              if (startMinDistance == 0 || distance < startMinDistance)
-              {
-                startMinIndex = sb;
-                startMinDistance = distance;
-              }
-            }
-
-            if (sectionBreaks.get(sb).startIndex() > lineEnd)
-            {
-              SectionBreak currSectionBreak = (SectionBreak) sectionBreaks.get(sb);
-              int distance = currSectionBreak.startIndex() - lineEnd;
-              if (endMinDistance == 0 || distance < endMinDistance)
-              {
-                endMinIndex = sb;
-                endMinDistance = distance;
-              }
-            }
-          }
-
-          SectionBreak startSectionBreak = null;
-          // Checks if the nearest section break is the top margin
-          if (startMinIndex > 0) {
-            startSectionBreak = (SectionBreak) sectionBreaks.get(startMinIndex - 1);
-          }
-          else
-          {
-            startSectionBreak = (SectionBreak) sectionBreaks.get(0);
-          }
-
-          SectionBreak endSectionBreak = null;
-          if (endMinIndex > 0 && endMinIndex < sectionBreaks.size() - 1)
-          {
-            endSectionBreak = (SectionBreak) sectionBreaks.get(endMinIndex);
-          }
-          else
-          {
-            endSectionBreak = (SectionBreak) sectionBreaks.get(sectionBreaks.size() - 1);
-          }
-
-          int startIndex = startSectionBreak.endIndex();
-          int endIndex = endSectionBreak.startIndex();
-
-          if (endIndex == 0) endIndex = height;
-          line.setSnapshotBoundaries(startIndex, endIndex);
-
-          // Find snapshot boundaries for each line
-          pageLineSnapshots.add(line);
-        }
-
-        docSectionBreaks.add(pageLineSnapshots);
+        BufferedImage pgImg = renderer.renderImageWithDPI((pageNum - 1), 300);
+        ArrayList<LineChange> lineChanges = findLineChanges(pgImg);
+        ArrayList<LayoutFeature>[] layoutFeatures = identifyLayoutFeatures(lineChanges, pageNum, pgImg.getHeight());
+        ArrayList<Space> spaces = convertSpaces(layoutFeatures[0]);
+        ArrayList<Line> lines = convertLines(layoutFeatures[1]);
+        System.out.println("Printing lines before finding snapshot boundaries");
+//        print(lines);
+        ArrayList<SectionBreak> sectionBreaks = convertSectionBreaks(layoutFeatures[2]);
+        lines = findSnapshotBoundaries(lines, sectionBreaks);
+//        print(lines);
+        pageLines[pageNum - 1] = lines;
 
       } catch (IOException e) {
-        // TODO: Respond to catch
         e.printStackTrace();
       }
+    }
+
+//    printPageLines();
+  }
+
+  private void print(ArrayList<Line> lines)
+  {
+    for (Line line : lines)
+    {
+      System.out.println("Line: " + line);
+    }
+  }
+
+  private void printPageLines()
+  {
+    System.out.println("Printing page lines");
+    for (ArrayList<Line> lines : pageLines)
+    {
+      System.out.println(lines);
+    }
+  }
+
+  private ArrayList<Line> findSnapshotBoundaries(ArrayList<Line> lines, ArrayList<SectionBreak> sectionBreaks)
+  {
+    for (Line line : lines) {
+      int lineStart = line.startIndex();
+      int lineEnd = line.endIndex();
+
+      int startMinDistance = 0;
+      int startMinIndex = -1;
+      int endMinDistance = 0;
+      int endMinIndex = -1;
+
+      for (int sb = 0; sb < sectionBreaks.size(); sb++) {
+        if (sectionBreaks.get(sb).endIndex() < lineStart) {
+          SectionBreak currSectionBreak = sectionBreaks.get(sb);
+          int distance = lineStart - currSectionBreak.startIndex();
+          if (startMinDistance == 0 || distance < startMinDistance) {
+            startMinIndex = sb;
+            startMinDistance = distance;
+          }
+        }
+
+        if (sectionBreaks.get(sb).startIndex() > lineEnd) {
+          SectionBreak currSectionBreak = sectionBreaks.get(sb);
+          int distance = currSectionBreak.startIndex() - lineEnd;
+          if (endMinDistance == 0 || distance < endMinDistance) {
+            endMinIndex = sb;
+            endMinDistance = distance;
+          }
+        }
+      }
+
+      SectionBreak startSectionBreak = null;
+      if (startMinIndex > 0) {
+        startSectionBreak = sectionBreaks.get(startMinIndex - 1);
+      } else {
+        startSectionBreak = sectionBreaks.get(0);
+      }
+
+      SectionBreak endSectionBreak = null;
+      if (endMinIndex > 0 && endMinIndex < sectionBreaks.size() - 1) {
+        endSectionBreak = sectionBreaks.get(endMinIndex);
+      } else {
+        endSectionBreak = sectionBreaks.get(sectionBreaks.size() - 1);
+      }
+
+      int startIndex = startSectionBreak.endIndex();
+      int endIndex = endSectionBreak.startIndex();
+
+      line.setSnapshotBoundaries(startIndex, endIndex);
+    }
 
     return lines;
   }
 
-  private ArrayList<ArrayList<LayoutFeature>> identifyLayout(ArrayList<LineChange> lineChanges) {
+  private ArrayList<Space> convertSpaces(ArrayList<LayoutFeature> layoutFeatures)
+  {
+    ArrayList<Space> spaces = new ArrayList<>();
+    for (LayoutFeature layoutFeature : layoutFeatures)
+    {
+      spaces.add((Space) layoutFeature);
+    }
 
-    ArrayList<LayoutFeature> spaces = new ArrayList<LayoutFeature>();
-    ArrayList<LayoutFeature> lines = new ArrayList<LayoutFeature>();
-    ArrayList<LayoutFeature> sectionBreaks = new ArrayList<LayoutFeature>();
-    ArrayList<ArrayList<LayoutFeature>> layoutFeatures = new ArrayList<ArrayList<LayoutFeature>>();
+    return spaces;
+  }
+
+  private ArrayList<Line> convertLines(ArrayList<LayoutFeature> lfs)
+  {
+    ArrayList<Line> lines = new ArrayList<>();
+    for (LayoutFeature lf : lfs)
+    {
+      lines.add((Line) lf);
+    }
+    return lines;
+  }
+
+  private ArrayList<SectionBreak> convertSectionBreaks(ArrayList<LayoutFeature> lfs)
+  {
+    ArrayList<SectionBreak> sectionBreaks = new ArrayList<>();
+    for (LayoutFeature lf : lfs)
+    {
+      sectionBreaks.add((SectionBreak) lf);
+    }
+    return sectionBreaks;
+  }
+
+
+  private ArrayList[] identifyLayoutFeatures(ArrayList<LineChange> lineChanges, int pageNum, int height)
+  {
+//    System.out.println("lineChanges.size() == " + lineChanges.size());
+    ArrayList<LayoutFeature> spaces = new ArrayList<>();
+    ArrayList<LayoutFeature> lines = new ArrayList<>();
+    ArrayList<LayoutFeature> sectionBreaks = new ArrayList<>();
+    ArrayList[] layoutFeatures = new ArrayList[3];
 
     SummaryStatistics whiteSpaceStats = new SummaryStatistics();
     for (int i = 0; i < lineChanges.size() - 1; i++)
     {
       LineChange currLineChange = lineChanges.get(i);
       LineChange nextLineChange = lineChanges.get(i + 1);
+
       int difference = nextLineChange.rowIndex() - currLineChange.rowIndex();
       if (currLineChange.state() == BLACK && nextLineChange.state() == WHITE)
       {
-        Line line = new Line(currLineChange.rowIndex(), nextLineChange.rowIndex());
+        Line line = new Line(currLineChange.rowIndex(), nextLineChange.rowIndex(), pageNum);
+//        System.out.println(line);
         lines.add(line);
       }
       else
@@ -198,6 +208,11 @@ public class SearchThread implements Runnable {
 
     double mean = whiteSpaceStats.getMean();
     double stdev = whiteSpaceStats.getStandardDeviation();
+
+
+    System.out.println("Mean = " + mean);
+    System.out.println("Stdev = " + stdev);
+    System.out.println("Mean + stdev = " + (mean + stdev));
     for (int i = 0; i < lineChanges.size() - 1; i++)
     {
       LineChange currLineChange = lineChanges.get(i);
@@ -206,152 +221,123 @@ public class SearchThread implements Runnable {
       if (currLineChange.state() == WHITE && nextLineChange.state() == BLACK)
       {
         int difference = nextLineChange.rowIndex() - currLineChange.rowIndex();
+        System.out.println("difference = " + difference);
+
         if (difference < mean)
         {
           Space space = new Space(currLineChange.rowIndex(), nextLineChange.rowIndex());
+//          System.out.println(space);
           spaces.add(space);
         }
-        else
+        else if (difference >= mean)
         {
           SectionBreak sb = new SectionBreak(currLineChange.rowIndex(), nextLineChange.rowIndex());
+//          System.out.println(sb);
           sectionBreaks.add(sb);
         }
       }
     }
+    sectionBreaks.add(new SectionBreak(lineChanges.get(lineChanges.size() - 1).rowIndex(), height));
 
-    layoutFeatures.add(spaces);
-    layoutFeatures.add(lines);
-    layoutFeatures.add(sectionBreaks);
+    layoutFeatures[0] = spaces;
+    layoutFeatures[1] = lines;
+    layoutFeatures[2] = sectionBreaks;
+
+    System.out.println("There are " + spaces.size() + " spaces.");
+    System.out.println("There are " + lines.size() + " lines.");
+    System.out.println("There are " + sectionBreaks.size() + " section breaks.");
     return layoutFeatures;
   }
 
-  private ArrayList<LineChange> findLineChanges(BufferedImage pageImg)
+
+  private ArrayList<LineChange> findLineChanges(BufferedImage bim)
   {
-    // Get the image's dimensions
-    int width = pageImg.getWidth();
-    int height = pageImg.getHeight();
-    if (testing)
-    {
-      System.out.println("Width: " + width);
-      System.out.println("Heigt: " + height);
-    }
+    int width = bim.getWidth();
+    int height = bim.getHeight();
+    ArrayList<LineChange> lineChanges = new ArrayList<>();
 
-    // Record color of each pixel (white or black)
-    int[][] pixels = new int[height][width];
-    for (int row = 0; row < height; row++)
-    {
-      for (int col = 0; col < width; col++)
-      {
-        int pixelColor = pageImg.getRGB(col, row);
-        int red = (pixelColor >> 16) & 0xff;
-        int green = (pixelColor >> 8) & 0xff;
-        int blue = (pixelColor) & 0xff;
-
-        if (red == 255 && green == 255 && blue == 255) {
-          pixels[row][col] = WHITE;
-        }
-        else
-        {
-          pixels[row][col] = BLACK;
-        }
-      }
-    }
-
-    // Record whether the rows are black or white
-    int[] rowSums = new int[height];
+    int switchState = -1;
     for (int row = 0; row < height; row++)
     {
       int rowSum = 0;
-      for (int col = 0; col < pixels[row].length; col++)
+      for (int col = 0; col < width; col++)
       {
-        rowSum += pixels[row][col];
+        int pixel = bim.getRGB(col, row);
+        int red = (pixel >> 16) & 0xff;
+        int green = (pixel >> 8) & 0xff;
+        int blue = (pixel) & 0xff;
+
+        if (red == 255 && green == 255 && blue == 255)
+        {
+          pixel = WHITE;
+        }
+        else {
+          pixel = BLACK;
+        }
+
+        rowSum += pixel;
       }
-      rowSums[row] = rowSum;
-    }
-
-    // Determine points where the rows change from white to black
-    int switchState = -1;
-    ArrayList<LineChange> lineChanges = new ArrayList<LineChange>();
-    for (int i = 0; i < rowSums.length; i++)
-    {
-      int rowSum = rowSums[i];
-
-      // The row switched to white
       if (rowSum == WHITE && switchState != WHITE)
       {
         switchState = WHITE;
-        LineChange lineChange = new LineChange(i, switchState);
+        LineChange lineChange = new LineChange(row, switchState);
+//        System.out.println("Found a line change: " + lineChange);
         lineChanges.add(lineChange);
       }
-
-      // The row switched to black, or this is the first detected line change (generally accounting for a margin,
-      // or something to that effect)
       else if (rowSum > WHITE && switchState == WHITE || switchState < 0)
       {
         switchState = BLACK;
-        LineChange lineChange = new LineChange(i, switchState);
+        LineChange lineChange = new LineChange(row, switchState);
         lineChanges.add(lineChange);
       }
     }
 
+    for (LineChange lc : lineChanges)
+    {
+      System.out.println(lc);
+    }
     return lineChanges;
-
   }
+
 
   @Override
-  public void run() {
-
-    ArrayList<ArrayList<LayoutFeature>> lineList = new ArrayList<ArrayList<LayoutFeature>>();
-
-    for (int pg : pages)
+  public void run()
+  {
+    pixelAnalysis();
+    for (int pgNum : pageNums)
     {
-      lineList.add(pixelAnalysis(pg));
-    }
-
-    for (int pg : pages)
-    {
-        ArrayList<LayoutFeature> textLines = lineList.get(pg);
-        ArrayList<String> pageLines = extractTextFromPage(pg);
-
-        for (int i = 0; i < pageLines.size(); i++)
+      ArrayList<String> lines = extractTextFromPage(pgNum);
+      if (lines != null) {
+        for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++)
         {
-          String line = pageLines.get(i);
-          String[] words = line.split(" ");
-
-          for (String word : words)
-          {
-            String keyword = matchKeyword(word);
-            if (keyword != null)
-            {
-              Line keywordLine = (Line) textLines.get(i);
-              ArrayList<Loc> locs = map.get(keyword);
-              locs.add(new Loc(pg, i));
-              map.put(keyword, locs);
-            }
-          }
+          String textLine = lines.get(lineIndex);
+          findKeywordsInLine(textLine, pgNum, lineIndex);
         }
+      }
     }
 
-    /*
-    for (page : pages)
-    {
-    extractTextFromPage()
-    for (word : pageText)
-    {
-    if (word is keyword)
-    {
-    snapshotLine()
-    saveLocToHashMap()
+    takeSnapshots();
   }
-  }
-  }
-    */
 
+  private void findKeywordsInLine(String textLine, int pageNum, int line)
+  {
+    String[] words = textLine.split(" ");
+    for (String word : words)
+    {
+      String keyword = matchKeyword(word);
+      if (keyword != null)
+      {
+        System.out.println("Found keyword " + keyword + " on line " + line);
+        ArrayList<Loc> locs = map.get(keyword);
+        locs.add(new Loc(pageNum, line));
+        map.put(keyword, locs);
+      }
+    }
   }
 
   @Nullable
   private String matchKeyword(String word) {
-    if (testing) System.out.println("Checking this word: " + word);
+    System.out.println("Checking this word: " + word);
     word = word.toLowerCase();
     for (String keyword : keywords) {
 
@@ -378,14 +364,12 @@ public class SearchThread implements Runnable {
     try {
       String pageText = textStripper.getText(doc);
       String[] pageLines = pageText.split("\n");
-      ArrayList<String> pgLines = new ArrayList<String>();
+      ArrayList<String> pgLines = new ArrayList<>();
 
-      for (int i = 0; i < pageLines.length; i++)
-      {
+      for (String pageLine : pageLines) {
         // TODO: figure out what this is for?
-        if (pageLines[i].length() > 5)
-        {
-          pgLines.add(pageLines[i]);
+        if (pageLine.length() > 5) {
+          pgLines.add(pageLine);
         }
       }
 
@@ -397,38 +381,56 @@ public class SearchThread implements Runnable {
     return null;
   }
 
-  private void snapshotLine()
+  private void takeSnapshots()
   {
-    for (String keyword : map.keySet())
+    for (String key : map.keySet())
     {
-      ArrayList<Loc> locs = map.get(keyword);
-      for (Loc loc: locs)
+      ArrayList<Loc> locs = map.get(key);
+      for (Loc loc : locs)
       {
-        int page = loc.page();
-        int line = loc.line();
-
-        try {
-          BufferedImage pageImg = renderer.renderImageWithDPI(page, 300);
-          ArrayList<Line> pageSectionBreaks = docSectionBreaks.get(page);
-
-          Line pageLine = pageSectionBreaks.get(line);
-          int startSnapshotIndex = pageLine.startSnapshotIndex();
-          int endSnapshotIndex = pageLine.endSnapshotIndex();
-
-          int imHeight = endSnapshotIndex - startSnapshotIndex;
-          BufferedImage keywordSnapshot = pageImg.getSubimage(0, startSnapshotIndex,
-                  pageImg.getWidth(), imHeight);
-          String dirPath = makeDirectory(fileName + "-" + keyword);
-          String filePath = makeFilePath(keyword + "-pg" + page + "-line" + line + ".png", dirPath);
-          ImageIO.write(keywordSnapshot, "png", new File(filePath));
-        } catch (IOException e) {
-          // TODO: Deal with exception
-          e.printStackTrace();
-        }
-
+        int pageNum = loc.page();
+        int lineNum = loc.line();
+//        System.out.println("pageNum / lineNum: " + pageNum + " / " + lineNum);
+//        System.out.println("pageLines.length = " + pageLines.length);
+        ArrayList<Line> lines = pageLines[pageNum - 1];
+//        System.out.println("lines.size() = " + lines.size());
+        Line line = lines.get(lineNum);
+        String filePath = snapshotLine(line, key, lineNum);
+        if (filePath != null) loc.setFilePath(filePath);
       }
     }
   }
+
+  private String snapshotLine(Line line, String keyword, int lineNum)
+  {
+    int page = line.page();
+    try {
+      BufferedImage pgImg = renderer.renderImageWithDPI((page - 1), 300);
+      int startIndex = line.startSnapshotIndex();
+      int endIndex = line.endSnapshotIndex();
+      System.out.println("[ " + startIndex + ", " + endIndex + "]");
+      System.out.println("Height = " + pgImg.getHeight());
+      if (endIndex == 0)
+      {
+        System.out.println("End index was 0");
+        endIndex = pgImg.getHeight();
+      }
+      int imHeight = endIndex - startIndex;
+
+      BufferedImage keywordSnapshot = pgImg.getSubimage(0, startIndex, pgImg.getWidth(), imHeight);
+      String dirPath = makeDirectory(fileName + "-" + keyword);
+      String filePath = makeFilePath(keyword + "-pg" + page + "-line" + lineNum + ".png", dirPath);
+      ImageIO.write(keywordSnapshot, "png", new File(filePath));
+
+      return filePath;
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    return null;
+  }
+
 
   @NotNull
   private String makeDirectory(String word) {
@@ -458,7 +460,6 @@ public class SearchThread implements Runnable {
     return absolutePath;
   }
 
-  @Contract(pure = true)
   public HashMap getHashMap()
   {
     /*

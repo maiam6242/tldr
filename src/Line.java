@@ -2,12 +2,14 @@ public class Line extends LayoutFeature {
 
     private int startIndex;
     private int endIndex;
+    private int page;
     private int startSnapshotIndex;
     private int endSnapshotIndex;
 
-    public Line(int startIndex, int endIndex)
+    public Line(int startIndex, int endIndex, int page)
     {
         super(startIndex, endIndex);
+        this.page = page;
     }
 
     @Override
@@ -25,4 +27,6 @@ public class Line extends LayoutFeature {
     public int startSnapshotIndex() { return startSnapshotIndex; }
 
     public int endSnapshotIndex() { return endSnapshotIndex; }
+
+    public int page() { return page; }
 }

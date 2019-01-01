@@ -31,6 +31,7 @@ public class SearchThread implements Runnable {
   public SearchThread(ArrayList<Integer> pageNums, ArrayList<String> keywords, PDDocument doc, String fileName)
   {
     this.pageNums.addAll(pageNums);
+    System.out.println("Page range: [" + pageNums.get(0) + ", " + pageNums.get(pageNums.size() - 1) + "]");
 
     for (String keyword : keywords)
     {
@@ -56,7 +57,7 @@ public class SearchThread implements Runnable {
     for (int pageNum : pageNums)
     {
       try {
-        BufferedImage pgImg = renderer.renderImageWithDPI((pageNum - 1), 300);
+        BufferedImage pgImg = renderer.renderImageWithDPI(pageNum, 300);
         ArrayList<LineChange> lineChanges = findLineChanges(pgImg);
         ArrayList<LayoutFeature>[] layoutFeatures = identifyLayoutFeatures(lineChanges, pageNum, pgImg.getHeight());
         ArrayList<Space> spaces = convertSpaces(layoutFeatures[0]);
@@ -66,7 +67,9 @@ public class SearchThread implements Runnable {
         ArrayList<SectionBreak> sectionBreaks = convertSectionBreaks(layoutFeatures[2]);
         lines = findSnapshotBoundaries(lines, sectionBreaks);
 //        print(lines);
-        pageLines[pageNum - 1] = lines;
+        System.out.println("pageNum = " + (pageNum));
+        System.out.println("pageNums.indexOf(pageNum) = " + pageNums.indexOf(pageNum));
+        pageLines[pageNums.indexOf(pageNum)] = lines;
 
       } catch (IOException e) {
         e.printStackTrace();
@@ -133,7 +136,7 @@ public class SearchThread implements Runnable {
 
       SectionBreak endSectionBreak = null;
       if (endMinIndex > 0 && endMinIndex < sectionBreaks.size() - 1) {
-        endSectionBreak = sectionBreaks.get(endMinIndex);
+        endSectionBreak = sectionBreaks.get(endMinIndex + 1);
       } else {
         endSectionBreak = sectionBreaks.get(sectionBreaks.size() - 1);
       }
@@ -210,9 +213,9 @@ public class SearchThread implements Runnable {
     double stdev = whiteSpaceStats.getStandardDeviation();
 
 
-    System.out.println("Mean = " + mean);
-    System.out.println("Stdev = " + stdev);
-    System.out.println("Mean + stdev = " + (mean + stdev));
+//    System.out.println("Mean = " + mean);
+//    System.out.println("Stdev = " + stdev);
+//    System.out.println("Mean + stdev = " + (mean + stdev));
     for (int i = 0; i < lineChanges.size() - 1; i++)
     {
       LineChange currLineChange = lineChanges.get(i);
@@ -221,7 +224,7 @@ public class SearchThread implements Runnable {
       if (currLineChange.state() == WHITE && nextLineChange.state() == BLACK)
       {
         int difference = nextLineChange.rowIndex() - currLineChange.rowIndex();
-        System.out.println("difference = " + difference);
+//        System.out.println("difference = " + difference);
 
         if (difference < mean)
         {
@@ -243,9 +246,9 @@ public class SearchThread implements Runnable {
     layoutFeatures[1] = lines;
     layoutFeatures[2] = sectionBreaks;
 
-    System.out.println("There are " + spaces.size() + " spaces.");
-    System.out.println("There are " + lines.size() + " lines.");
-    System.out.println("There are " + sectionBreaks.size() + " section breaks.");
+//    System.out.println("There are " + spaces.size() + " spaces.");
+//    System.out.println("There are " + lines.size() + " lines.");
+//    System.out.println("There are " + sectionBreaks.size() + " section breaks.");
     return layoutFeatures;
   }
 
@@ -292,10 +295,10 @@ public class SearchThread implements Runnable {
       }
     }
 
-    for (LineChange lc : lineChanges)
-    {
-      System.out.println(lc);
-    }
+//    for (LineChange lc : lineChanges)
+//    {
+//      System.out.println(lc);
+//    }
     return lineChanges;
   }
 
@@ -306,6 +309,7 @@ public class SearchThread implements Runnable {
     pixelAnalysis();
     for (int pgNum : pageNums)
     {
+      System.out.println("On page " + pgNum);
       ArrayList<String> lines = extractTextFromPage(pgNum);
       if (lines != null) {
         for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++)
@@ -337,7 +341,7 @@ public class SearchThread implements Runnable {
 
   @Nullable
   private String matchKeyword(String word) {
-    System.out.println("Checking this word: " + word);
+//    System.out.println("Checking this word: " + word);
     word = word.toLowerCase();
     for (String keyword : keywords) {
 
@@ -392,7 +396,7 @@ public class SearchThread implements Runnable {
         int lineNum = loc.line();
 //        System.out.println("pageNum / lineNum: " + pageNum + " / " + lineNum);
 //        System.out.println("pageLines.length = " + pageLines.length);
-        ArrayList<Line> lines = pageLines[pageNum - 1];
+        ArrayList<Line> lines = pageLines[pageNums.indexOf(pageNum)];
 //        System.out.println("lines.size() = " + lines.size());
         Line line = lines.get(lineNum);
         String filePath = snapshotLine(line, key, lineNum);
@@ -405,14 +409,14 @@ public class SearchThread implements Runnable {
   {
     int page = line.page();
     try {
-      BufferedImage pgImg = renderer.renderImageWithDPI((page - 1), 300);
+      BufferedImage pgImg = renderer.renderImageWithDPI((page), 300);
       int startIndex = line.startSnapshotIndex();
       int endIndex = line.endSnapshotIndex();
-      System.out.println("[ " + startIndex + ", " + endIndex + "]");
-      System.out.println("Height = " + pgImg.getHeight());
+//      System.out.println("[ " + startIndex + ", " + endIndex + "]");
+//      System.out.println("Height = " + pgImg.getHeight());
       if (endIndex == 0)
       {
-        System.out.println("End index was 0");
+//        System.out.println("End index was 0");
         endIndex = pgImg.getHeight();
       }
       int imHeight = endIndex - startIndex;

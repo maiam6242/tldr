@@ -4,7 +4,7 @@ public class LineChange {
     private final int WHITE = 0;
     private final int BLACK = 1;
 
-    public LineChange(int rowIndex, int state)
+    LineChange(int rowIndex, int state)
     {
         this.rowIndex = rowIndex;
         this.state = state;
@@ -19,11 +19,11 @@ public class LineChange {
         return lineChangeDescription;
     }
 
-    public int rowIndex() {
+    int rowIndex() {
         return rowIndex;
     }
 
-    public int state() {
+    int state() {
         return state;
     }
 }

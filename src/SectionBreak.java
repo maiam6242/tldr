@@ -3,7 +3,7 @@ public class SectionBreak extends LayoutFeature {
     private int startIndex;
     private int endIndex;
 
-    public SectionBreak(int startIndex, int endIndex)
+    SectionBreak(int startIndex, int endIndex)
     {
         super(startIndex, endIndex);
     }

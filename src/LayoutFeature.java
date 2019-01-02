@@ -1,19 +1,19 @@
-public class LayoutFeature {
+class LayoutFeature {
     private int startIndex;
     private int endIndex;
 
-    public LayoutFeature(int startIndex, int endIndex)
+    LayoutFeature(int startIndex, int endIndex)
     {
         this.startIndex = startIndex;
         this.endIndex = endIndex;
     }
 
-    public int startIndex()
+    int startIndex()
     {
         return startIndex;
     }
 
-    public int endIndex()
+    int endIndex()
     {
         return endIndex;
     }

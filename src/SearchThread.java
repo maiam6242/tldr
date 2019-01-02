@@ -1,5 +1,4 @@
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
+import org.jetbrains.annotations.*;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -26,6 +25,7 @@ public class SearchThread implements Runnable {
   private ArrayList<String> oneWordKeywords = new ArrayList<>();
   private ArrayList<String> multiWordKeywords = new ArrayList<>();
   private String[] wordsFromLine;
+  private boolean testing = tldr.testing;
 
   private final int WHITE = 0;
   private final int BLACK = 1;
@@ -293,13 +293,13 @@ public class SearchThread implements Runnable {
 
     analyzeKeywords();
 
-    //TODO: Ideally we want to iterate only once thru line, looking for both
-    // one word and mutli word keywords based on the word in the line. Maybe it
+    //TODO: Ideally we want to iterate only once through line, looking for both
+    // one word and multi-word keywords based on the word in the line. Maybe it
     // makes sense to sort the keywords alphabetically(?), and check each word
     // in the line. If it matches a one word word, the one word word is
-    // returned and the word matches the beginnings of any multiword words,
-    // each word in that multiword word is iterated thru in order to see if
-    // the text matches. That can be done thru nested for loops
+    // returned and the word matches the beginnings of any multi-word words,
+    // each word in that multi-word word is iterated through in order to see if
+    // the text matches. That can be done through nested for loops
 
     //array of words in a line separated based on spaces
     wordsFromLine = textLine.split(" ");
@@ -324,11 +324,15 @@ public class SearchThread implements Runnable {
 
   @Nullable
   private String matchKeyword(String randomWord,
-                              int positionOfWord) {/*
+                              int positionOfWord)
+  {/*
 
-  Inputs: Word from line of text to be checked against each keyword
+  Inputs: Word from line of text to be checked against each keyword and the
+  position of the word in the line (int)
+  Returns: the String of the keyword or keyphrase that was being searched for
+   if the phrase or word was matched
   */
-    // this matchKeyword is used when the keyword is one word
+    // this loop is used to check against the keywords that are one word
 //    System.out.println("Checking this word: " + word);
     randomWord = randomWord.toLowerCase();
     for (String keyword : oneWordKeywords) {
@@ -351,6 +355,7 @@ public class SearchThread implements Runnable {
       }
     }
 
+    //this loop is used to check against key words that are multiple words
     for (String keyPhrase : multiWordKeywords) {
       String[] separateWords = keyPhrase.split(" ");
       //if the word inputted matches the first word of multi word keyword string
@@ -381,6 +386,11 @@ public class SearchThread implements Runnable {
                       || wordsFromLine[positionOfWord + wordIndex].matches(separateWords[wordIndex] + "\\p{Punct" +
                       "}\\p" + "{IsPunctuation}"))
                 count ++;
+              else
+                break;
+              //TODO: Figure out if where this actually breaks and if the
+              // count var is actually needed
+
               if(separateWords.length == count)
                 return keyPhrase;
           }
@@ -390,18 +400,9 @@ public class SearchThread implements Runnable {
       }
 
     }
+
     return null;
   }
-
-  private String matchKeyword(String[] wordsfromline) {/*
-    Figures out whether multi-word keyphrase is in
-    This takes in an array of words (because a given keyword is multiple
-    words ie "the life" and
-   */
-    return null;
-
-  }
-
 
   @Nullable
   private ArrayList<String> extractTextFromPage(int pg) {
@@ -474,63 +475,90 @@ public class SearchThread implements Runnable {
 
 
   @NotNull
-  private String makeDirectory(String word) {
+  private String makeDirectory(String word)
+  {
+    /* Creates a directory in the users home folder
+  Inputs: Name of the Directory to be created
+  Returns: Path of the directory
+    */
     File g = new File(System.getProperty("user.home") + File.separator + word);
-    g.mkdirs();
-    return g.getAbsolutePath();
+
+    if(g.mkdirs())
+      return g.getAbsolutePath();
+
+    else
+      tldr.print("Sorry directory was not created");
+      return null;
 
   }
 
   //TODO: edit these a bit to improve on our original implementations
-  private String makeFilePath(String j) {
-    String name = j;
+  //TODO: Jeremy (?) said that he wanted files to be made and saved on
+  // desktop or somewhere easier to access, do we want to implement that?
+  private String makeFilePath(String name)
+  {/*Creates a new file in the users home directory
+    Inputs: Name of the File to be created
+    Returns: Path of the newly created file
+    */
+
     File file = new File(System.getProperty("user.home") + File.separator + name);
-//		print("File path produced: " + System.getProperty("user.home") + File.separator + name);
+	if(testing)
+    tldr.print("File path produced: " + System.getProperty("user.home") +
+		File.separator + name);
 
-    String absolutePath = file.getAbsolutePath();
-    return absolutePath;
+    return file.getAbsolutePath();
   }
 
-  private String makeFilePath(String j, String dirpath) {
-    String name = j;
-    File file = new File(dirpath + File.separator + name);
-//		print("Dirpath produced: " + dirpath + File.separator + name);
+  private String makeFilePath(String nameOfFile, String dirpath)
+  {
+    /*Creates a new file
+    Inputs: Name of the File to be created and the path of the directory wanted
+    Returns: Path of the newly created file
+    */
 
-    String absolutePath = file.getAbsolutePath();
-//		print("Absolute path: " + absolutePath);
-    return absolutePath;
+    File file = new File(dirpath + File.separator + nameOfFile);
+
+    if(testing)
+    tldr.print("Dirpath produced: " + dirpath + File.separator + nameOfFile);
+
+    if(testing)
+    tldr.print("Absolute path: " + file.getAbsolutePath());
+
+    return file.getAbsolutePath();
   }
 
-  public HashMap getHashMap() {
+  public HashMap getHashMap()
+  {
     /*
       Returns HashMap for use in main tldr class
      */
     return map;
   }
 
-  private void analyzeKeywords() {
-    /*
-    Looks at each word in the keywords list and sorts based on whether or not
+  private void analyzeKeywords()
+  {
+    /*Looks at each word in the keywords list and sorts based on whether or not
      the word is multiple words or a single word
     */
 
-    //TODO: Check that inputs are not null
     //for every keyword in the list of keywords
     for (String keyword: keywords) {
 
-      int indexOfSpace = keyword.indexOf(" ");
+      if(keyword != null) {
 
-      //there is no space in the word
-      if (indexOfSpace == -1) {
-        oneWordKeywords.add(keyword);
-      }
+        int indexOfSpace = keyword.indexOf(" ");
 
-      // keyword is actually multiple words
-      else {
-        multiWordKeywords.add(keyword);
+       //there is no space in the word
+       if (indexOfSpace == -1) {
+         oneWordKeywords.add(keyword);
+       }
 
-      }
+       // keyword is actually multiple words
+       else {
+         multiWordKeywords.add(keyword);
 
+       }
+     }
     }
   }
 

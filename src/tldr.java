@@ -1,13 +1,10 @@
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.ss.usermodel.*;
-//import org.jetbrains.annotations.Contract;
-//import org.jetbrains.annotations.NotNull;
-//import org.jetbrains.annotations.Nullable;
-// import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.*;
+
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -53,7 +50,7 @@ class tldr implements ActionListener {
 
   //private static SearchThread MaiaTest = new SearchThread();
 
-  private static boolean testing = true;
+  public static boolean testing = true;
 
   tldr()
 
@@ -356,7 +353,7 @@ class tldr implements ActionListener {
       openSearchFile();
     }
 
-    /*
+    /*makeFilePath
       Responds to user clicking the button to open a text file:
       1. Opens file dialog
       2. Retrieves selected text file
@@ -649,7 +646,7 @@ class tldr implements ActionListener {
     }
   }
 
-  private static void print(String s)
+  public static void print(String s)
   {
     /*
       Prints a string to the user console and Eclipse console.
@@ -660,7 +657,7 @@ class tldr implements ActionListener {
     System.out.println(s);
   }
 
-  private void print(@NotNull ArrayList<String> strings)
+  public void print(@NotNull ArrayList<String> strings)
   {
     /*
       Prints an ArrayList of strings to the user console and Eclipse console.
@@ -674,7 +671,7 @@ class tldr implements ActionListener {
     }
   }
 
-  private void print(@NotNull String[] strings)
+  public void print(@NotNull String[] strings)
   {
     /*
       Prints an array of strings to the user console and Eclipse console.

@@ -271,7 +271,7 @@ public class SearchThread implements Runnable {
     return lineChanges;
   }
 
-  @Override
+
   public void run() {
     pixelAnalysis();
     for (int pgNum : pageNums) {
@@ -288,7 +288,7 @@ public class SearchThread implements Runnable {
     takeSnapshots();
   }
 
-  private void findKeywordsInLine(String textLine, int pageNum, int line) {
+  private void findKeywordsInLine(@NotNull String textLine, int pageNum, int line) {
     // words in the line of text
 
     analyzeKeywords();
@@ -474,7 +474,8 @@ public class SearchThread implements Runnable {
   }
 
 
-  @NotNull
+
+  @Nullable
   private String makeDirectory(String word)
   {
     /* Creates a directory in the users home folder
@@ -495,6 +496,7 @@ public class SearchThread implements Runnable {
   //TODO: edit these a bit to improve on our original implementations
   //TODO: Jeremy (?) said that he wanted files to be made and saved on
   // desktop or somewhere easier to access, do we want to implement that?
+  @NotNull
   private String makeFilePath(String name)
   {/*Creates a new file in the users home directory
     Inputs: Name of the File to be created
@@ -509,6 +511,7 @@ public class SearchThread implements Runnable {
     return file.getAbsolutePath();
   }
 
+  @NotNull
   private String makeFilePath(String nameOfFile, String dirpath)
   {
     /*Creates a new file

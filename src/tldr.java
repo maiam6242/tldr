@@ -1116,8 +1116,41 @@ class tldr implements ActionListener {
 
   //TODO: create a thing that closes the window when process is complete? Is
   // this actually something that would be useful?
-  public void close()
+  public void closeGUI()
   {
-    frame.setVisible(false);
+    /*
+    Closes GUI Window
+     */
+    if(testing){
+    long startTime = System.currentTimeMillis();
+    long nextTime = System.currentTimeMillis();
+
+    // waits a certain number of milliseconds (constant in while loop)
+    while(nextTime - startTime < 900){
+      nextTime = System.currentTimeMillis();
+    }
+    }
+
+    frame.dispose();
+
+  }
+
+  public void endProcess()
+  {
+    /*
+    Ends entire process
+     */
+    if(testing){
+      long startTime = System.currentTimeMillis();
+      long nextTime = System.currentTimeMillis();
+
+      // waits a certain number of milliseconds (constant in while loop)
+      while(nextTime - startTime < 900){
+        nextTime = System.currentTimeMillis();
+      }
+    }
+
+    System.exit(0);
+
   }
 }

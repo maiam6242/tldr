@@ -23,18 +23,19 @@ public class SearchThread implements Runnable {
   private HashMap<String, ArrayList<Loc>> map = new HashMap<>();
   private PDFTextStripper textStripper;
   private ArrayList[] pageLines;
+  private ArrayList<String> oneWordKeywords = new ArrayList<>();
+  private ArrayList<String> multiWordKeywords = new ArrayList<>();
+  private String[] wordsFromLine;
 
   private final int WHITE = 0;
   private final int BLACK = 1;
 
 
-  public SearchThread(ArrayList<Integer> pageNums, ArrayList<String> keywords, PDDocument doc, String fileName)
-  {
+  public SearchThread(ArrayList<Integer> pageNums, ArrayList<String> keywords, PDDocument doc, String fileName) {
     this.pageNums.addAll(pageNums);
     System.out.println("Page range: [" + pageNums.get(0) + ", " + pageNums.get(pageNums.size() - 1) + "]");
 
-    for (String keyword : keywords)
-    {
+    for (String keyword : keywords) {
       this.keywords.add(keyword);
       map.put(keyword, new ArrayList<Loc>());
     }
@@ -51,11 +52,9 @@ public class SearchThread implements Runnable {
 
   }
 
-  private void pixelAnalysis()
-  {
+  private void pixelAnalysis() {
     System.out.println("Starting pixel analysis");
-    for (int pageNum : pageNums)
-    {
+    for (int pageNum : pageNums) {
       try {
         BufferedImage pgImg = renderer.renderImageWithDPI(pageNum, 300);
         ArrayList<LineChange> lineChanges = findLineChanges(pgImg);
@@ -79,25 +78,20 @@ public class SearchThread implements Runnable {
 //    printPageLines();
   }
 
-  private void print(ArrayList<Line> lines)
-  {
-    for (Line line : lines)
-    {
+  private void print(ArrayList<Line> lines) {
+    for (Line line : lines) {
       System.out.println("Line: " + line);
     }
   }
 
-  private void printPageLines()
-  {
+  private void printPageLines() {
     System.out.println("Printing page lines");
-    for (ArrayList<Line> lines : pageLines)
-    {
+    for (ArrayList<Line> lines : pageLines) {
       System.out.println(lines);
     }
   }
 
-  private ArrayList<Line> findSnapshotBoundaries(ArrayList<Line> lines, ArrayList<SectionBreak> sectionBreaks)
-  {
+  private ArrayList<Line> findSnapshotBoundaries(ArrayList<Line> lines, ArrayList<SectionBreak> sectionBreaks) {
     for (Line line : lines) {
       int lineStart = line.startIndex();
       int lineEnd = line.endIndex();
@@ -150,40 +144,33 @@ public class SearchThread implements Runnable {
     return lines;
   }
 
-  private ArrayList<Space> convertSpaces(ArrayList<LayoutFeature> layoutFeatures)
-  {
+  private ArrayList<Space> convertSpaces(ArrayList<LayoutFeature> layoutFeatures) {
     ArrayList<Space> spaces = new ArrayList<>();
-    for (LayoutFeature layoutFeature : layoutFeatures)
-    {
+    for (LayoutFeature layoutFeature : layoutFeatures) {
       spaces.add((Space) layoutFeature);
     }
 
     return spaces;
   }
 
-  private ArrayList<Line> convertLines(ArrayList<LayoutFeature> lfs)
-  {
+  private ArrayList<Line> convertLines(ArrayList<LayoutFeature> lfs) {
     ArrayList<Line> lines = new ArrayList<>();
-    for (LayoutFeature lf : lfs)
-    {
+    for (LayoutFeature lf : lfs) {
       lines.add((Line) lf);
     }
     return lines;
   }
 
-  private ArrayList<SectionBreak> convertSectionBreaks(ArrayList<LayoutFeature> lfs)
-  {
+  private ArrayList<SectionBreak> convertSectionBreaks(ArrayList<LayoutFeature> lfs) {
     ArrayList<SectionBreak> sectionBreaks = new ArrayList<>();
-    for (LayoutFeature lf : lfs)
-    {
+    for (LayoutFeature lf : lfs) {
       sectionBreaks.add((SectionBreak) lf);
     }
     return sectionBreaks;
   }
 
 
-  private ArrayList[] identifyLayoutFeatures(ArrayList<LineChange> lineChanges, int pageNum, int height)
-  {
+  private ArrayList[] identifyLayoutFeatures(ArrayList<LineChange> lineChanges, int pageNum, int height) {
 //    System.out.println("lineChanges.size() == " + lineChanges.size());
     ArrayList<LayoutFeature> spaces = new ArrayList<>();
     ArrayList<LayoutFeature> lines = new ArrayList<>();
@@ -191,20 +178,16 @@ public class SearchThread implements Runnable {
     ArrayList[] layoutFeatures = new ArrayList[3];
 
     SummaryStatistics whiteSpaceStats = new SummaryStatistics();
-    for (int i = 0; i < lineChanges.size() - 1; i++)
-    {
+    for (int i = 0; i < lineChanges.size() - 1; i++) {
       LineChange currLineChange = lineChanges.get(i);
       LineChange nextLineChange = lineChanges.get(i + 1);
 
       int difference = nextLineChange.rowIndex() - currLineChange.rowIndex();
-      if (currLineChange.state() == BLACK && nextLineChange.state() == WHITE)
-      {
+      if (currLineChange.state() == BLACK && nextLineChange.state() == WHITE) {
         Line line = new Line(currLineChange.rowIndex(), nextLineChange.rowIndex(), pageNum);
 //        System.out.println(line);
         lines.add(line);
-      }
-      else
-      {
+      } else {
         whiteSpaceStats.addValue(difference);
       }
     }
@@ -216,24 +199,19 @@ public class SearchThread implements Runnable {
 //    System.out.println("Mean = " + mean);
 //    System.out.println("Stdev = " + stdev);
 //    System.out.println("Mean + stdev = " + (mean + stdev));
-    for (int i = 0; i < lineChanges.size() - 1; i++)
-    {
+    for (int i = 0; i < lineChanges.size() - 1; i++) {
       LineChange currLineChange = lineChanges.get(i);
       LineChange nextLineChange = lineChanges.get(i + 1);
 
-      if (currLineChange.state() == WHITE && nextLineChange.state() == BLACK)
-      {
+      if (currLineChange.state() == WHITE && nextLineChange.state() == BLACK) {
         int difference = nextLineChange.rowIndex() - currLineChange.rowIndex();
 //        System.out.println("difference = " + difference);
 
-        if (difference < mean)
-        {
+        if (difference < mean) {
           Space space = new Space(currLineChange.rowIndex(), nextLineChange.rowIndex());
 //          System.out.println(space);
           spaces.add(space);
-        }
-        else if (difference >= mean)
-        {
+        } else if (difference >= mean) {
           SectionBreak sb = new SectionBreak(currLineChange.rowIndex(), nextLineChange.rowIndex());
 //          System.out.println(sb);
           sectionBreaks.add(sb);
@@ -252,43 +230,34 @@ public class SearchThread implements Runnable {
     return layoutFeatures;
   }
 
-
-  private ArrayList<LineChange> findLineChanges(BufferedImage bim)
-  {
+  private ArrayList<LineChange> findLineChanges(BufferedImage bim) {
     int width = bim.getWidth();
     int height = bim.getHeight();
     ArrayList<LineChange> lineChanges = new ArrayList<>();
 
     int switchState = -1;
-    for (int row = 0; row < height; row++)
-    {
+    for (int row = 0; row < height; row++) {
       int rowSum = 0;
-      for (int col = 0; col < width; col++)
-      {
+      for (int col = 0; col < width; col++) {
         int pixel = bim.getRGB(col, row);
         int red = (pixel >> 16) & 0xff;
         int green = (pixel >> 8) & 0xff;
         int blue = (pixel) & 0xff;
 
-        if (red == 255 && green == 255 && blue == 255)
-        {
+        if (red == 255 && green == 255 && blue == 255) {
           pixel = WHITE;
-        }
-        else {
+        } else {
           pixel = BLACK;
         }
 
         rowSum += pixel;
       }
-      if (rowSum == WHITE && switchState != WHITE)
-      {
+      if (rowSum == WHITE && switchState != WHITE) {
         switchState = WHITE;
         LineChange lineChange = new LineChange(row, switchState);
 //        System.out.println("Found a line change: " + lineChange);
         lineChanges.add(lineChange);
-      }
-      else if (rowSum > WHITE && switchState == WHITE || switchState < 0)
-      {
+      } else if (rowSum > WHITE && switchState == WHITE || switchState < 0) {
         switchState = BLACK;
         LineChange lineChange = new LineChange(row, switchState);
         lineChanges.add(lineChange);
@@ -302,18 +271,14 @@ public class SearchThread implements Runnable {
     return lineChanges;
   }
 
-
   @Override
-  public void run()
-  {
+  public void run() {
     pixelAnalysis();
-    for (int pgNum : pageNums)
-    {
+    for (int pgNum : pageNums) {
       System.out.println("On page " + pgNum);
       ArrayList<String> lines = extractTextFromPage(pgNum);
       if (lines != null) {
-        for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++)
-        {
+        for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++) {
           String textLine = lines.get(lineIndex);
           findKeywordsInLine(textLine, pgNum, lineIndex);
         }
@@ -323,27 +288,50 @@ public class SearchThread implements Runnable {
     takeSnapshots();
   }
 
-  private void findKeywordsInLine(String textLine, int pageNum, int line)
-  {
-    String[] words = textLine.split(" ");
-    for (String word : words)
+  private void findKeywordsInLine(String textLine, int pageNum, int line) {
+    // words in the line of text
+
+    analyzeKeywords();
+
+    //TODO: Ideally we want to iterate only once thru line, looking for both
+    // one word and mutli word keywords based on the word in the line. Maybe it
+    // makes sense to sort the keywords alphabetically(?), and check each word
+    // in the line. If it matches a one word word, the one word word is
+    // returned and the word matches the beginnings of any multiword words,
+    // each word in that multiword word is iterated thru in order to see if
+    // the text matches. That can be done thru nested for loops
+
+    //array of words in a line separated based on spaces
+    wordsFromLine = textLine.split(" ");
+
+    // for each word in the line of text from document
+    for (int i = 0; i < wordsFromLine.length; i ++)
     {
-      String keyword = matchKeyword(word);
-      if (keyword != null)
-      {
+      String keyword = matchKeyword(wordsFromLine[i], i);
+
+      if (keyword != null) {
         System.out.println("Found keyword " + keyword + " on line " + line);
         ArrayList<Loc> locs = map.get(keyword);
         locs.add(new Loc(pageNum, line));
         map.put(keyword, locs);
-      }
+
     }
+
+    }
+    //TODO: See if this actually clears / empties the array
+    wordsFromLine = null;
   }
 
   @Nullable
-  private String matchKeyword(String word) {
+  private String matchKeyword(String randomWord,
+                              int positionOfWord) {/*
+
+  Inputs: Word from line of text to be checked against each keyword
+  */
+    // this matchKeyword is used when the keyword is one word
 //    System.out.println("Checking this word: " + word);
-    word = word.toLowerCase();
-    for (String keyword : keywords) {
+    randomWord = randomWord.toLowerCase();
+    for (String keyword : oneWordKeywords) {
 
       /*
       TODO: Figure out what we want to do here and whether we want to make
@@ -351,18 +339,72 @@ public class SearchThread implements Runnable {
        (think about time and scalability)
       */
 
-      //keyhero(keyword, word))
-      if (word.contains(keyword) || word.contains(keyword.toLowerCase())
-              || word.contains(keyword.toUpperCase())) {
+      // I used .matches in CB, and I don't remember why
+      if (randomWord.contains(keyword)
+              || randomWord.contains(keyword.toLowerCase())
+              || randomWord.contains(keyword.toUpperCase()) // this doesn't
+              // really need to be checked because randomword will always be
+              // lowercase
+              || randomWord.matches("\\p{Punct}\\p{IsPunctuation}" + keyword)
+              || randomWord.matches(keyword + "\\p{Punct}\\p{IsPunctuation}")) {
         return keyword;
       }
+    }
+
+    for (String keyPhrase : multiWordKeywords) {
+      String[] separateWords = keyPhrase.split(" ");
+      //if the word inputted matches the first word of multi word keyword string
+      int count;
+
+      if (randomWord.contains(separateWords[0])
+              || randomWord.contains(separateWords[0].toLowerCase())
+              || randomWord.contains(separateWords[0].toUpperCase()) // this
+              // doesn't really need to be checked because randomWord will always be
+              // lowercase
+              || randomWord.matches("\\p{Punct}\\p{IsPunctuation}" + separateWords[0])
+              || randomWord.matches(separateWords[0] + "\\p{Punct}\\p" +
+              "{IsPunctuation}")) {
+        count = 1;
+
+        for (int wordIndex = 1; wordIndex < separateWords.length; wordIndex++)
+        {
+          //if the word index is still in the line
+          if(wordIndex < wordsFromLine.length)
+          {
+              if(wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex])
+                      || wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex].toLowerCase())
+                      || wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex].toUpperCase())
+                      // this
+                      // doesn't really need to be checked because randomWord will always be
+                      // lowercase
+                      || wordsFromLine[positionOfWord + wordIndex].matches("\\p{Punct}\\p{IsPunctuation}" + separateWords[wordIndex])
+                      || wordsFromLine[positionOfWord + wordIndex].matches(separateWords[wordIndex] + "\\p{Punct" +
+                      "}\\p" + "{IsPunctuation}"))
+                count ++;
+              if(separateWords.length == count)
+                return keyPhrase;
+          }
+
+          //TODO: Write for when phrase spills over onto next line
+        }
+      }
+
     }
     return null;
   }
 
+  private String matchKeyword(String[] wordsfromline) {/*
+    Figures out whether multi-word keyphrase is in
+    This takes in an array of words (because a given keyword is multiple
+    words ie "the life" and
+   */
+    return null;
+
+  }
+
+
   @Nullable
-  private ArrayList<String> extractTextFromPage(int pg)
-  {
+  private ArrayList<String> extractTextFromPage(int pg) {
     textStripper.setStartPage(pg);
     textStripper.setEndPage(pg);
     try {
@@ -385,13 +427,10 @@ public class SearchThread implements Runnable {
     return null;
   }
 
-  private void takeSnapshots()
-  {
-    for (String key : map.keySet())
-    {
+  private void takeSnapshots() {
+    for (String key : map.keySet()) {
       ArrayList<Loc> locs = map.get(key);
-      for (Loc loc : locs)
-      {
+      for (Loc loc : locs) {
         int pageNum = loc.page();
         int lineNum = loc.line();
 //        System.out.println("pageNum / lineNum: " + pageNum + " / " + lineNum);
@@ -405,8 +444,7 @@ public class SearchThread implements Runnable {
     }
   }
 
-  private String snapshotLine(Line line, String keyword, int lineNum)
-  {
+  private String snapshotLine(Line line, String keyword, int lineNum) {
     int page = line.page();
     try {
       BufferedImage pgImg = renderer.renderImageWithDPI((page), 300);
@@ -414,8 +452,7 @@ public class SearchThread implements Runnable {
       int endIndex = line.endSnapshotIndex();
 //      System.out.println("[ " + startIndex + ", " + endIndex + "]");
 //      System.out.println("Height = " + pgImg.getHeight());
-      if (endIndex == 0)
-      {
+      if (endIndex == 0) {
 //        System.out.println("End index was 0");
         endIndex = pgImg.getHeight();
       }
@@ -464,49 +501,37 @@ public class SearchThread implements Runnable {
     return absolutePath;
   }
 
-  public HashMap getHashMap()
-  {
+  public HashMap getHashMap() {
     /*
       Returns HashMap for use in main tldr class
      */
     return map;
   }
 
-  private boolean analyzeKeywords (@NotNull String keyword, String line)
-  {
+  private void analyzeKeywords() {
     /*
-    This is basically keyhero... Looks at whether the keyword is one word or
-    multiple and sends it to the right iskeywordhere method
-    Inputs: Keyword(s)
-    Returns: whether or not keyword is in line (return of iskeywordhere methods)
-     */
-  //TODO: Check that both inputs are not null
+    Looks at each word in the keywords list and sorts based on whether or not
+     the word is multiple words or a single word
+    */
 
-    int indexOfSpace = keyword.indexOf(" ");
+    //TODO: Check that inputs are not null
+    //for every keyword in the list of keywords
+    for (String keyword: keywords) {
 
-    //there is no space in the word
-    if (indexOfSpace == -1) {
-      return isKeywordHere(keyword, line);
+      int indexOfSpace = keyword.indexOf(" ");
+
+      //there is no space in the word
+      if (indexOfSpace == -1) {
+        oneWordKeywords.add(keyword);
+      }
+
+      // keyword is actually multiple words
+      else {
+        multiWordKeywords.add(keyword);
+
+      }
+
     }
-    // keyword is actually multiple words
-    else
-    {
-      String [] words = keyword.split(" ");
-      return isKeywordHere(words, line);
-    }
-
-  }
-
-  //TODO: Decide if this is the route that we want to take
-  private boolean isKeywordHere(String [] words, String line)
-  {
-
-    return true;
-  }
-
-  private boolean isKeywordHere(String word, String line)
-  {
-    return true;
   }
 
 }

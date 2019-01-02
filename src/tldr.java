@@ -1,10 +1,12 @@
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.ss.usermodel.*;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+//import org.jetbrains.annotations.Contract;
+//import org.jetbrains.annotations.NotNull;
+//import org.jetbrains.annotations.Nullable;
 // import org.jetbrains.annotations.*;
 
 import javax.swing.*;
@@ -220,7 +222,7 @@ class tldr implements ActionListener {
 
   }
 
-  @Contract(pure = true)
+//  @Contract(pure = true)
   private String[] fillPreloaded()
   {
     /*
@@ -325,7 +327,7 @@ class tldr implements ActionListener {
      */
     if (event.getSource() == searchBtn)
     {
-      if (testing) System.out.println("Search button clicked.");
+//      if (testing) System.out.println("Search button clicked.");
       getInputtedKeywords();
       getSelectedKeywords();
       if (keywords.size() > 0)
@@ -350,7 +352,7 @@ class tldr implements ActionListener {
      */
     if (event.getSource() == searchFileBtn)
     {
-      if (testing) System.out.println("Open file button clicked.");
+//      if (testing) System.out.println("Open file button clicked.");
       openSearchFile();
     }
 
@@ -362,7 +364,7 @@ class tldr implements ActionListener {
      */
     if (event.getSource() == textFileBtn)
     {
-      if (testing) System.out.println("Open text file button clicked.");
+//      if (testing) System.out.println("Open text file button clicked.");
 
         openKeywordsFile();
 
@@ -376,7 +378,7 @@ class tldr implements ActionListener {
      */
     if (event.getSource() == mergeBtn)
     {
-      if (testing) System.out.println("Merge files button clicked.");
+//      if (testing) System.out.println("Merge files button clicked.");
        mergePDFFiles();
     }
   }
@@ -855,20 +857,33 @@ class tldr implements ActionListener {
 
   private void runThreads()
   {
-    System.out.println("Running threads");
+//    System.out.println("Running threads");
+//    threads.get(0).start();
+//    threads.get(1).start();
+//    try {
+//      threads.get(0).join();
+//      threads.get(1).join();
+//    } catch (InterruptedException e) {
+//      e.printStackTrace();
+//    }
     for (Thread thread : threads)
     {
-      System.out.println("Current thread: " + thread);
+//      System.out.println("Current thread: " + thread);
       thread.start();
-    }
-
-    for (Thread thread : threads) {
       try {
         thread.join();
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
     }
+
+//    for (Thread thread : threads) {
+//      try {
+//        thread.join();
+//      } catch (InterruptedException e) {
+//        e.printStackTrace();
+//      }
+//    }
     // TODO: Implement run threads method
 //    for (Thread t : threads)
 //    {
@@ -1099,7 +1114,7 @@ class tldr implements ActionListener {
   }
 
   @NotNull
-  @Contract("_, _ -> new")
+//  @Contract("_, _ -> new")
   private File makeFile(String fileName, String fileExtension)
   {
       /* Creates a file in home directory

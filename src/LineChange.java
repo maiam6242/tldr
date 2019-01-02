@@ -13,7 +13,7 @@ public class LineChange {
     public String toString() {
         String lineChangeDescription = "[" + rowIndex + ", ";
         if (state == WHITE) lineChangeDescription += "WHITE]";
-        else if (state == WHITE) lineChangeDescription += "BLACK]";
+        else if (state != WHITE) lineChangeDescription += "BLACK]";
         // TODO: Fill out the else here with the third-case scenario where something went
         //  wrong when calculating row sums of image
         return lineChangeDescription;

@@ -493,7 +493,7 @@ public class SearchThread implements Runnable {
 
   }
 
-  //TODO: edit these a bit to improve on our original implementations
+
   //TODO: Jeremy (?) said that he wanted files to be made and saved on
   // desktop or somewhere easier to access, do we want to implement that?
   @NotNull

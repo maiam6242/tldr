@@ -934,7 +934,6 @@ class tldr implements ActionListener {
         try {
             doc = PDDocument.load(file);
             // TODO: why is this textStripper created?
-            PDFTextStripper textStripper = new PDFTextStripper();
 
 
 //      ArrayList<SearchThread> threads = new ArrayList<SearchThread>();
@@ -954,7 +953,7 @@ class tldr implements ActionListener {
           ArrayList<Integer> pageGroup = new ArrayList<>();
           for (int i = numGroups * 20; i < doc.getNumberOfPages(); i++)
           {
-            pageGroup.add(i + 1);
+            pageGroup.add(i);
           }
           pageGroups.add(pageGroup);
 
@@ -1133,11 +1132,6 @@ class tldr implements ActionListener {
 
   }
 
-  //TODO: Figure out how and where to compile content that should go into the
-  // SearchThread object
-
-  //TODO: create a thing that closes the window when process is complete? Is
-  // this actually something that would be useful?
   public void closeGUI()
   {
     /*

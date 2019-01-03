@@ -50,7 +50,7 @@ class tldr implements ActionListener {
 
   //private static SearchThread MaiaTest = new SearchThread();
 
-  public static boolean testing = true;
+  static boolean testing = true;
 
   tldr()
 
@@ -512,7 +512,17 @@ class tldr implements ActionListener {
     //for (int counter = 0; counter< fullMap.size(); counter ++)
     {
       //TODO: check that the map is written and not null etc etc
+      HashMap hashMap = SearchThread.getHashMap();
+      for(int i =0; i<hashMap.size(); i++)
+      {
+        for(String keyword: SearchThread.keywords)
+        {
+          hashMap.get(keyword);
+        }
+
+      }
       //map is (keyword, page, line #)
+
     }
   }
 

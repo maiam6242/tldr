@@ -15,11 +15,11 @@ import java.util.HashMap;
 public class SearchThread implements Runnable {
 
   private ArrayList<Integer> pageNums = new ArrayList<>();
-  private ArrayList<String> keywords = new ArrayList<>();
+  public static ArrayList<String> keywords = new ArrayList<>();
   private PDDocument doc;
   private String fileName;
   private PDFRenderer renderer;
-  private HashMap<String, ArrayList<Loc>> map = new HashMap<>();
+  private static HashMap<String, ArrayList<Loc>> map = new HashMap<>();
   private PDFTextStripper textStripper;
   private ArrayList[] pageLines;
   private ArrayList<String> oneWordKeywords = new ArrayList<>();
@@ -30,7 +30,7 @@ public class SearchThread implements Runnable {
   private final int WHITE = 0;
   private final int BLACK = 1;
 
-
+//TODO how are these params taken in or made?
   public SearchThread(ArrayList<Integer> pageNums, ArrayList<String> keywords, PDDocument doc, String fileName) {
     this.pageNums.addAll(pageNums);
     System.out.println("Page range: [" + pageNums.get(0) + ", " + pageNums.get(pageNums.size() - 1) + "]");
@@ -530,7 +530,7 @@ public class SearchThread implements Runnable {
     return file.getAbsolutePath();
   }
 
-  public HashMap getHashMap()
+  static HashMap getHashMap()
   {
     /*
       Returns HashMap for use in main tldr class

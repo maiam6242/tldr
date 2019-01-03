@@ -495,18 +495,21 @@ public class SearchThread implements Runnable {
 
 
   //TODO: Jeremy (?) said that he wanted files to be made and saved on
-  // desktop or somewhere easier to access, do we want to implement that?
+  // desktop... need to test this code!!
+
   @NotNull
   private String makeFilePath(String name)
-  {/*Creates a new file in the users home directory
+  {/*Creates a new file in the users desktop directory
     Inputs: Name of the File to be created
     Returns: Path of the newly created file
     */
 
-    File file = new File(System.getProperty("user.home") + File.separator + name);
+    File file =
+            new File(System.getProperty("user.home") + File.separator +
+                    "Desktop" + File.separator + name);
 	if(testing)
-    tldr.print("File path produced: " + System.getProperty("user.home") +
-		File.separator + name);
+    tldr.print("File path produced: " + System.getProperty("user.home") + File.separator +
+            "Desktop" + File.separator + name);
 
     return file.getAbsolutePath();
   }

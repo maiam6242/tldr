@@ -318,8 +318,11 @@ public class SearchThread implements Runnable {
     }
 
     }
-    //TODO: See if this actually clears / empties the array
-    wordsFromLine = null;
+
+        for (int i = 0; i< wordsFromLine.length; i++)
+    {
+        wordsFromLine[i] = null;
+    }
   }
 
   @Nullable
@@ -353,6 +356,8 @@ public class SearchThread implements Runnable {
               || randomWord.matches(keyword + "\\p{Punct}\\p{IsPunctuation}")) {
         return keyword;
       }
+      else
+        return null;
     }
 
     //this loop is used to check against key words that are multiple words
@@ -373,10 +378,18 @@ public class SearchThread implements Runnable {
 
         for (int wordIndex = 1; wordIndex < separateWords.length; wordIndex++)
         {
-          //if the word index is still in the line
-          if(wordIndex < wordsFromLine.length)
-          {
-              if(wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex])
+            //as soon as a word that isn;t in the phrase is found, exit
+            if(count != wordIndex)
+            {
+                return null;
+            }
+
+            //if the word exists and it's index is still in the line
+            if (wordsFromLine[positionOfWord + wordIndex] != null && wordIndex < wordsFromLine.length)
+            //TODO: write the else to this which should be go to the next line
+            {
+
+               if(wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex])
                       || wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex].toLowerCase())
                       || wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex].toUpperCase())
                       // this
@@ -386,10 +399,6 @@ public class SearchThread implements Runnable {
                       || wordsFromLine[positionOfWord + wordIndex].matches(separateWords[wordIndex] + "\\p{Punct" +
                       "}\\p" + "{IsPunctuation}"))
                 count ++;
-              else
-                break;
-              //TODO: Figure out if where this actually breaks and if the
-              // count var is actually needed
 
               if(separateWords.length == count)
                 return keyPhrase;
@@ -397,12 +406,14 @@ public class SearchThread implements Runnable {
 
           //TODO: Write for when phrase spills over onto next line
         }
-      }
 
+      }
+    }
+    return null;
     }
 
-    return null;
-  }
+
+
 
   @Nullable
   private ArrayList<String> extractTextFromPage(int pg) {
@@ -482,7 +493,9 @@ public class SearchThread implements Runnable {
   Inputs: Name of the Directory to be created
   Returns: Path of the directory
     */
-    File g = new File(System.getProperty("user.home") + File.separator + word);
+    File g =
+            new File(System.getProperty("user.home") + File.separator +
+                    "Desktop" + File.separator + word);
 
     if(g.mkdirs())
       return g.getAbsolutePath();

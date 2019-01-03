@@ -937,6 +937,8 @@ class tldr implements ActionListener {
 
 
 //      ArrayList<SearchThread> threads = new ArrayList<SearchThread>();
+            //TODO:Shouldn't this truncate? Tried with a twelve page doc and
+            // two threads were created
             ArrayList<ArrayList<Integer>> pageGroups = new ArrayList<>();
             int numGroups = doc.getNumberOfPages() / 20;
             int index;

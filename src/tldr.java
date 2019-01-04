@@ -219,7 +219,8 @@ class tldr implements ActionListener {
 
   }
 
-//  @Contract(pure = true)
+
+  @Contract(pure = true)
   private String[] fillPreloaded()
   {
     /*
@@ -1122,7 +1123,7 @@ class tldr implements ActionListener {
   }
 
   @NotNull
-//  @Contract("_, _ -> new")
+  @Contract("_, _ -> new")
   private File makeFile(String fileName, String fileExtension)
   {
       /* Creates a file in home directory

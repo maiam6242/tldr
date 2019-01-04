@@ -31,7 +31,7 @@ public class SearchThread implements Runnable {
   private final int BLACK = 1;
 
 //TODO how are these params taken in or made?
-  public SearchThread(ArrayList<Integer> pageNums, ArrayList<String> keywords, PDDocument doc, String fileName) {
+  public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, PDDocument doc, String fileName) {
     this.pageNums.addAll(pageNums);
     System.out.println("Page range: [" + pageNums.get(0) + ", " + pageNums.get(pageNums.size() - 1) + "]");
 
@@ -78,7 +78,7 @@ public class SearchThread implements Runnable {
 //    printPageLines();
   }
 
-  private void print(ArrayList<Line> lines) {
+  private void print(@NotNull ArrayList<Line> lines) {
     for (Line line : lines) {
       System.out.println("Line: " + line);
     }
@@ -91,7 +91,8 @@ public class SearchThread implements Runnable {
     }
   }
 
-  private ArrayList<Line> findSnapshotBoundaries(ArrayList<Line> lines, ArrayList<SectionBreak> sectionBreaks) {
+  @Contract("_, _ -> param1")
+  private ArrayList<Line> findSnapshotBoundaries(@NotNull ArrayList<Line> lines, ArrayList<SectionBreak> sectionBreaks) {
     for (Line line : lines) {
       int lineStart = line.startIndex();
       int lineEnd = line.endIndex();
@@ -144,7 +145,7 @@ public class SearchThread implements Runnable {
     return lines;
   }
 
-  private ArrayList<Space> convertSpaces(ArrayList<LayoutFeature> layoutFeatures) {
+  private ArrayList<Space> convertSpaces(@NotNull ArrayList<LayoutFeature> layoutFeatures) {
     ArrayList<Space> spaces = new ArrayList<>();
     for (LayoutFeature layoutFeature : layoutFeatures) {
       spaces.add((Space) layoutFeature);
@@ -153,7 +154,7 @@ public class SearchThread implements Runnable {
     return spaces;
   }
 
-  private ArrayList<Line> convertLines(ArrayList<LayoutFeature> lfs) {
+  private ArrayList<Line> convertLines(@NotNull ArrayList<LayoutFeature> lfs) {
     ArrayList<Line> lines = new ArrayList<>();
     for (LayoutFeature lf : lfs) {
       lines.add((Line) lf);
@@ -161,7 +162,7 @@ public class SearchThread implements Runnable {
     return lines;
   }
 
-  private ArrayList<SectionBreak> convertSectionBreaks(ArrayList<LayoutFeature> lfs) {
+  private ArrayList<SectionBreak> convertSectionBreaks(@NotNull ArrayList<LayoutFeature> lfs) {
     ArrayList<SectionBreak> sectionBreaks = new ArrayList<>();
     for (LayoutFeature lf : lfs) {
       sectionBreaks.add((SectionBreak) lf);
@@ -170,7 +171,7 @@ public class SearchThread implements Runnable {
   }
 
 
-  private ArrayList[] identifyLayoutFeatures(ArrayList<LineChange> lineChanges, int pageNum, int height) {
+  private ArrayList[] identifyLayoutFeatures(@NotNull ArrayList<LineChange> lineChanges, int pageNum, int height) {
 //    System.out.println("lineChanges.size() == " + lineChanges.size());
     ArrayList<LayoutFeature> spaces = new ArrayList<>();
     ArrayList<LayoutFeature> lines = new ArrayList<>();
@@ -230,7 +231,7 @@ public class SearchThread implements Runnable {
     return layoutFeatures;
   }
 
-  private ArrayList<LineChange> findLineChanges(BufferedImage bim) {
+  private ArrayList<LineChange> findLineChanges(@NotNull BufferedImage bim) {
     int width = bim.getWidth();
     int height = bim.getHeight();
     ArrayList<LineChange> lineChanges = new ArrayList<>();
@@ -270,7 +271,6 @@ public class SearchThread implements Runnable {
 //    }
     return lineChanges;
   }
-
 
   public void run() {
     pixelAnalysis();
@@ -326,8 +326,7 @@ public class SearchThread implements Runnable {
   }
 
   @Nullable
-  private String matchKeyword(String randomWord,
-                              int positionOfWord)
+  private String matchKeyword(String randomWord, int positionOfWord)
   {/*
 
   Inputs: Word from line of text to be checked against each keyword and the
@@ -412,9 +411,6 @@ public class SearchThread implements Runnable {
     return null;
     }
 
-
-
-
   @Nullable
   private ArrayList<String> extractTextFromPage(int pg) {
     textStripper.setStartPage(pg);
@@ -456,6 +452,7 @@ public class SearchThread implements Runnable {
     }
   }
 
+  @Nullable
   private String snapshotLine(Line line, String keyword, int lineNum) {
     int page = line.page();
     try {
@@ -484,8 +481,6 @@ public class SearchThread implements Runnable {
     return null;
   }
 
-
-
   @Nullable
   private String makeDirectory(String word)
   {
@@ -505,7 +500,6 @@ public class SearchThread implements Runnable {
       return null;
 
   }
-
 
   //TODO: Jeremy (?) said that he wanted files to be made and saved on
   // desktop... need to test this code!!
@@ -546,6 +540,7 @@ public class SearchThread implements Runnable {
     return file.getAbsolutePath();
   }
 
+  @Contract(pure = true)
   static HashMap getHashMap()
   {
     /*

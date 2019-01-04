@@ -33,6 +33,12 @@ public class SearchThread implements Runnable {
 //TODO how are these params taken in or made?
   public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, PDDocument doc, String fileName) {
     this.pageNums.addAll(pageNums);
+
+    for (int pageNum : this.pageNums)
+    {
+      if (testing) System.out.println(pageNum);
+      if (testing) System.out.println(doc.getPage(pageNum));
+    }
     System.out.println("Page range: [" + pageNums.get(0) + ", " + pageNums.get(pageNums.size() - 1) + "]");
 
     for (String keyword : keywords) {
@@ -61,13 +67,13 @@ public class SearchThread implements Runnable {
         ArrayList<LayoutFeature>[] layoutFeatures = identifyLayoutFeatures(lineChanges, pageNum, pgImg.getHeight());
         ArrayList<Space> spaces = convertSpaces(layoutFeatures[0]);
         ArrayList<Line> lines = convertLines(layoutFeatures[1]);
-        System.out.println("Printing lines before finding snapshot boundaries");
-//        print(lines);
+//        System.out.println("Printing lines before finding snapshot boundaries");
+//        if (testing) print(lines);
         ArrayList<SectionBreak> sectionBreaks = convertSectionBreaks(layoutFeatures[2]);
         lines = findSnapshotBoundaries(lines, sectionBreaks);
-//        print(lines);
-        System.out.println("pageNum = " + (pageNum));
-        System.out.println("pageNums.indexOf(pageNum) = " + pageNums.indexOf(pageNum));
+//        if (testing) print(lines);
+        if (testing) System.out.println("pageNum = " + (pageNum));
+        if (testing) System.out.println("pageNums.indexOf(pageNum) = " + pageNums.indexOf(pageNum));
         pageLines[pageNums.indexOf(pageNum)] = lines;
 
       } catch (IOException e) {
@@ -75,7 +81,7 @@ public class SearchThread implements Runnable {
       }
     }
 
-//    printPageLines();
+//    if (testing) printPageLines();
   }
 
   private void print(@NotNull ArrayList<Line> lines) {
@@ -437,17 +443,24 @@ public class SearchThread implements Runnable {
 
   private void takeSnapshots() {
     for (String key : map.keySet()) {
+      System.out.println("Keyword: " + key);
       ArrayList<Loc> locs = map.get(key);
       for (Loc loc : locs) {
         int pageNum = loc.page();
         int lineNum = loc.line();
-//        System.out.println("pageNum / lineNum: " + pageNum + " / " + lineNum);
+        if (pageNums.indexOf(pageNum) != -1)
+        {
+          //        System.out.println("pageNum / lineNum: " + pageNum + " / " + lineNum);
 //        System.out.println("pageLines.length = " + pageLines.length);
-        ArrayList<Line> lines = pageLines[pageNums.indexOf(pageNum)];
+          System.out.println("pageNum = " + pageNum);
+          System.out.println("page range: [" + pageNums.get(0) + ", " + pageNums.get(pageNums.size() - 1) + "]");
+          System.out.println("pageNums.indexOf(pageNum) = " + pageNums.indexOf(pageNum));
+          ArrayList<Line> lines = pageLines[pageNums.indexOf(pageNum)];
 //        System.out.println("lines.size() = " + lines.size());
-        Line line = lines.get(lineNum);
-        String filePath = snapshotLine(line, key, lineNum);
-        if (filePath != null) loc.setFilePath(filePath);
+          Line line = lines.get(lineNum);
+          String filePath = snapshotLine(line, key, lineNum);
+          if (filePath != null) loc.setFilePath(filePath);
+        }
       }
     }
   }
@@ -469,7 +482,7 @@ public class SearchThread implements Runnable {
 
       BufferedImage keywordSnapshot = pgImg.getSubimage(0, startIndex, pgImg.getWidth(), imHeight);
       String dirPath = makeDirectory(fileName + "-" + keyword);
-      String filePath = makeFilePath(keyword + "-pg" + page + "-line" + lineNum + ".png", dirPath);
+      String filePath = makeFilePath(keyword + "-pg" + page + "-line" + lineNum + ".png");
       ImageIO.write(keywordSnapshot, "png", new File(filePath));
 
       return filePath;

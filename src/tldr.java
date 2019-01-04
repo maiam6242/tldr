@@ -1,10 +1,7 @@
 
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.ss.usermodel.*;
 import org.jetbrains.annotations.*;
-
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

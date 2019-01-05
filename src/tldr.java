@@ -45,6 +45,7 @@ class tldr implements ActionListener {
   private static FileWriter fileWriter;
   private static PDDocument doc;
 
+
   //private static SearchThread MaiaTest = new SearchThread();
 
   static boolean testing = true;
@@ -693,6 +694,26 @@ class tldr implements ActionListener {
     }
   }
 
+  private String getOS()
+  { /*
+      Gets the Operating System of Computer for Use with getOfficeVersion Method
+    */
+    String OS = null;
+
+    OS = System.getProperty("os.name");
+
+    if(OS.startsWith("Win"))
+      return "Windows";
+
+    else if (OS.startsWith("Lin"))
+      return "Linux";
+
+    else if (OS.startsWith("Ma"))
+      return "Mac";
+
+    else return null;
+  }
+
   private int getOfficeVersion()
   {
     /* Checks what (if any) version of office is on the system.
@@ -706,10 +727,17 @@ class tldr implements ActionListener {
       //creates process which looks for the office version then reads it, WINDOWS DEPENDENT
 
       //TODO: look more at process and runtime fcns
-      Process process = Runtime.getRuntime().exec(new String [] {"cmd.exe", "/c", "assoc", ".xls"} );
-      BufferedReader officeVersionReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      String officeVersion = officeVersionReader.readLine();
-      officeVersionReader.close();
+      String officeVersion = null;
+      BufferedReader officeVersionReader = null;
+      Process process = null;
+      if(getOS().equals("Windows"))
+
+      {
+        process = Runtime.getRuntime().exec(new String[]{"cmd.exe", "/c", "assoc", ".xls"});
+        officeVersionReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        officeVersion = officeVersionReader.readLine();
+        officeVersionReader.close();
+      }
 
       //see if any office is installed
 
@@ -719,15 +747,16 @@ class tldr implements ActionListener {
         return 0;
       }
 
-      //determine what version the office installed is
-      String[] fileType = officeVersion.split("=");
-      process = Runtime.getRuntime().exec(new String [] {"cmd.exe", "/c", "ftype", fileType[1]});
-      officeVersionReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      String fileAssociation = officeVersionReader.readLine();
-      String fullOfficeVersion = fileAssociation.split("=")[1];
-      officeVersion = fullOfficeVersion.replaceAll("[^0-9]+","");
-      return Integer.parseInt(officeVersion);
-
+      if(getOS().equals("Windows")) {
+        //determine what version the office installed is
+        String[] fileType = officeVersion.split("=");
+        process = Runtime.getRuntime().exec(new String[]{"cmd.exe", "/c", "ftype", fileType[1]});
+        officeVersionReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String fileAssociation = officeVersionReader.readLine();
+        String fullOfficeVersion = fileAssociation.split("=")[1];
+        officeVersion = fullOfficeVersion.replaceAll("[^0-9]+", "");
+        return Integer.parseInt(officeVersion);
+      }
     }
     catch(Exception error){
         print(error.getMessage());

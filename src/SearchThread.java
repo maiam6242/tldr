@@ -10,6 +10,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -490,20 +492,29 @@ public class SearchThread implements Runnable {
   Inputs: Name of the Directory to be created
   Returns: Path of the directory
     */
-    File g =
-            new File(System.getProperty("user.home") + File.separator +
-                    "Desktop" + File.separator + word);
+    Path path = Paths.get(System.getProperty("user.home"),"Desktop", word);
+    if(testing)
+    System.out.print("Path: "+path);
+
+    try{
+    Files.createDirectories(path);}
+    catch (IOException e){
+      e.printStackTrace();
+    }
 
 //    try {
 //      return Files.createDirectory(g.toPath()).toString();
 //    } catch (IOException e) {
 //      e.printStackTrace();
-    if(g.mkdir())
-      return g.getAbsolutePath();
+
+    if(Files.isDirectory(path)){
+      return path.toString();
+    }
 
     else
       tldr.print("Sorry directory was not created");
-      return null;
+      return makeDirectory(word);
+
 
   }
 

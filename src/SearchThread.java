@@ -22,7 +22,7 @@ public class SearchThread implements Runnable {
   private PDDocument doc;
   private String fileName;
   private PDFRenderer renderer;
-  private static HashMap<String, ArrayList<Loc>> map = new HashMap<>();
+  private HashMap<String, ArrayList<Loc>> map = new HashMap<>();
   private PDFTextStripper textStripper;
   private ArrayList[] pageLines;
   private ArrayList<String> oneWordKeywords = new ArrayList<>();
@@ -473,7 +473,8 @@ public class SearchThread implements Runnable {
 
       BufferedImage keywordSnapshot = pgImg.getSubimage(0, startIndex, pgImg.getWidth(), imHeight);
       String dirPath = makeDirectory(fileName + "-" + keyword);
-      String filePath = makeFilePath(keyword + "-pg" + page + "-line" + lineNum + ".png", dirPath);
+      String pageString = Integer.toString(page + 1);
+      String filePath = makeFilePath(keyword + "-pg" + pageString + "-line" + lineNum + ".png", dirPath);
       ImageIO.write(keywordSnapshot, "png", new File(filePath));
 
       return filePath;
@@ -558,7 +559,7 @@ public class SearchThread implements Runnable {
   }
 
   @Contract(pure = true)
-  static HashMap getHashMap()
+  public HashMap getHashMap()
   {
     /*
       Returns HashMap for use in main tldr class

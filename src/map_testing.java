@@ -2,6 +2,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 
 import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.collections4.MapIterator;
 import org.apache.commons.collections4.MultiMap;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -28,6 +29,17 @@ class map_testing {
             }
             long end = System.currentTimeMillis();
             System.out.println("MultiValueMap took " + (end - start) + " ms");
+        }
+
+        {
+            long start = System.currentTimeMillis();
+            Multimap<String, String> mmap;
+            mmap = MultimapBuilder.hashKeys().arrayListValues().build();;
+            for (String key : data) {
+                mmap.put(key, key);
+            }
+            long end = System.currentTimeMillis();
+            System.out.println("MultiMapBuilder took " + (end - start) + " ms");
         }
 
         {

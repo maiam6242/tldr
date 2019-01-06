@@ -512,7 +512,7 @@ public class SearchThread implements Runnable {
 
   @Nullable
   private String matchKeyword(String randomWord, int positionOfWord)
-  {/*
+  {/**
 
   Inputs: Word from line of text to be checked against each keyword and the
   position of the word in the line (int)
@@ -621,23 +621,41 @@ public class SearchThread implements Runnable {
   }
 
   private void takeSnapshots() {
+
     for (String key : map.keySet()) {
       System.out.println("Taking snapshots for keyword: " + key);
       ArrayList<Loc> locs = map.get(key);
+      System.out.println("Is the Locs ArrayList null? "+ locs == null);
+      System.out.println("Size of map.keySet (how many keywords searched): "+map.keySet().size());
+      System.out.println("Keyword: " + key);
+      System.out.println("Size of locs ArrayList: " + locs.size());
+
+      //this one is throwing: Exception in thread "Thread-0" java.lang
+      // .IndexOutOfBoundsException: Index 0 out-of-bounds for length 0
+      System.out.println("First instance of locs: "+locs.get(0));
+
+      //TODO: Figure this out for when multiple keywords are inputted
+      for (Loc loc:locs){
+        System.out.println("line: "+loc.line());
+      }
+
       for (Loc loc : locs) {
         int pageNum = loc.page();
         int lineNum = loc.line();
 
+
         if (pageNums.indexOf(pageNum) != -1)
         {
-          System.out.println(key + " found on " + pageNum + "page, line " + lineNum);
-          ArrayList<Line> lines = pageLines[pageNums.indexOf(pageNum)];
+          System.out.println(key + " found on " + pageNum + " page, line " + lineNum);
+          ArrayList<Line> lines = pageLines[pageNums.indexOf(pageNum-1)];
           Line line = lines.get(lineNum);
           String filePath = snapshotLine(line, key, lineNum);
           System.out.println("Filepath of snapshot: " + filePath);
           if (filePath != null) loc.setFilePath(filePath);
         }
       }
+      System.out.println("Done Snapshotting " +key);
+      locs.clear();
     }
   }
 
@@ -674,7 +692,7 @@ public class SearchThread implements Runnable {
   @Nullable
   private String makeDirectory(String word)
   {
-    /* Creates a directory in the users home folder
+    /** Creates a directory in the users home folder
   Inputs: Name of the Directory to be created
   Returns: Path of the directory
     */
@@ -709,7 +727,7 @@ public class SearchThread implements Runnable {
 
   @NotNull
   private String makeFilePath(String name)
-  {/*Creates a new file in the users desktop directory
+  {/**Creates a new file in the users desktop directory
     Inputs: Name of the File to be created
     Returns: Path of the newly created file
     */
@@ -727,7 +745,7 @@ public class SearchThread implements Runnable {
   @NotNull
   private String makeFilePath(String nameOfFile, String dirpath)
   {
-    /*Creates a new file
+    /**Creates a new file
     Inputs: Name of the File to be created and the path of the directory wanted
     Returns: Path of the newly created file
     */
@@ -746,7 +764,7 @@ public class SearchThread implements Runnable {
   @Contract(pure = true)
   public HashMap getHashMap()
   {
-    /*
+    /**
       Returns HashMap for use in main tldr class
      */
     return map;
@@ -754,7 +772,7 @@ public class SearchThread implements Runnable {
 
   private void analyzeKeywords()
   {
-    /*Looks at each word in the keywords list and sorts based on whether or not
+    /**Looks at each word in the keywords list and sorts based on whether or not
      the word is multiple words or a single word
     */
 

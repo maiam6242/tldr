@@ -1,7 +1,6 @@
 import org.jetbrains.annotations.*;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 
@@ -33,9 +32,21 @@ public class SearchThread implements Runnable {
   private final int WHITE = 0;
   private final int BLACK = 1;
 
-//TODO how are these params taken in or made?
   public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, PDDocument doc, String fileName) {
+    /**
+     * Parameters:
+     * - pageNums --> list of page numbers in the doc that this thread will search through
+     * - keywords --> list of keywords the thread will search for
+     * - doc --> the document (as a PDDocument object) that this thread will search through
+     * - fileName --> String representation of the name of the file this thread will search through
+     */
+
+    // Copies all pageNums from the pageNums paramter to the pageNums class variable
+    // Making a copy prevents pointer errors from arising later
     this.pageNums.addAll(pageNums);
+
+    // Adds all keywords to keywords class variable
+    // Adds all keywords as keys to hashmap (to initialize the hashmap)
     for (String keyword : keywords) {
       this.keywords.add(keyword);
       map.put(keyword, new ArrayList<Loc>());
@@ -46,6 +57,10 @@ public class SearchThread implements Runnable {
     renderer = new PDFRenderer(doc);
     try {
       textStripper = new PDFTextStripper();
+
+      // Initializes pageLines so that it is the same length as pageNums
+      // Each index in pageLines corresponds to the same page in pageNums,
+      // and contains all the Line objects for that page
       pageLines = new ArrayList[pageNums.size()];
     } catch (IOException e) {
       e.printStackTrace();
@@ -53,68 +68,131 @@ public class SearchThread implements Runnable {
 
   }
 
-  private void pixelAnalysis() {
+  private void pixelAnalysis(int pageNum) {
+    /**
+     * Paramters: pageNum - the number of the page that will be analyzed
+     *
+     * This method analyzes the pixels in the image representation of the given page to identify key layout features like
+     * spaces, section breaks, and lines. It also determines and records, for each line, the nearest section breaks in
+     * order to make snapshotting easier in the future.
+     */
+
     System.out.println("Starting pixel analysis");
-    for (int pageNum : pageNums) {
-      System.out.println("Pixel analysis page " + pageNum);
-      try {
-        BufferedImage pgImg = renderer.renderImageWithDPI(pageNum, 300);
-        ArrayList<LineChange> lineChanges = findLineChanges(pgImg);
-        ArrayList<LayoutFeature>[] layoutFeatures = identifyLayoutFeatures(lineChanges, pageNum, pgImg.getHeight());
-        ArrayList<Space> spaces = convertSpaces(layoutFeatures[0]);
-        ArrayList<Line> lines = convertLines(layoutFeatures[1]);
-//        System.out.println("Printing lines before finding snapshot boundaries");
-//        if (testing) print(lines);
-        ArrayList<SectionBreak> sectionBreaks = convertSectionBreaks(layoutFeatures[2]);
-        lines = findSnapshotBoundaries(lines, sectionBreaks);
-//        if (testing) print(lines);
-        pageLines[pageNums.indexOf(pageNum)] = lines;
+    System.out.println("Pixel analysis page " + pageNum);
+    try {
+
+      // Converts the page to an image
+      BufferedImage pgImg = renderer.renderImageWithDPI(pageNum, 300);
+
+      // Finds all points where the rows in the image change from all-white to not-all-white and vice versa
+      ArrayList<LineChange> lineChanges = findLineChanges(pgImg);
+
+      // Uses the line changes to identify spaces, lines, and section breaks
+      ArrayList<LayoutFeature>[] layoutFeatures = identifyLayoutFeatures(lineChanges, pageNum, pgImg.getHeight());
+
+      // Conversion of recognized layout features into appropriate objects for greater future functionality
+      ArrayList<Space> spaces = convertSpaces(layoutFeatures[0]);
+      ArrayList<Line> lines = convertLines(layoutFeatures[1]);
+      ArrayList<SectionBreak> sectionBreaks = convertSectionBreaks(layoutFeatures[2]);
+
+      // Finds and records the snapshot boundaries (nearest section breaks) for each line
+      lines = findSnapshotBoundaries(lines, sectionBreaks);
+
+      // Records the visually-determined Lines in the pageLines array for future retrieval
+      pageLines[pageNums.indexOf(pageNum)] = lines;
 
       } catch (IOException e) {
+      // TODO: Deal with IOException exception here
         e.printStackTrace();
       }
-    }
-
-//    if (testing) printPageLines();
   }
 
   private void print(@NotNull ArrayList<Line> lines) {
+    /**
+     * Parameter: Takes in a list of Line objects to be printed
+     *
+     * Prints Line objects in the given list.
+     */
+
     for (Line line : lines) {
       System.out.println("Line: " + line);
     }
   }
 
   private void printPageLines() {
+    /**
+     * Print the list of Lines for each page by iterating through pageLines.
+     */
     System.out.println("Printing page lines");
     for (ArrayList<Line> lines : pageLines) {
-      System.out.println(lines);
+      print(lines);
     }
   }
 
   @Contract("_, _ -> param1")
-  private ArrayList<Line> findSnapshotBoundaries(@NotNull ArrayList<Line> lines, ArrayList<SectionBreak> sectionBreaks) {
+  private ArrayList<Line> findSnapshotBoundaries(@NotNull ArrayList<Line> lines, ArrayList<SectionBreak> sectionBreaks)
+  {
+    /**
+     * Parameters:
+     * lines --> list of Lines, determined visually through pixelAnalysis
+     * sectionBreaks --> list of SectionBreaks determined visually through pixelAnalysis
+     *
+     * This method finds the closest Section Breaks before and after each Line in order to find the boundaries for a
+     * snapshot if the a keyword was found on this line.
+     */
+
+    // TODO: Make smarter/faster by ordering Lines & SectionBreaks by start and end indeces, possibly?
+
     for (Line line : lines) {
+
+      // Retrieves the start and end row indeces for the line
       int lineStart = line.startIndex();
       int lineEnd = line.endIndex();
 
+      // Initializes the distance and index records for the start Section Break (closest Section Break before the Line)
+      // and the end Section Break (closest Section Break after the line)
+
+      // Distance between the start Section Break and the start of the current Line
       int startMinDistance = 0;
+      // Index of the start Section Break in the list of Section Breaks
       int startMinIndex = -1;
+      // Distance between the end of the current Line and the end Section Break
       int endMinDistance = 0;
+      // Index of the end Section Break in the list of Section Breaks
       int endMinIndex = -1;
 
+      // Iterates through the list of Section Breaks
       for (int sb = 0; sb < sectionBreaks.size(); sb++) {
-        if (sectionBreaks.get(sb).endIndex() < lineStart) {
-          SectionBreak currSectionBreak = sectionBreaks.get(sb);
+
+        // Gets the current Section Break
+        SectionBreak currSectionBreak = sectionBreaks.get(sb);
+
+        // Determines if the current Section Break is before or after the Line
+        if (currSectionBreak.endIndex() < lineStart) {
+          // The end of this section break is before the start of the line, so the section break must be before the line
+
+          // Retrieves the distance between the line and the current section break
+          // We know this must be the order of the subtraction because the start of the line must be greater than the
+          // end of the section break
           int distance = lineStart - currSectionBreak.startIndex();
+
+          // Updates the record of the closest start Section Break if there hasn't been one initialized yet
+          // (startMinDistance == 0), or if the current section break is closer (distance < startMinDistance)
           if (startMinDistance == 0 || distance < startMinDistance) {
             startMinIndex = sb;
             startMinDistance = distance;
           }
         }
+        if (currSectionBreak.startIndex() > lineEnd) {
+          // THe start of this section break is after the end of the line, so the section break must be after the line
 
-        if (sectionBreaks.get(sb).startIndex() > lineEnd) {
-          SectionBreak currSectionBreak = sectionBreaks.get(sb);
+          // Retrieves the distance between the line and the current section break
+          // We know this must be the order of the subtraction because the start of the section break must be greater
+          // than the end of the line
           int distance = currSectionBreak.startIndex() - lineEnd;
+
+          // Updates the record of the closest end Section Break if there hasn't been one initialized yet
+          // (endMinDistance == 0), or if the current section break is closer (distance < endMinDistance)
           if (endMinDistance == 0 || distance < endMinDistance) {
             endMinIndex = sb;
             endMinDistance = distance;
@@ -122,23 +200,42 @@ public class SearchThread implements Runnable {
         }
       }
 
+      // Retrieves the startSectionBreak from the list of section breaks
       SectionBreak startSectionBreak = null;
-      if (startMinIndex > 0) {
+      // Checks for valid index found for the start section break
+      // We check if startMinIndex - 1 is greater than zero and not just startMinIndex because we end up retrieving the
+      // Section Break at (startMinIndex - 1) in the list of section breaks
+      if ((startMinIndex - 1) > 0) {
+        // Retrieves the section break before the closest one before the Line in order to increase the context of the snapshot
+        // TODO: Consider just going a few extra rows before the startMinIndex rather than an entire additional sectionBreak?
+        //  Perhaps we could just go a half-section-break afterwards. We can determine what the width of a sectionBreak
+        //  is and use that?
         startSectionBreak = sectionBreaks.get(startMinIndex - 1);
       } else {
+        // If not valid, default to the first section break found
         startSectionBreak = sectionBreaks.get(0);
       }
 
+      // Retrieves the endSectionBreak from the list of section breaks
       SectionBreak endSectionBreak = null;
-      if (endMinIndex > 0 && endMinIndex < sectionBreaks.size() - 1) {
+      // Checks for valid index found for the end section break
+      // We check that (endMinInex + 1) is within valid bounds and not endMinIndex, because we end up retrieving the
+      // SectionBreak at (endMinIndex + 1) in the list of section breaks
+      if ((endMinIndex + 1) > 0 && (endMinIndex + 1) < sectionBreaks.size() - 1) {
+        // Retrieves the section break after the closest one after the Line in order to increase the context of the snapshot
+        // TODO: See startMinIndex TODO above
         endSectionBreak = sectionBreaks.get(endMinIndex + 1);
       } else {
         endSectionBreak = sectionBreaks.get(sectionBreaks.size() - 1);
       }
 
+      // Retrieves the bounds of the snapshot; the starting is the end of the previous section break and the ending is
+      // the start of the following section break
       int startIndex = startSectionBreak.endIndex();
       int endIndex = endSectionBreak.startIndex();
 
+      // Updates the line with the snapshot boundaries
+      // Now these boundaries can be retrieved from the Line when it is time to take a snapshot of the line
       line.setSnapshotBoundaries(startIndex, endIndex);
     }
 
@@ -146,6 +243,15 @@ public class SearchThread implements Runnable {
   }
 
   private ArrayList<Space> convertSpaces(@NotNull ArrayList<LayoutFeature> layoutFeatures) {
+    /**
+     * Converts a generic list of layout features into space objects.
+     *
+     * This method is used when processing the layout features determined by pixelAnalysis.
+     * The conversion is so that we can use Space-specific methods (like the specific toString
+     * for printing out Spaces, which will help in testing).
+     */
+
+    // Casts each LayoutFeature object into a Space object
     ArrayList<Space> spaces = new ArrayList<>();
     for (LayoutFeature layoutFeature : layoutFeatures) {
       spaces.add((Space) layoutFeature);
@@ -155,6 +261,16 @@ public class SearchThread implements Runnable {
   }
 
   private ArrayList<Line> convertLines(@NotNull ArrayList<LayoutFeature> lfs) {
+    /**
+     * Converts a generic list of layout features into Line objects.
+     *
+     * This method is used when processing the layout features determined by pixelAnalysis.
+     * The conversion is so that we can use Line-specific methods (like the specific toString
+     * for printing out Lines, which will help in testing, and the setSnapshotBoundaries which
+     * is essential for snapshotting).
+     */
+
+    // Casts each LayoutFeature object into a Line object
     ArrayList<Line> lines = new ArrayList<>();
     for (LayoutFeature lf : lfs) {
       lines.add((Line) lf);
@@ -163,6 +279,15 @@ public class SearchThread implements Runnable {
   }
 
   private ArrayList<SectionBreak> convertSectionBreaks(@NotNull ArrayList<LayoutFeature> lfs) {
+    /**
+     * Converts a generic list of layout features into SectionBreak objects.
+     *
+     * This method is used when processing the layout features determined by pixelAnalysis.
+     * The conversion is so that we can use SectionBreak-specific methods (like the specific
+     * toString for printing out SectionBreaks, which will help in testing).
+     */
+
+    // Casts each LayoutFeature object into a SectionBreak object
     ArrayList<SectionBreak> sectionBreaks = new ArrayList<>();
     for (LayoutFeature lf : lfs) {
       sectionBreaks.add((SectionBreak) lf);
@@ -172,7 +297,6 @@ public class SearchThread implements Runnable {
 
 
   private ArrayList[] identifyLayoutFeatures(@NotNull ArrayList<LineChange> lineChanges, int pageNum, int height) {
-//    System.out.println("lineChanges.size() == " + lineChanges.size());
     ArrayList<LayoutFeature> spaces = new ArrayList<>();
     ArrayList<LayoutFeature> lines = new ArrayList<>();
     ArrayList<LayoutFeature> sectionBreaks = new ArrayList<>();

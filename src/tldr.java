@@ -902,14 +902,19 @@ class tldr implements ActionListener {
 //    }
     for (Thread thread : threads)
     {
-//      System.out.println("Current thread: " + thread);
       thread.start();
+    }
+
+    for (Thread thread : threads)
+    {
       try {
         thread.join();
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
     }
+
+    System.out.println(SearchThread.totalNumberInstances);
 
 //    for (Thread thread : threads) {
 //      try {
@@ -939,7 +944,7 @@ class tldr implements ActionListener {
     {
       if (pageGroups != null) {
         for (ArrayList<Integer> pageGroup : pageGroups) {
-          threads.add(new Thread(new SearchThread(pageGroup, keywords, doc, file.getName())));
+          threads.add(new Thread(new SearchThread(pageGroup, keywords, file.getAbsolutePath(), file.getName())));
         }
         System.out.println("Created threads: " + threads.size());
       }
@@ -972,7 +977,8 @@ class tldr implements ActionListener {
             for (int i = 0; i < numGroups; i++)
             {
               ArrayList<Integer> pageGroup = new ArrayList<>();
-              for (index = i * 20; index < i * 20 + 20; index++)
+              int startingIndex = i * 20 + 1;
+              for (index = startingIndex; index < startingIndex + 20; index++)
               {
                 pageGroup.add(index);
               }

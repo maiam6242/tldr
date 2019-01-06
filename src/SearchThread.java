@@ -29,12 +29,14 @@ public class SearchThread implements Runnable {
   private String[] wordsFromLine;
   private boolean testing = tldr.testing;
 
+  public static int totalNumberInstances = 0;
+
   private final int WHITE = 0;
   private final int BLACK = 1;
 
 
 
-  public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, PDDocument doc, String fileName) {
+  public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, String filePath, String fileName) {
     /*
      * Parameters:
      * - pageNums --> list of page numbers in the doc that this thread will search through
@@ -47,6 +49,8 @@ public class SearchThread implements Runnable {
     // Making a copy prevents pointer errors from arising later
     this.pageNums.addAll(pageNums);
 
+    System.out.println("Page range for this thread: [" + pageNums.get(0) + ", " + pageNums.get(pageNums.size() - 1) + "]");
+
     // Adds all keywords to keywords class variable
     // Adds all keywords as keys to hashmap (to initialize the hashmap)
     for (String keyword : keywords) {
@@ -54,7 +58,11 @@ public class SearchThread implements Runnable {
       map.put(keyword, new ArrayList<Loc>());
     }
 
-    this.doc = doc;
+    try {
+      this.doc = PDDocument.load(new File(filePath));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
     this.fileName = fileName;
     renderer = new PDFRenderer(doc);
     try {
@@ -455,10 +463,10 @@ public class SearchThread implements Runnable {
 
   public void run() {
     for (int pgNum : pageNums) {
+      System.out.println("Currenlty on page " + pgNum);
 
       // Analyzes each page and finds the section breaks, lines, and spaces
       pixelAnalysis(pgNum);
-      System.out.println("On page " + pgNum);
 
       // Extracts text from the page
       ArrayList<String> lines = extractTextFromPage(pgNum);
@@ -497,7 +505,7 @@ public class SearchThread implements Runnable {
       String keyword = matchKeyword(wordsFromLine[i], i);
 
       //not getting here the second time
-      System.out.println("keyword: "+keyword);
+//      System.out.println("Found keyword: "+keyword);
       if (keyword != null) {
         System.out.println("Found keyword " + keyword + " on line " + line);
         ArrayList<Loc> locs = map.get(keyword);
@@ -528,7 +536,7 @@ public class SearchThread implements Runnable {
     randomWord = randomWord.toLowerCase();
 
     for (String keyword : oneWordKeywords) {
-      System.out.println("keyword3" + keyword);
+//      System.out.println("keyword3" + keyword);
     /*
       TODO: Figure out what we want to do here and whether we want to make
        methods for this like what we did before with the isKeywordHere stuff
@@ -549,7 +557,7 @@ public class SearchThread implements Runnable {
 
     //this loop is used to check against key words that are multiple words
     for (String keyPhrase : multiWordKeywords) {
-      System.out.println("keyword3" + keyPhrase);
+//      System.out.println("keyword3" + keyPhrase);
       String[] separateWords = keyPhrase.split(" ");
       //if the word inputted matches the first word of multi word keyword string
       int count;
@@ -630,6 +638,8 @@ public class SearchThread implements Runnable {
     for (String key : map.keySet()) {
       System.out.println("Taking snapshots for keyword: " + key);
       ArrayList<Loc> locs = map.get(key);
+
+      totalNumberInstances += locs.size();
      if(testing) {
 
        System.out.println("Size of map.keySet (how many keywords searched): " + map.keySet().size());
@@ -657,7 +667,11 @@ public class SearchThread implements Runnable {
         if (pageNums.indexOf(pageNum) != -1)
         {
           System.out.println(key + " found on " + pageNum + " page, line " + lineNum);
-          ArrayList<Line> lines = pageLines[pageNums.indexOf(pageNum-1)];
+          ArrayList<Line> lines = pageLines[pageNums.indexOf(pageNum)];
+          // error pops up on pg 266, line 23, page 243 line 12, page 127 line 38, page 280 line 29, page 204 line 42,
+          // page 142 line 30, page 173 line 52, page 49 line 47, page 197 line 47
+          System.out.println("lines.size() = " + lines.size());
+          System.out.println("lines.size() of previous page = " + pageLines[pageNums.indexOf(pageNum - 1)].size());
           Line line = lines.get(lineNum);
           String filePath = snapshotLine(line, key, lineNum);
           System.out.println("Filepath of snapshot: " + filePath);
@@ -796,7 +810,7 @@ public class SearchThread implements Runnable {
        //there is no space in the word
        if (indexOfSpace == -1) {
          oneWordKeywords.add(keyword);
-         System.out.println("Keyword1: "+ keyword);
+//         System.out.println("Keyword1: "+ keyword);
        }
 
        // keyword is actually multiple words

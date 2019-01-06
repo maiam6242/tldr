@@ -223,6 +223,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="Guava Library" level="project" />
+    <orderEntry type="library" name="com.google.guava:guava:27.0.1-jre" level="project" />
   </component>
 </module>

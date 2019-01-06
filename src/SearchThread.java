@@ -35,7 +35,7 @@ public class SearchThread implements Runnable {
 
 
   public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, PDDocument doc, String fileName) {
-    /**
+    /*
      * Parameters:
      * - pageNums --> list of page numbers in the doc that this thread will search through
      * - keywords --> list of keywords the thread will search for
@@ -71,7 +71,7 @@ public class SearchThread implements Runnable {
   }
 
   private void pixelAnalysis(int pageNum) {
-    /**
+    /*
      * Paramters: pageNum - the number of the page that will be analyzed
      *
      * This method analyzes the pixels in the image representation of the given page to identify key layout features like
@@ -110,7 +110,7 @@ public class SearchThread implements Runnable {
   }
 
   private void print(@NotNull ArrayList<Line> lines) {
-    /**
+    /*
      * Parameter: Takes in a list of Line objects to be printed
      *
      * Prints Line objects in the given list.
@@ -122,7 +122,7 @@ public class SearchThread implements Runnable {
   }
 
   private void printPageLines() {
-    /**
+    /*
      * Print the list of Lines for each page by iterating through pageLines.
      */
     System.out.println("Printing page lines");
@@ -134,7 +134,7 @@ public class SearchThread implements Runnable {
   @Contract("_, _ -> param1")
   private ArrayList<Line> findSnapshotBoundaries(@NotNull ArrayList<Line> lines, ArrayList<SectionBreak> sectionBreaks)
   {
-    /**
+    /*
      * Parameters:
      * lines --> list of Lines, determined visually through pixelAnalysis
      * sectionBreaks --> list of SectionBreaks determined visually through pixelAnalysis
@@ -245,7 +245,7 @@ public class SearchThread implements Runnable {
   }
 
   private ArrayList<Space> convertSpaces(@NotNull ArrayList<LayoutFeature> layoutFeatures) {
-    /**
+    /*
      * Converts a generic list of layout features into space objects.
      *
      * This method is used when processing the layout features determined by pixelAnalysis.
@@ -263,7 +263,7 @@ public class SearchThread implements Runnable {
   }
 
   private ArrayList<Line> convertLines(@NotNull ArrayList<LayoutFeature> lfs) {
-    /**
+    /*
      * Converts a generic list of layout features into Line objects.
      *
      * This method is used when processing the layout features determined by pixelAnalysis.
@@ -299,7 +299,7 @@ public class SearchThread implements Runnable {
 
 
   private ArrayList[] identifyLayoutFeatures(@NotNull ArrayList<LineChange> lineChanges, int pageNum, int height) {
-    /**
+    /*
      * Parameters:
      * lineChanges -- list of line changes, or rows where the image of the page changes from all-white to not-all-white and vice versa.
      * pageNum -- the number of the page that is being analyzed
@@ -385,7 +385,7 @@ public class SearchThread implements Runnable {
   }
 
   private ArrayList<LineChange> findLineChanges(@NotNull BufferedImage bim) {
-    /**
+    /*
      * Paramters:
      * bim - the image of the page
      *
@@ -496,6 +496,8 @@ public class SearchThread implements Runnable {
     {
       String keyword = matchKeyword(wordsFromLine[i], i);
 
+      //not getting here the second time
+      System.out.println("keyword: "+keyword);
       if (keyword != null) {
         System.out.println("Found keyword " + keyword + " on line " + line);
         ArrayList<Loc> locs = map.get(keyword);
@@ -514,7 +516,7 @@ public class SearchThread implements Runnable {
 
   @Nullable
   private String matchKeyword(String randomWord, int positionOfWord)
-  {/**
+  {/*
 
   Inputs: Word from line of text to be checked against each keyword and the
   position of the word in the line (int)
@@ -524,9 +526,10 @@ public class SearchThread implements Runnable {
     // this loop is used to check against the keywords that are one word
 //    System.out.println("Checking this word: " + word);
     randomWord = randomWord.toLowerCase();
-    for (String keyword : oneWordKeywords) {
 
-      /*
+    for (String keyword : oneWordKeywords) {
+      System.out.println("keyword3" + keyword);
+    /*
       TODO: Figure out what we want to do here and whether we want to make
        methods for this like what we did before with the isKeywordHere stuff
        (think about time and scalability)
@@ -542,12 +545,11 @@ public class SearchThread implements Runnable {
               || randomWord.matches(keyword + "\\p{Punct}\\p{IsPunctuation}")) {
         return keyword;
       }
-      else
-        return null;
     }
 
     //this loop is used to check against key words that are multiple words
     for (String keyPhrase : multiWordKeywords) {
+      System.out.println("keyword3" + keyPhrase);
       String[] separateWords = keyPhrase.split(" ");
       //if the word inputted matches the first word of multi word keyword string
       int count;
@@ -571,7 +573,8 @@ public class SearchThread implements Runnable {
             }
 
             //if the word exists and it's index is still in the line
-            if (wordsFromLine[positionOfWord + wordIndex] != null && wordIndex < wordsFromLine.length)
+            if (wordsFromLine[positionOfWord + wordIndex-1] != null){
+              if(wordIndex < wordsFromLine.length)
             //TODO: write the else to this which should be go to the next line
             {
 
@@ -593,7 +596,7 @@ public class SearchThread implements Runnable {
           //TODO: Write for when phrase spills over onto next line
         }
 
-      }
+      }}
     }
     return null;
     }
@@ -627,13 +630,18 @@ public class SearchThread implements Runnable {
     for (String key : map.keySet()) {
       System.out.println("Taking snapshots for keyword: " + key);
       ArrayList<Loc> locs = map.get(key);
-      System.out.println("Is the Locs ArrayList null? "+ locs == null);
-      System.out.println("Size of map.keySet (how many keywords searched): "+map.keySet().size());
-      System.out.println("Keyword: " + key);
-      System.out.println("Size of locs ArrayList: " + locs.size());
+     if(testing) {
 
+       System.out.println("Size of map.keySet (how many keywords searched): " + map.keySet().size());
+       System.out.println("Keyword: " + key);
+       System.out.println("map.get(key) size: " + map.get(key).size());
+       if(map.get(key).size()>0)
+       System.out.println("map.get(key) sub 0: " + map.get(key).get(0));
+       System.out.println("Size of locs ArrayList: " + locs.size());
+     }
       //this one is throwing: Exception in thread "Thread-0" java.lang
       // .IndexOutOfBoundsException: Index 0 out-of-bounds for length 0
+      if(map.get(key).size()>0)
       System.out.println("First instance of locs: "+locs.get(0));
 
       //TODO: Figure this out for when multiple keywords are inputted
@@ -694,7 +702,7 @@ public class SearchThread implements Runnable {
   @Nullable
   private String makeDirectory(String word)
   {
-    /** Creates a directory in the users home folder
+    /* Creates a directory in the users home folder
   Inputs: Name of the Directory to be created
   Returns: Path of the directory
     */
@@ -729,7 +737,7 @@ public class SearchThread implements Runnable {
 
   @NotNull
   private String makeFilePath(String name)
-  {/**Creates a new file in the users desktop directory
+  {/*Creates a new file in the users desktop directory
     Inputs: Name of the File to be created
     Returns: Path of the newly created file
     */
@@ -747,7 +755,7 @@ public class SearchThread implements Runnable {
   @NotNull
   private String makeFilePath(String nameOfFile, String dirpath)
   {
-    /**Creates a new file
+    /*Creates a new file
     Inputs: Name of the File to be created and the path of the directory wanted
     Returns: Path of the newly created file
     */
@@ -766,7 +774,7 @@ public class SearchThread implements Runnable {
   @Contract(pure = true)
   public HashMap getHashMap()
   {
-    /**
+    /*
       Returns HashMap for use in main tldr class
      */
     return map;
@@ -774,7 +782,7 @@ public class SearchThread implements Runnable {
 
   private void analyzeKeywords()
   {
-    /**Looks at each word in the keywords list and sorts based on whether or not
+    /*Looks at each word in the keywords list and sorts based on whether or not
      the word is multiple words or a single word
     */
 
@@ -788,6 +796,7 @@ public class SearchThread implements Runnable {
        //there is no space in the word
        if (indexOfSpace == -1) {
          oneWordKeywords.add(keyword);
+         System.out.println("Keyword1: "+ keyword);
        }
 
        // keyword is actually multiple words

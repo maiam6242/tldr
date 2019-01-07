@@ -49,7 +49,8 @@ public class SearchThread implements Runnable {
     // Making a copy prevents pointer errors from arising later
     this.pageNums.addAll(pageNums);
 
-    System.out.println("Page range for this thread: [" + pageNums.get(0) + ", " + pageNums.get(pageNums.size() - 1) + "]");
+    //System.out.println("Page range for this thread: [" + pageNums.get(0) +
+    //          ", " + pageNums.get(pageNums.size()) + "]");
 
     // Adds all keywords to keywords class variable
     // Adds all keywords as keys to hashmap (to initialize the hashmap)
@@ -118,7 +119,7 @@ public class SearchThread implements Runnable {
   }
 
   private void print(@NotNull ArrayList<Line> lines) {
-    /**
+    /*
      * Parameter: Takes in a list of Line objects to be printed
      *
      * Prints Line objects in the given list.
@@ -142,7 +143,7 @@ public class SearchThread implements Runnable {
   @Contract("_, _ -> param1")
   private ArrayList<Line> findSnapshotBoundaries(@NotNull ArrayList<Line> lines, ArrayList<SectionBreak> sectionBreaks)
   {
-    /**
+    /*
      * Parameters:
      * lines --> list of Lines, determined visually through pixelAnalysis
      * sectionBreaks --> list of SectionBreaks determined visually through pixelAnalysis
@@ -253,7 +254,7 @@ public class SearchThread implements Runnable {
   }
 
   private ArrayList<Space> convertSpaces(@NotNull ArrayList<LayoutFeature> layoutFeatures) {
-    /**
+    /*
      * Converts a generic list of layout features into space objects.
      *
      * This method is used when processing the layout features determined by pixelAnalysis.
@@ -271,7 +272,7 @@ public class SearchThread implements Runnable {
   }
 
   private ArrayList<Line> convertLines(@NotNull ArrayList<LayoutFeature> lfs, int pageNum) {
-    /**
+    /*
      * Converts a generic list of layout features into Line objects.
      *
      * This method is used when processing the layout features determined by pixelAnalysis.
@@ -289,7 +290,7 @@ public class SearchThread implements Runnable {
   }
 
   private ArrayList<SectionBreak> convertSectionBreaks(@NotNull ArrayList<LayoutFeature> lfs) {
-    /**
+    /*
      * Converts a generic list of layout features into SectionBreak objects.
      *
      * This method is used when processing the layout features determined by pixelAnalysis.
@@ -307,7 +308,7 @@ public class SearchThread implements Runnable {
 
 
   private ArrayList<ArrayList<LayoutFeature>> identifyLayoutFeatures(@NotNull ArrayList<LineChange> lineChanges, int pageNum, int height) {
-    /**
+    /*
      * Parameters:
      * lineChanges -- list of line changes, or rows where the image of the page changes from all-white to not-all-white and vice versa.
      * pageNum -- the number of the page that is being analyzed
@@ -462,8 +463,9 @@ public class SearchThread implements Runnable {
   }
 
   public void run() {
+      analyzeKeywords();
     for (int pgNum : pageNums) {
-      System.out.println("Currenlty on page " + pgNum);
+      System.out.println("Currentlnalyzey on page " + pgNum);
 
       // Analyzes each page and finds the section breaks, lines, and spaces
       pixelAnalysis(pgNum);
@@ -492,7 +494,7 @@ public class SearchThread implements Runnable {
   }
 
   private void findKeywordsInLine(@NotNull String textLine, int pageNum, int line) {
-    analyzeKeywords();
+
 
     //TODO: Ideally we want to iterate only once through line, looking for both
     // one word and multi-word keywords based on the word in the line. Maybe it
@@ -589,6 +591,8 @@ public class SearchThread implements Runnable {
             }
 
             //if the word exists and it's index is still in the line
+
+            //TODO: Check if this is an off by one
             if (wordsFromLine[positionOfWord + wordIndex-1] != null){
               if(wordIndex < wordsFromLine.length)
             //TODO: write the else to this which should be go to the next line
@@ -680,7 +684,7 @@ public class SearchThread implements Runnable {
           // error pops up on pg 266, line 23, page 243 line 12, page 127 line 38, page 280 line 29, page 204 line 42,
           // page 142 line 30, page 173 line 52, page 49 line 47, page 197 line 47
           System.out.println("lines.size() = " + lines.size());
-          System.out.println("lines.size() of previous page = " + pageLines.get(pageNums.indexOf(pageNum - 1)));
+          System.out.println("lines.size() of previous page = " + pageLines.get(pageNums.indexOf(pageNum)));
           Line line = lines.get(lineNum);
           String filePath = snapshotLine(line, key, lineNum);
           System.out.println("Filepath of snapshot: " + filePath);
@@ -778,7 +782,7 @@ public class SearchThread implements Runnable {
   @NotNull
   private String makeFilePath(String nameOfFile, String dirpath)
   {
-    /**
+    /*
     Creates a new file
     Inputs: Name of the File to be created and the path of the directory wanted
     Returns: Path of the newly created file
@@ -798,7 +802,7 @@ public class SearchThread implements Runnable {
   @Contract(pure = true)
   public HashMap getHashMap()
   {
-    /**
+    /*
       Returns HashMap for use in main tldr class
      */
     return map;
@@ -806,7 +810,7 @@ public class SearchThread implements Runnable {
 
   private void analyzeKeywords()
   {
-    /**
+    /*
     Looks at each word in the keywords list and sorts based on whether or not
      the word is multiple words or a single word
     */

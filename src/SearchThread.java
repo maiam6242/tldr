@@ -17,7 +17,7 @@ import java.util.HashMap;
 public class SearchThread implements Runnable {
 
   private ArrayList<Integer> pageNums = new ArrayList<>();
-  private static ArrayList<String> keywords = new ArrayList<>();
+  public static ArrayList<String> keywords = new ArrayList<>();
   private PDDocument doc;
   private String fileName;
   private PDFRenderer renderer;
@@ -36,7 +36,7 @@ public class SearchThread implements Runnable {
 
 
 
-  SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, String filePath, String fileName) {
+  public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, String filePath, String fileName) {
     /*
      * Parameters:
      * - pageNums --> list of page numbers in the doc that this thread will search through
@@ -49,7 +49,8 @@ public class SearchThread implements Runnable {
     // Making a copy prevents pointer errors from arising later
     this.pageNums.addAll(pageNums);
 
-    System.out.println("Page range for this thread: [" + pageNums.get(0) + ", " + pageNums.get(pageNums.size() - 1) + "]");
+    //System.out.println("Page range for this thread: [" + pageNums.get(0) +
+    //          ", " + pageNums.get(pageNums.size()) + "]");
 
     // Adds all keywords to keywords class variable
     // Adds all keywords as keys to hashmap (to initialize the hashmap)
@@ -79,7 +80,7 @@ public class SearchThread implements Runnable {
   }
 
   private void pixelAnalysis(int pageNum) {
-    /*
+    /**
      * Paramters: pageNum - the number of the page that will be analyzed
      *
      * This method analyzes the pixels in the image representation of the given page to identify key layout features like
@@ -464,7 +465,7 @@ public class SearchThread implements Runnable {
   public void run() {
       analyzeKeywords();
     for (int pgNum : pageNums) {
-      System.out.println("Currently on page " + pgNum);
+      System.out.println("Currentlnalyzey on page " + pgNum);
 
       // Analyzes each page and finds the section breaks, lines, and spaces
       pixelAnalysis(pgNum);

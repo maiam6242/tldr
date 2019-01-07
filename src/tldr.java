@@ -977,7 +977,7 @@ class tldr implements ActionListener {
             ArrayList<ArrayList<Integer>> pageGroups = new ArrayList<>();
             int numGroups = doc.getNumberOfPages() / 20;
             int index;
-            for (int i = 0; i <= numGroups; i++)
+            for (int i = 1; i <= numGroups; i++)
             {
               ArrayList<Integer> pageGroup = new ArrayList<>();
               int startingIndex = i * 20 + 1;

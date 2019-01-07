@@ -980,7 +980,7 @@ class tldr implements ActionListener {
             for (int i = 0; i < numGroups; i++)
             {
               ArrayList<Integer> pageGroup = new ArrayList<>();
-              int startingIndex = i * 20;
+              int startingIndex = i * 20 + 1;
               for (index = startingIndex; index < startingIndex + 20; index++)
               {
                 pageGroup.add(index);
@@ -989,7 +989,7 @@ class tldr implements ActionListener {
             }
 
           ArrayList<Integer> pageGroup = new ArrayList<>();
-          for (int i = numGroups * 20; i < doc.getNumberOfPages(); i++)
+          for (int i = numGroups * 20 + 1; i < doc.getNumberOfPages(); i++)
           {
             pageGroup.add(i);
           }

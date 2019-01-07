@@ -93,7 +93,7 @@ public class SearchThread implements Runnable {
     try {
 
       // Converts the page to an image
-      BufferedImage pgImg = renderer.renderImageWithDPI(pageNum, 300);
+      BufferedImage pgImg = renderer.renderImageWithDPI(pageNum-1, 300);
 
       // Finds all points where the rows in the image change from all-white to not-all-white and vice versa
       ArrayList<LineChange> lineChanges = findLineChanges(pgImg);
@@ -684,7 +684,9 @@ public class SearchThread implements Runnable {
           // error pops up on pg 266, line 23, page 243 line 12, page 127 line 38, page 280 line 29, page 204 line 42,
           // page 142 line 30, page 173 line 52, page 49 line 47, page 197 line 47
           System.out.println("lines.size() = " + lines.size());
-          System.out.println("lines.size() of previous page = " + pageLines.get(pageNums.indexOf(pageNum)));
+          //pageLines has first page indexed at 0
+          System.out.println("lines.size() of previous"+ pageNum +" page = " +
+                           pageLines.get(pageNums.indexOf(pageNum)));
           Line line = lines.get(lineNum);
           String filePath = snapshotLine(line, key, lineNum);
           System.out.println("Filepath of snapshot: " + filePath);
@@ -713,7 +715,7 @@ public class SearchThread implements Runnable {
 
       BufferedImage keywordSnapshot = pgImg.getSubimage(0, startIndex, pgImg.getWidth(), imHeight);
       String dirPath = makeDirectory(fileName + "-" + keyword);
-      String pageString = Integer.toString(page + 1);
+      String pageString = Integer.toString(page+1);
       String filePath = makeFilePath(keyword + "-pg" + pageString + "-line" + lineNum + ".png", dirPath);
       ImageIO.write(keywordSnapshot, "png", new File(filePath));
 

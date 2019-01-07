@@ -37,7 +37,7 @@ public class SearchThread implements Runnable {
 
 
   public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, String filePath, String fileName) {
-    /**
+    /*
      * Parameters:
      * - pageNums --> list of page numbers in the doc that this thread will search through
      * - keywords --> list of keywords the thread will search for
@@ -54,7 +54,7 @@ public class SearchThread implements Runnable {
     // Adds all keywords to keywords class variable
     // Adds all keywords as keys to hashmap (to initialize the hashmap)
     for (String keyword : keywords) {
-      this.keywords.add(keyword);
+      SearchThread.keywords.add(keyword);
       map.put(keyword, new ArrayList<Loc>());
     }
 
@@ -98,12 +98,12 @@ public class SearchThread implements Runnable {
       ArrayList<LineChange> lineChanges = findLineChanges(pgImg);
 
       // Uses the line changes to identify spaces, lines, and section breaks
-      ArrayList<LayoutFeature>[] layoutFeatures = identifyLayoutFeatures(lineChanges, pageNum, pgImg.getHeight());
+      ArrayList<ArrayList<LayoutFeature>> layoutFeatures = identifyLayoutFeatures(lineChanges, pageNum, pgImg.getHeight());
 
       // Conversion of recognized layout features into appropriate objects for greater future functionality
-      ArrayList<Space> spaces = convertSpaces(layoutFeatures[0]);
-      ArrayList<Line> lines = convertLines(layoutFeatures[1]);
-      ArrayList<SectionBreak> sectionBreaks = convertSectionBreaks(layoutFeatures[2]);
+      ArrayList<Space> spaces = convertSpaces(layoutFeatures.get(0));
+      ArrayList<Line> lines = convertLines(layoutFeatures.get(1), pageNum);
+      ArrayList<SectionBreak> sectionBreaks = convertSectionBreaks(layoutFeatures.get(2));
 
       // Finds and records the snapshot boundaries (nearest section breaks) for each line
       lines = findSnapshotBoundaries(lines, sectionBreaks);
@@ -264,13 +264,13 @@ public class SearchThread implements Runnable {
     // Casts each LayoutFeature object into a Space object
     ArrayList<Space> spaces = new ArrayList<>();
     for (LayoutFeature layoutFeature : layoutFeatures) {
-      spaces.add((Space) layoutFeature);
+      spaces.add(new Space(layoutFeature.startIndex(), layoutFeature.endIndex()));
     }
 
     return spaces;
   }
 
-  private ArrayList<Line> convertLines(@NotNull ArrayList<LayoutFeature> lfs) {
+  private ArrayList<Line> convertLines(@NotNull ArrayList<LayoutFeature> lfs, int pageNum) {
     /**
      * Converts a generic list of layout features into Line objects.
      *
@@ -283,7 +283,7 @@ public class SearchThread implements Runnable {
     // Casts each LayoutFeature object into a Line object
     ArrayList<Line> lines = new ArrayList<>();
     for (LayoutFeature lf : lfs) {
-      lines.add((Line) lf);
+      lines.add(new Line(lf.startIndex(), lf.endIndex(), pageNum));
     }
     return lines;
   }
@@ -300,13 +300,13 @@ public class SearchThread implements Runnable {
     // Casts each LayoutFeature object into a SectionBreak object
     ArrayList<SectionBreak> sectionBreaks = new ArrayList<>();
     for (LayoutFeature lf : lfs) {
-      sectionBreaks.add((SectionBreak) lf);
+      sectionBreaks.add(new SectionBreak(lf.startIndex(), lf.endIndex()));
     }
     return sectionBreaks;
   }
 
 
-  private ArrayList[] identifyLayoutFeatures(@NotNull ArrayList<LineChange> lineChanges, int pageNum, int height) {
+  private ArrayList<ArrayList<LayoutFeature>> identifyLayoutFeatures(@NotNull ArrayList<LineChange> lineChanges, int pageNum, int height) {
     /**
      * Parameters:
      * lineChanges -- list of line changes, or rows where the image of the page changes from all-white to not-all-white and vice versa.
@@ -321,7 +321,7 @@ public class SearchThread implements Runnable {
     ArrayList<LayoutFeature> spaces = new ArrayList<>();
     ArrayList<LayoutFeature> lines = new ArrayList<>();
     ArrayList<LayoutFeature> sectionBreaks = new ArrayList<>();
-    ArrayList[] layoutFeatures = new ArrayList[3];
+    ArrayList<ArrayList<LayoutFeature>> layoutFeatures = new ArrayList<>();
 
     // Gathers statistics about the differing amounts of white space between Lines
     SummaryStatistics whiteSpaceStats = new SummaryStatistics();
@@ -382,9 +382,9 @@ public class SearchThread implements Runnable {
 
     // Fills layoutFeatures array so that the spaces, lines, and sectionBreaks can be returned
     // in a more space-friendly way (and all at once, by one method)
-    layoutFeatures[0] = spaces;
-    layoutFeatures[1] = lines;
-    layoutFeatures[2] = sectionBreaks;
+    layoutFeatures.set(0, spaces);
+    layoutFeatures.set(1, lines);
+    layoutFeatures.set(2, sectionBreaks);
 
     System.out.println("There are " + spaces.size() + " spaces.");
     System.out.println("There are " + lines.size() + " lines.");

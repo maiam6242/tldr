@@ -915,7 +915,11 @@ class tldr implements ActionListener {
     }
 
     System.out.println(SearchThread.totalNumberInstances);
-
+    try {
+      doc.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
 //    for (Thread thread : threads) {
 //      try {
 //        thread.join();
@@ -986,7 +990,7 @@ class tldr implements ActionListener {
             }
 
           ArrayList<Integer> pageGroup = new ArrayList<>();
-          for (int i = numGroups * 20; i < doc.getNumberOfPages(); i++)
+          for (int i = numGroups * 20 + 1; i < doc.getNumberOfPages(); i++)
           {
             pageGroup.add(i);
           }

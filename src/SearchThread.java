@@ -23,7 +23,7 @@ public class SearchThread implements Runnable {
   private PDFRenderer renderer;
   private HashMap<String, ArrayList<Loc>> map = new HashMap<>();
   private PDFTextStripper textStripper;
-  private ArrayList[] pageLines;
+  private ArrayList<ArrayList<Line>> pageLines;
   private ArrayList<String> oneWordKeywords = new ArrayList<>();
   private ArrayList<String> multiWordKeywords = new ArrayList<>();
   private String[] wordsFromLine;
@@ -37,7 +37,7 @@ public class SearchThread implements Runnable {
 
 
   public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, String filePath, String fileName) {
-    /*
+    /**
      * Parameters:
      * - pageNums --> list of page numbers in the doc that this thread will search through
      * - keywords --> list of keywords the thread will search for
@@ -71,7 +71,7 @@ public class SearchThread implements Runnable {
       // Initializes pageLines so that it is the same length as pageNums
       // Each index in pageLines corresponds to the same page in pageNums,
       // and contains all the Line objects for that page
-      pageLines = new ArrayList[pageNums.size()];
+      pageLines = new ArrayList<ArrayList<Line>>();
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -79,7 +79,7 @@ public class SearchThread implements Runnable {
   }
 
   private void pixelAnalysis(int pageNum) {
-    /*
+    /**
      * Paramters: pageNum - the number of the page that will be analyzed
      *
      * This method analyzes the pixels in the image representation of the given page to identify key layout features like
@@ -109,7 +109,7 @@ public class SearchThread implements Runnable {
       lines = findSnapshotBoundaries(lines, sectionBreaks);
 
       // Records the visually-determined Lines in the pageLines array for future retrieval
-      pageLines[pageNums.indexOf(pageNum)] = lines;
+      pageLines.add(lines);
 
       } catch (IOException e) {
       // TODO: Deal with IOException exception here
@@ -118,7 +118,7 @@ public class SearchThread implements Runnable {
   }
 
   private void print(@NotNull ArrayList<Line> lines) {
-    /*
+    /**
      * Parameter: Takes in a list of Line objects to be printed
      *
      * Prints Line objects in the given list.
@@ -142,7 +142,7 @@ public class SearchThread implements Runnable {
   @Contract("_, _ -> param1")
   private ArrayList<Line> findSnapshotBoundaries(@NotNull ArrayList<Line> lines, ArrayList<SectionBreak> sectionBreaks)
   {
-    /*
+    /**
      * Parameters:
      * lines --> list of Lines, determined visually through pixelAnalysis
      * sectionBreaks --> list of SectionBreaks determined visually through pixelAnalysis
@@ -253,7 +253,7 @@ public class SearchThread implements Runnable {
   }
 
   private ArrayList<Space> convertSpaces(@NotNull ArrayList<LayoutFeature> layoutFeatures) {
-    /*
+    /**
      * Converts a generic list of layout features into space objects.
      *
      * This method is used when processing the layout features determined by pixelAnalysis.
@@ -271,7 +271,7 @@ public class SearchThread implements Runnable {
   }
 
   private ArrayList<Line> convertLines(@NotNull ArrayList<LayoutFeature> lfs) {
-    /*
+    /**
      * Converts a generic list of layout features into Line objects.
      *
      * This method is used when processing the layout features determined by pixelAnalysis.
@@ -307,7 +307,7 @@ public class SearchThread implements Runnable {
 
 
   private ArrayList[] identifyLayoutFeatures(@NotNull ArrayList<LineChange> lineChanges, int pageNum, int height) {
-    /*
+    /**
      * Parameters:
      * lineChanges -- list of line changes, or rows where the image of the page changes from all-white to not-all-white and vice versa.
      * pageNum -- the number of the page that is being analyzed
@@ -368,8 +368,8 @@ public class SearchThread implements Runnable {
           {
             // Otherwise, this section is wider than average, therefore it must be a section break
             // TODO: Investigate this statistical analysis. I feel like in reality, the distribution of widths of
-            //  sections of whitespace is actually bimodal, and I wonder if it's possible for us to find modes insteads? Research analysis
-            //  of bimodal distributions
+            //  sections of whitespace is actually bimodal, and I wonder if it's possible for us to find modes insteads?
+            //  Research analysis of bimodal distributions
           SectionBreak sb = new SectionBreak(currLineChange.rowIndex(), nextLineChange.rowIndex());
           sectionBreaks.add(sb);
         }
@@ -483,6 +483,11 @@ public class SearchThread implements Runnable {
     }
 
     takeSnapshots();
+    try {
+      doc.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   private void findKeywordsInLine(@NotNull String textLine, int pageNum, int line) {
@@ -619,7 +624,6 @@ public class SearchThread implements Runnable {
       ArrayList<String> pgLines = new ArrayList<>();
 
       for (String pageLine : pageLines) {
-        // TODO: figure out what this is for?
         if (pageLine.length() > 5) {
           pgLines.add(pageLine);
         }
@@ -667,11 +671,11 @@ public class SearchThread implements Runnable {
         if (pageNums.indexOf(pageNum) != -1)
         {
           System.out.println(key + " found on " + pageNum + " page, line " + lineNum);
-          ArrayList<Line> lines = pageLines[pageNums.indexOf(pageNum)];
+          ArrayList<Line> lines = pageLines.get(pageNums.indexOf(pageNum));
           // error pops up on pg 266, line 23, page 243 line 12, page 127 line 38, page 280 line 29, page 204 line 42,
           // page 142 line 30, page 173 line 52, page 49 line 47, page 197 line 47
           System.out.println("lines.size() = " + lines.size());
-          System.out.println("lines.size() of previous page = " + pageLines[pageNums.indexOf(pageNum - 1)].size());
+          System.out.println("lines.size() of previous page = " + pageLines.get(pageNums.indexOf(pageNum - 1)));
           Line line = lines.get(lineNum);
           String filePath = snapshotLine(line, key, lineNum);
           System.out.println("Filepath of snapshot: " + filePath);
@@ -769,7 +773,8 @@ public class SearchThread implements Runnable {
   @NotNull
   private String makeFilePath(String nameOfFile, String dirpath)
   {
-    /*Creates a new file
+    /**
+    Creates a new file
     Inputs: Name of the File to be created and the path of the directory wanted
     Returns: Path of the newly created file
     */
@@ -788,7 +793,7 @@ public class SearchThread implements Runnable {
   @Contract(pure = true)
   public HashMap getHashMap()
   {
-    /*
+    /**
       Returns HashMap for use in main tldr class
      */
     return map;
@@ -796,7 +801,8 @@ public class SearchThread implements Runnable {
 
   private void analyzeKeywords()
   {
-    /*Looks at each word in the keywords list and sorts based on whether or not
+    /**
+    Looks at each word in the keywords list and sorts based on whether or not
      the word is multiple words or a single word
     */
 

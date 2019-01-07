@@ -12,7 +12,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 // UI imports
 
@@ -24,7 +23,7 @@ class tldr implements ActionListener {
   private static JLabel titleLbl;
   private static JLabel instructionsLbl;
   private static JLabel selectInstructionsLbl;
-  private static JList preloadedList;
+  private static JList<String> preloadedList;
   private static JScrollPane scrollPane;
   private static JButton searchBtn;
   private static JButton searchFileBtn;
@@ -859,7 +858,7 @@ class tldr implements ActionListener {
     // Adds words to list of keywords
     if (preloadedList.getSelectedValuesList().size() > 0)
     {
-      selectedKeywords = (ArrayList<String>)preloadedList.getSelectedValuesList();
+      selectedKeywords = (ArrayList<String>) preloadedList.getSelectedValuesList();
       keywords.addAll(selectedKeywords);
     }
   }

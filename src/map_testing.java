@@ -20,12 +20,18 @@ class map_testing {
         ArrayList<String> data = new ArrayList<>();
         for (int i = 0; i < 20000; i++) {
             data.add(Integer.toString(i)); }
+        ArrayList<Loc> locs = new ArrayList<>();
+        for (int i = 0; i<2000; i++){
+            locs.add(i, new Loc(i, i+1));
+        }
         {
             long start = System.currentTimeMillis();
-            MultiMap<Integer, String> mmap = new MultiValueMap<>();
+            MultiMap<String, Loc> mmap = new MultiValueMap<>();
 
-            for (int i = 0; i < data.size(); i++) {
-                mmap.put(i, data.get(i));
+            for (String key : data) {
+                for(Loc l: locs)
+                    mmap.put(key, l);
+
             }
             long end = System.currentTimeMillis();
             System.out.println("MultiValueMap took " + (end - start) + " ms");
@@ -33,10 +39,11 @@ class map_testing {
 
         {
             long start = System.currentTimeMillis();
-            Multimap<String, String> mmap;
+            Multimap<String, Loc> mmap;
             mmap = MultimapBuilder.hashKeys().arrayListValues().build();;
             for (String key : data) {
-                mmap.put(key, key);
+                for(Loc l: locs)
+                mmap.put(key, l);
             }
             long end = System.currentTimeMillis();
             System.out.println("MultiMapBuilder took " + (end - start) + " ms");
@@ -44,10 +51,11 @@ class map_testing {
 
         {
             long start = System.currentTimeMillis();
-            Multimap<String, String> mmap;
+            Multimap<String, Loc> mmap;
             mmap = HashMultimap.create();
             for (String key : data) {
-                mmap.put(key, key);
+                for(Loc l: locs)
+                mmap.put(key, l);
             }
             long end = System.currentTimeMillis();
             System.out.println("HashMultiMap took " + (end - start) + " ms");
@@ -55,10 +63,11 @@ class map_testing {
 
         {
             long start = System.currentTimeMillis();
-            Multimap<String, String> mmap;
+            Multimap<String, Loc> mmap;
             mmap = ArrayListMultimap.create();
             for (String key : data) {
-                mmap.put(key, key);
+                for(Loc l: locs)
+                mmap.put(key,l);
             }
             long end = System.currentTimeMillis();
             System.out.println("ArrayListMultiMap took " + (end - start) + " " +
@@ -67,10 +76,11 @@ class map_testing {
 
         {
             long start = System.currentTimeMillis();
-            HashMap<String, String> mmap =
+            HashMap<String, Loc> mmap =
                     new HashMap<>();
             for (String key : data) {
-                 mmap.put(key, key);
+                for(Loc l: locs)
+                 mmap.put(key, l);
             }
             long end = System.currentTimeMillis();
             System.out.println("HashMap took " + (end - start) + " ms");

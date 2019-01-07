@@ -619,6 +619,8 @@ public class SearchThread implements Runnable {
 
   @Nullable
   private ArrayList<String> extractTextFromPage(int pg) {
+
+    System.out.println("Page for Text Stripper" + pg);
     textStripper.setStartPage(pg);
     textStripper.setEndPage(pg);
     try {

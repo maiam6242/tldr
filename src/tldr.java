@@ -970,7 +970,6 @@ class tldr implements ActionListener {
             doc = PDDocument.load(file);
             // TODO: why is this textStripper created?
 
-
 //      ArrayList<SearchThread> threads = new ArrayList<SearchThread>();
             //TODO:Shouldn't this truncate? Tried with a twelve page doc and
             // two threads were created
@@ -980,8 +979,9 @@ class tldr implements ActionListener {
             for (int i = 1; i <= numGroups; i++)
             {
               ArrayList<Integer> pageGroup = new ArrayList<>();
-              int startingIndex = i * 20 + 1;
-              for (index = startingIndex; index < startingIndex + 20; index++)
+              int startingIndex = i * 20 +1;
+
+              for (index = startingIndex; index <= startingIndex + 20; index++)
               {
                 pageGroup.add(index);
               }

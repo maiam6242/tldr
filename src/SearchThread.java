@@ -465,7 +465,7 @@ public class SearchThread implements Runnable {
   public void run() {
       analyzeKeywords();
     for (int pgNum : pageNums) {
-      System.out.println("Currentlnalyzey on page " + pgNum);
+      System.out.println("Currently analyzing page " + pgNum);
 
       // Analyzes each page and finds the section breaks, lines, and spaces
       pixelAnalysis(pgNum);

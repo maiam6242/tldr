@@ -382,9 +382,9 @@ public class SearchThread implements Runnable {
 
     // Fills layoutFeatures array so that the spaces, lines, and sectionBreaks can be returned
     // in a more space-friendly way (and all at once, by one method)
-    layoutFeatures.set(0, spaces);
-    layoutFeatures.set(1, lines);
-    layoutFeatures.set(2, sectionBreaks);
+    layoutFeatures.add(spaces);
+    layoutFeatures.add(lines);
+    layoutFeatures.add(sectionBreaks);
 
     System.out.println("There are " + spaces.size() + " spaces.");
     System.out.println("There are " + lines.size() + " lines.");
@@ -470,6 +470,7 @@ public class SearchThread implements Runnable {
 
       // Extracts text from the page
       ArrayList<String> lines = extractTextFromPage(pgNum);
+//      System.out.println("Number of text lines on page " + pgNum + ": " + lines.size());
 
       if (lines != null) {
 
@@ -514,6 +515,8 @@ public class SearchThread implements Runnable {
       if (keyword != null) {
         System.out.println("Found keyword " + keyword + " on line " + line);
         ArrayList<Loc> locs = map.get(keyword);
+        ArrayList<Line> lines = pageLines.get(pageNums.indexOf(pageNum));
+//        System.out.println("Size of Lines on page " + pageNum + ": " + lines);
         locs.add(new Loc(pageNum, line));
         map.put(keyword, locs);
 

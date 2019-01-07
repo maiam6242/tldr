@@ -981,7 +981,7 @@ class tldr implements ActionListener {
               ArrayList<Integer> pageGroup = new ArrayList<>();
               int startingIndex = i * 20 +1;
 
-              for (index = startingIndex; index <= startingIndex + 20; index++)
+              for (index = startingIndex - 20; index <= startingIndex + 20; index++)
               {
                 pageGroup.add(index);
               }

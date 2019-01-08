@@ -85,6 +85,41 @@ public class SearchThread implements Runnable {
 
   }
 
+  public void run()
+  {
+    analyzeKeywords();
+    for (int pgNum : pageNums) {
+      if(testing)
+        System.out.println("Currently analyzing page " + pgNum);
+
+      // Analyzes each page and finds the section breaks, lines, and spaces
+      pixelAnalysis(pgNum);
+
+      // Extracts text from the page
+      ArrayList<String> lines = extractTextFromPage(pgNum);
+//      System.out.println("Number of text lines on page " + pgNum + ": " + lines.size());
+
+      if (lines != null) {
+
+        // For each line of text on page, looks for the keyword and records if the keyword is found to
+        // snapshot later
+        for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++) {
+          String textLine = lines.get(lineIndex);
+          findKeywordsInLine(textLine, pgNum, lineIndex);
+        }
+      }
+    }
+
+    takeSnapshots();
+    deleteEmptyDirectory();
+
+    try {
+      doc.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   private void pixelAnalysis(int pageNum)
   {
     /*
@@ -125,6 +160,164 @@ public class SearchThread implements Runnable {
       }
   }
 
+  private ArrayList<LineChange> findLineChanges(@NotNull BufferedImage bim)
+  {
+    /*
+     * Paramters:
+     * bim - the image of the page
+     *
+     * This method finds all points where the rows of pixels in the image of the page changes from all-white to
+     * not-all-white and vice versa. The return of this method is then used in pixelAnalysis to identify various
+     * layout features like spaces, lines, and section breaks (which then helps with snapshotting).
+     */
+
+    // Determines the width and height of the image
+    int width = bim.getWidth();
+    int height = bim.getHeight();
+    ArrayList<LineChange> lineChanges = new ArrayList<>();
+
+    // Considers each row in the image
+    int switchState = -1;
+    for (int row = 0; row < height; row++) {
+
+      // Determines if the row is all-white or not-all-white
+      int rowSum = 0;
+      for (int col = 0; col < width; col++) {
+
+        // Retrieves the RGB values of each pixel in the row
+        int pixel = bim.getRGB(col, row);
+        int red = (pixel >> 16) & 0xff;
+        int green = (pixel >> 8) & 0xff;
+        int blue = (pixel) & 0xff;
+
+        // Determines if the pixel is white or not white, and gives the pixel a numerical
+        // value accordingly (0 or 1 respectively)
+        if (red == 255 && green == 255 && blue == 255) {
+          pixel = WHITE;
+        } else {
+          pixel = BLACK;
+        }
+
+        // Adds the numerical value of the pixel into the numerical value of the row, which is then used to determine
+        // if the row is white or not-white
+        rowSum += pixel;
+      }
+
+      // Determine if this row is a point where the rows have changed from all white to not-all-white or vice versa
+      if (rowSum == WHITE && switchState != WHITE) {
+        // We have found a point where the row changes to all white
+
+        // Updates the switch state
+        switchState = WHITE;
+
+        // Creates a new LineChange object and adds it to the list of line changes
+        LineChange lineChange = new LineChange(row, switchState);
+        lineChanges.add(lineChange);
+
+      } else if (rowSum > WHITE && switchState == WHITE || switchState < 0) {
+        // We have found a point where the row changes to not-all-white (or is this is the first row change,
+        // which generally happens when the first line is found)
+
+        // Updates the switch state
+        switchState = BLACK;
+
+        // Creates a new LineChange object and adds it to the list of line changes
+        LineChange lineChange = new LineChange(row, switchState);
+        lineChanges.add(lineChange);
+      }
+    }
+
+    return lineChanges;
+  }
+
+  private ArrayList<ArrayList<LayoutFeature>> identifyLayoutFeatures(@NotNull ArrayList<LineChange> lineChanges, int pageNum, int height)
+  {
+    /*
+     * Parameters:
+     * lineChanges -- list of line changes, or rows where the image of the page changes from all-white to not-all-white and vice versa.
+     * pageNum -- the number of the page that is being analyzed
+     * height -- the height of the page
+     *
+     * This method analyzes the line changes to find paces, lines, and section breaks. To save space,
+     * it returns an array of three arraylists of generic LayoutFeature objects that are then cast to their
+     * appropriate types in the pixelAnalysis method.
+     */
+
+    ArrayList<LayoutFeature> spaces = new ArrayList<>();
+    ArrayList<LayoutFeature> lines = new ArrayList<>();
+    ArrayList<LayoutFeature> sectionBreaks = new ArrayList<>();
+    ArrayList<ArrayList<LayoutFeature>> layoutFeatures = new ArrayList<>();
+
+    // Gathers statistics about the differing amounts of white space between Lines
+    SummaryStatistics whiteSpaceStats = new SummaryStatistics();
+    for (int i = 0; i < lineChanges.size() - 1; i++) {
+      // Retrieves the current LineChange and the next LineChange
+      LineChange currLineChange = lineChanges.get(i);
+      LineChange nextLineChange = lineChanges.get(i + 1);
+
+      // Determines if the line has changed from all-white to not-all-white or vice versa (basically identifying if
+      // we're looking a section of whitespace or a line
+      int difference = nextLineChange.rowIndex() - currLineChange.rowIndex();
+      if (currLineChange.state() == BLACK && nextLineChange.state() == WHITE) {
+        // A change from black to white indicates a line
+        Line line = new Line(currLineChange.rowIndex(), nextLineChange.rowIndex(), pageNum);
+        lines.add(line);
+      } else {
+        // Stores the width of the section of whitespace; this wil help us determine if that section was
+        // a space or a section break
+        whiteSpaceStats.addValue(difference);
+      }
+    }
+
+    // Determines the average width of a section of whitespace; this will help us differentiate between spaces and
+    // section breaks
+    // I've also determined the standard deviation. We don't use this currently but we could use it for a wider/narrow range?
+    double mean = whiteSpaceStats.getMean();
+    double stdev = whiteSpaceStats.getStandardDeviation();
+    for (int i = 0; i < lineChanges.size() - 1; i++) {
+
+      // Retrieves the current and next line change
+      LineChange currLineChange = lineChanges.get(i);
+      LineChange nextLineChange = lineChanges.get(i + 1);
+
+      // Narrows selection of selected line changes to only sections of white space
+      if (currLineChange.state() == WHITE && nextLineChange.state() == BLACK) {
+
+        // Calculates the width of the section of white space
+        int difference = nextLineChange.rowIndex() - currLineChange.rowIndex();
+        // If it is a less-than-average width, then this section must be a space
+        if (difference < mean) {
+          Space space = new Space(currLineChange.rowIndex(), nextLineChange.rowIndex());
+          spaces.add(space);
+        } else
+        {
+          // Otherwise, this section is wider than average, therefore it must be a section break
+          // TODO: Investigate this statistical analysis. I feel like in reality, the distribution of widths of
+          //  sections of whitespace is actually bimodal, and I wonder if it's possible for us to find modes insteads?
+          //  Research analysis of bimodal distributions
+          SectionBreak sb = new SectionBreak(currLineChange.rowIndex(), nextLineChange.rowIndex());
+          sectionBreaks.add(sb);
+        }
+      }
+    }
+
+    // Adds the end page margins as a final section break to make it easier when
+    // snapshotting lines towards the end of the page
+    sectionBreaks.add(new SectionBreak(lineChanges.get(lineChanges.size() - 1).rowIndex(), height));
+
+    // Fills layoutFeatures array so that the spaces, lines, and sectionBreaks can be returned
+    // in a more space-friendly way (and all at once, by one method)
+    layoutFeatures.add(spaces);
+    layoutFeatures.add(lines);
+    layoutFeatures.add(sectionBreaks);
+    if(testing){
+      System.out.println("There are " + spaces.size() + " spaces.");
+      System.out.println("There are " + lines.size() + " lines.");
+      System.out.println("There are " + sectionBreaks.size() + " section breaks" +
+              ".");}
+    return layoutFeatures;
+  }
+
   private void print(@NotNull ArrayList<Line> lines)
   {
     /*
@@ -149,6 +342,62 @@ public class SearchThread implements Runnable {
     for (ArrayList<Line> lines : pageLines) {
       print(lines);
     }
+  }
+
+  private ArrayList<Space> convertSpaces(@NotNull ArrayList<LayoutFeature> layoutFeatures)
+  {
+    /*
+     * Converts a generic list of layout features into space objects.
+     *
+     * This method is used when processing the layout features determined by pixelAnalysis.
+     * The conversion is so that we can use Space-specific methods (like the specific toString
+     * for printing out Spaces, which will help in testing).
+     */
+
+    // Casts each LayoutFeature object into a Space object
+    ArrayList<Space> spaces = new ArrayList<>();
+    for (LayoutFeature layoutFeature : layoutFeatures) {
+      spaces.add(new Space(layoutFeature.startIndex(), layoutFeature.endIndex()));
+    }
+
+    return spaces;
+  }
+
+  private ArrayList<Line> convertLines(@NotNull ArrayList<LayoutFeature> lfs, int pageNum)
+  {
+    /*
+     * Converts a generic list of layout features into Line objects.
+     *
+     * This method is used when processing the layout features determined by pixelAnalysis.
+     * The conversion is so that we can use Line-specific methods (like the specific toString
+     * for printing out Lines, which will help in testing, and the setSnapshotBoundaries which
+     * is essential for snapshotting).
+     */
+
+    // Casts each LayoutFeature object into a Line object
+    ArrayList <Line> lines = new ArrayList<>();
+    for (LayoutFeature lf : lfs) {
+      lines.add(new Line(lf.startIndex(), lf.endIndex(), pageNum));
+    }
+    return lines;
+  }
+
+  private ArrayList<SectionBreak> convertSectionBreaks(@NotNull ArrayList<LayoutFeature> lfs)
+  {
+    /*
+     * Converts a generic list of layout features into SectionBreak objects.
+     *
+     * This method is used when processing the layout features determined by pixelAnalysis.
+     * The conversion is so that we can use SectionBreak-specific methods (like the specific
+     * toString for printing out SectionBreaks, which will help in testing).
+     */
+
+    // Casts each LayoutFeature object into a SectionBreak object
+    ArrayList<SectionBreak> sectionBreaks = new ArrayList<>();
+    for (LayoutFeature lf : lfs) {
+      sectionBreaks.add(new SectionBreak(lf.startIndex(), lf.endIndex()));
+    }
+    return sectionBreaks;
   }
 
   @Contract("_, _ -> param1")
@@ -264,253 +513,56 @@ public class SearchThread implements Runnable {
     return lines;
   }
 
-  private ArrayList<Space> convertSpaces(@NotNull ArrayList<LayoutFeature> layoutFeatures)
+  @Nullable
+  private ArrayList<String> extractTextFromPage(int pg)
   {
     /*
-     * Converts a generic list of layout features into space objects.
-     *
-     * This method is used when processing the layout features determined by pixelAnalysis.
-     * The conversion is so that we can use Space-specific methods (like the specific toString
-     * for printing out Spaces, which will help in testing).
+    Parameters:
+    pg - the given page number from which to extract text
+
+    Extracts the text from the page and filters out lines that are too short. Returns an ArrayList of Strings that is
+    all the lines of text that are long enough to be considered not-empty.
+
+    The lines of text are returned are compared against the lines of text that are found through the pixel analysis.
      */
 
-    // Casts each LayoutFeature object into a Space object
-    ArrayList<Space> spaces = new ArrayList<>();
-    for (LayoutFeature layoutFeature : layoutFeatures) {
-      spaces.add(new Space(layoutFeature.startIndex(), layoutFeature.endIndex()));
-    }
+    if(testing)
+      System.out.println("Page for Text Stripper: " + pg);
 
-    return spaces;
-  }
-
-  private ArrayList<Line> convertLines(@NotNull ArrayList<LayoutFeature> lfs, int pageNum)
-  {
-    /*
-     * Converts a generic list of layout features into Line objects.
-     *
-     * This method is used when processing the layout features determined by pixelAnalysis.
-     * The conversion is so that we can use Line-specific methods (like the specific toString
-     * for printing out Lines, which will help in testing, and the setSnapshotBoundaries which
-     * is essential for snapshotting).
-     */
-
-    // Casts each LayoutFeature object into a Line object
-    ArrayList <Line> lines = new ArrayList<>();
-    for (LayoutFeature lf : lfs) {
-      lines.add(new Line(lf.startIndex(), lf.endIndex(), pageNum));
-    }
-    return lines;
-  }
-
-  private ArrayList<SectionBreak> convertSectionBreaks(@NotNull ArrayList<LayoutFeature> lfs)
-  {
-    /*
-     * Converts a generic list of layout features into SectionBreak objects.
-     *
-     * This method is used when processing the layout features determined by pixelAnalysis.
-     * The conversion is so that we can use SectionBreak-specific methods (like the specific
-     * toString for printing out SectionBreaks, which will help in testing).
-     */
-
-    // Casts each LayoutFeature object into a SectionBreak object
-    ArrayList<SectionBreak> sectionBreaks = new ArrayList<>();
-    for (LayoutFeature lf : lfs) {
-      sectionBreaks.add(new SectionBreak(lf.startIndex(), lf.endIndex()));
-    }
-    return sectionBreaks;
-  }
-
-  private ArrayList<ArrayList<LayoutFeature>> identifyLayoutFeatures(@NotNull ArrayList<LineChange> lineChanges, int pageNum, int height)
-  {
-    /*
-     * Parameters:
-     * lineChanges -- list of line changes, or rows where the image of the page changes from all-white to not-all-white and vice versa.
-     * pageNum -- the number of the page that is being analyzed
-     * height -- the height of the page
-     *
-     * This method analyzes the line changes to find paces, lines, and section breaks. To save space,
-     * it returns an array of three arraylists of generic LayoutFeature objects that are then cast to their
-     * appropriate types in the pixelAnalysis method.
-     */
-
-    ArrayList<LayoutFeature> spaces = new ArrayList<>();
-    ArrayList<LayoutFeature> lines = new ArrayList<>();
-    ArrayList<LayoutFeature> sectionBreaks = new ArrayList<>();
-    ArrayList<ArrayList<LayoutFeature>> layoutFeatures = new ArrayList<>();
-
-    // Gathers statistics about the differing amounts of white space between Lines
-    SummaryStatistics whiteSpaceStats = new SummaryStatistics();
-    for (int i = 0; i < lineChanges.size() - 1; i++) {
-      // Retrieves the current LineChange and the next LineChange
-      LineChange currLineChange = lineChanges.get(i);
-      LineChange nextLineChange = lineChanges.get(i + 1);
-
-      // Determines if the line has changed from all-white to not-all-white or vice versa (basically identifying if
-      // we're looking a section of whitespace or a line
-      int difference = nextLineChange.rowIndex() - currLineChange.rowIndex();
-      if (currLineChange.state() == BLACK && nextLineChange.state() == WHITE) {
-        // A change from black to white indicates a line
-        Line line = new Line(currLineChange.rowIndex(), nextLineChange.rowIndex(), pageNum);
-        lines.add(line);
-      } else {
-        // Stores the width of the section of whitespace; this wil help us determine if that section was
-        // a space or a section break
-        whiteSpaceStats.addValue(difference);
-      }
-    }
-
-    // Determines the average width of a section of whitespace; this will help us differentiate between spaces and
-    // section breaks
-    // I've also determined the standard deviation. We don't use this currently but we could use it for a wider/narrow range?
-    double mean = whiteSpaceStats.getMean();
-    double stdev = whiteSpaceStats.getStandardDeviation();
-    for (int i = 0; i < lineChanges.size() - 1; i++) {
-
-      // Retrieves the current and next line change
-      LineChange currLineChange = lineChanges.get(i);
-      LineChange nextLineChange = lineChanges.get(i + 1);
-
-      // Narrows selection of selected line changes to only sections of white space
-      if (currLineChange.state() == WHITE && nextLineChange.state() == BLACK) {
-
-        // Calculates the width of the section of white space
-        int difference = nextLineChange.rowIndex() - currLineChange.rowIndex();
-        // If it is a less-than-average width, then this section must be a space
-        if (difference < mean) {
-          Space space = new Space(currLineChange.rowIndex(), nextLineChange.rowIndex());
-          spaces.add(space);
-        } else
-          {
-            // Otherwise, this section is wider than average, therefore it must be a section break
-            // TODO: Investigate this statistical analysis. I feel like in reality, the distribution of widths of
-            //  sections of whitespace is actually bimodal, and I wonder if it's possible for us to find modes insteads?
-            //  Research analysis of bimodal distributions
-          SectionBreak sb = new SectionBreak(currLineChange.rowIndex(), nextLineChange.rowIndex());
-          sectionBreaks.add(sb);
-        }
-      }
-    }
-
-    // Adds the end page margins as a final section break to make it easier when
-    // snapshotting lines towards the end of the page
-    sectionBreaks.add(new SectionBreak(lineChanges.get(lineChanges.size() - 1).rowIndex(), height));
-
-    // Fills layoutFeatures array so that the spaces, lines, and sectionBreaks can be returned
-    // in a more space-friendly way (and all at once, by one method)
-    layoutFeatures.add(spaces);
-    layoutFeatures.add(lines);
-    layoutFeatures.add(sectionBreaks);
-    if(testing){
-    System.out.println("There are " + spaces.size() + " spaces.");
-    System.out.println("There are " + lines.size() + " lines.");
-    System.out.println("There are " + sectionBreaks.size() + " section breaks" +
-            ".");}
-    return layoutFeatures;
-  }
-
-  private ArrayList<LineChange> findLineChanges(@NotNull BufferedImage bim)
-  {
-    /*
-     * Paramters:
-     * bim - the image of the page
-     *
-     * This method finds all points where the rows of pixels in the image of the page changes from all-white to
-     * not-all-white and vice versa. The return of this method is then used in pixelAnalysis to identify various
-     * layout features like spaces, lines, and section breaks (which then helps with snapshotting).
-     */
-
-    // Determines the width and height of the image
-    int width = bim.getWidth();
-    int height = bim.getHeight();
-    ArrayList<LineChange> lineChanges = new ArrayList<>();
-
-    // Considers each row in the image
-    int switchState = -1;
-    for (int row = 0; row < height; row++) {
-
-      // Determines if the row is all-white or not-all-white
-      int rowSum = 0;
-      for (int col = 0; col < width; col++) {
-
-        // Retrieves the RGB values of each pixel in the row
-        int pixel = bim.getRGB(col, row);
-        int red = (pixel >> 16) & 0xff;
-        int green = (pixel >> 8) & 0xff;
-        int blue = (pixel) & 0xff;
-
-        // Determines if the pixel is white or not white, and gives the pixel a numerical
-        // value accordingly (0 or 1 respectively)
-        if (red == 255 && green == 255 && blue == 255) {
-          pixel = WHITE;
-        } else {
-          pixel = BLACK;
-        }
-
-        // Adds the numerical value of the pixel into the numerical value of the row, which is then used to determine
-        // if the row is white or not-white
-        rowSum += pixel;
-      }
-
-      // Determine if this row is a point where the rows have changed from all white to not-all-white or vice versa
-      if (rowSum == WHITE && switchState != WHITE) {
-        // We have found a point where the row changes to all white
-
-        // Updates the switch state
-        switchState = WHITE;
-
-        // Creates a new LineChange object and adds it to the list of line changes
-        LineChange lineChange = new LineChange(row, switchState);
-        lineChanges.add(lineChange);
-
-      } else if (rowSum > WHITE && switchState == WHITE || switchState < 0) {
-        // We have found a point where the row changes to not-all-white (or is this is the first row change,
-        // which generally happens when the first line is found)
-
-        // Updates the switch state
-        switchState = BLACK;
-
-        // Creates a new LineChange object and adds it to the list of line changes
-        LineChange lineChange = new LineChange(row, switchState);
-        lineChanges.add(lineChange);
-      }
-    }
-
-    return lineChanges;
-  }
-
-  public void run()
-  {
-      analyzeKeywords();
-    for (int pgNum : pageNums) {
-      if(testing)
-      System.out.println("Currently analyzing page " + pgNum);
-
-      // Analyzes each page and finds the section breaks, lines, and spaces
-      pixelAnalysis(pgNum);
-
-      // Extracts text from the page
-      ArrayList<String> lines = extractTextFromPage(pgNum);
-//      System.out.println("Number of text lines on page " + pgNum + ": " + lines.size());
-
-      if (lines != null) {
-
-        // For each line of text on page, looks for the keyword and records if the keyword is found to
-        // snapshot later
-        for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++) {
-          String textLine = lines.get(lineIndex);
-          findKeywordsInLine(textLine, pgNum, lineIndex);
-        }
-      }
-    }
-
-    takeSnapshots();
-    deleteEmptyDirectory();
-
+    // Sets the range of the textStripper to only remove text from this page
+    textStripper.setStartPage(pg);
+    textStripper.setEndPage(pg);
     try {
-      doc.close();
+
+      // Breaks the text up into lines
+      String pageText = textStripper.getText(doc);
+      String[] pageLines = pageText.split("\n");
+      ArrayList<String> pgLines = new ArrayList<>();
+
+      // FIlters out lines of text that are empty
+      for (String pageLine : pageLines) {
+        if (pageLine.length() > 0) {
+          pgLines.add(pageLine);
+        }
+      }
+
+      if(!testing){
+        System.out.println("size of pgLines: " + pgLines.size()+" on page "+ pg);
+        System.out.println("Original size of pageLines: " + pageLines.length+
+                " on page "+ pg);
+
+//      for(int i = 0; i< pageLines.length; i++){
+//
+//      }
+      }
+
+      return pgLines;
+
     } catch (IOException e) {
+      // TODO: Deal w/ exception
       e.printStackTrace();
     }
+    return null;
   }
 
   private void findKeywordsInLine(@NotNull String textLine, int pageNum, int line)
@@ -642,45 +694,7 @@ public class SearchThread implements Runnable {
     return null;
     }
 
-  @Nullable
-  private ArrayList<String> extractTextFromPage(int pg)
-  {
 
-    if(testing)
-    System.out.println("Page for Text Stripper " + pg);
-    textStripper.setStartPage(pg);
-    textStripper.setEndPage(pg);
-    try {
-      String pageText = textStripper.getText(doc);
-      String[] pageLines = pageText.split("\n");
-      ArrayList<String> pgLines = new ArrayList<>();
-
-
-
-      for (String pageLine : pageLines) {
-        if (pageLine.length() > 0) {
-          pgLines.add(pageLine);
-        }
-      }
-
-      if(!testing){
-      System.out.println("size of pgLines: " + pgLines.size()+" on page "+ pg);
-      System.out.println("Original size of pageLines: " + pageLines.length+
-              " on page "+ pg);
-
-//      for(int i = 0; i< pageLines.length; i++){
-//
-//      }
-      }
-
-      return pgLines;
-
-    } catch (IOException e) {
-      // TODO: Deal w/ exception
-      e.printStackTrace();
-    }
-    return null;
-  }
 
   private void takeSnapshots()
   {
@@ -723,6 +737,8 @@ public class SearchThread implements Runnable {
         {
           if(testing)
           System.out.println(key + " found on " + pageNum + " page, line " + lineNum);
+
+          // Retrieves the Lines for that page number (from pageLines)
           ArrayList<Line> lines = pageLines.get(pageNums.indexOf(pageNum));
           // error pops up on pg 266, line 23, page 243 line 12, page 127 line 38, page 280 line 29, page 204 line 42,
           // page 142 line 30, page 173 line 52, page 49 line 47, page 197 line 47
@@ -734,6 +750,8 @@ public class SearchThread implements Runnable {
                            pageLines.get(pageNums.indexOf(pageNum)));
 
           System.out.println("lines.size(): " + lines.size() +" on page " + pageNum);
+
+          // Retrieves the correct line
           Line line = lines.get(lineNum);
           String filePath = snapshotLine(line, key, lineNum);
           if(testing)

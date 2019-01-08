@@ -11,6 +11,6 @@ public class SectionBreak extends LayoutFeature {
     @Override
     public String toString()
     {
-        return "Section break between row " + startIndex + " and " + endIndex;
+        return "Section break between row " + startIndex() + " and " + endIndex();
     }
 }

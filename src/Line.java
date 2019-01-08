@@ -14,7 +14,7 @@ public class Line extends LayoutFeature {
 
     public String toString()
     {
-        return "Line between row " + startIndex + " and " + endIndex;
+        return "Line between row " + startIndex() + " and " + endIndex();
     }
 
     void setSnapshotBoundaries(int startSnapshotIndex, int endSnapshotIndex)

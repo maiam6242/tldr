@@ -11,6 +11,6 @@ public class Space extends LayoutFeature {
     @Override
     public String toString()
     {
-        return "Space between row " + startIndex + " and " + endIndex;
+        return "Space between row " + startIndex() + " and " + endIndex();
     }
 }

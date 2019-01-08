@@ -517,11 +517,10 @@ public class SearchThread implements Runnable {
       if (keyword != null) {
         System.out.println("Found keyword " + keyword + " on line " + line);
         ArrayList<Loc> locs = map.get(keyword);
-        ArrayList<Line> lines = pageLines.get(pageNums.indexOf(pageNum));
+//          ArrayList<Line> lines = pageLines.get(pageNums.indexOf(pageNum - 1));
 //        System.out.println("Size of Lines on page " + pageNum + ": " + lines);
-        locs.add(new Loc(pageNum, line));
-        map.put(keyword, locs);
-
+          locs.add(new Loc(pageNum, line));
+          map.put(keyword, locs);
     }
 
     }
@@ -702,7 +701,7 @@ public class SearchThread implements Runnable {
   private String snapshotLine(Line line, String keyword, int lineNum) {
     int page = line.page();
     try {
-      BufferedImage pgImg = renderer.renderImageWithDPI((page), 300);
+      BufferedImage pgImg = renderer.renderImageWithDPI((page-1), 300);
       int startIndex = line.startSnapshotIndex();
       int endIndex = line.endSnapshotIndex();
 //      System.out.println("[ " + startIndex + ", " + endIndex + "]");
@@ -715,7 +714,7 @@ public class SearchThread implements Runnable {
 
       BufferedImage keywordSnapshot = pgImg.getSubimage(0, startIndex, pgImg.getWidth(), imHeight);
       String dirPath = makeDirectory(fileName + "-" + keyword);
-      String pageString = Integer.toString(page+1);
+      String pageString = Integer.toString(page);
       String filePath = makeFilePath(keyword + "-pg" + pageString + "-line" + lineNum + ".png", dirPath);
       ImageIO.write(keywordSnapshot, "png", new File(filePath));
 

@@ -47,7 +47,7 @@ class tldr implements ActionListener {
 
   //private static SearchThread MaiaTest = new SearchThread();
 
-  static boolean testing = true;
+  static boolean testing = false;
 
   tldr()
 
@@ -215,7 +215,6 @@ class tldr implements ActionListener {
     preloadedList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
   }
-
 
   @Contract(pure = true)
   private String[] fillPreloaded()
@@ -693,6 +692,7 @@ class tldr implements ActionListener {
     }
   }
 
+  @Nullable
   private String getOS()
   { /*
       Gets the Operating System of Computer for Use with getOfficeVersion Method
@@ -947,6 +947,7 @@ class tldr implements ActionListener {
 
   private void createThreads(ArrayList<ArrayList<Integer>> pageGroups)
   {
+    if(testing)
     System.out.println("Creating threads");
     // TODO: Implement create threads method
 
@@ -956,6 +957,7 @@ class tldr implements ActionListener {
         for (ArrayList<Integer> pageGroup : pageGroups) {
           threads.add(new Thread(new SearchThread(pageGroup, keywords, file.getAbsolutePath(), file.getName())));
         }
+        if(testing)
         System.out.println("Created threads: " + threads.size());
       }
     }

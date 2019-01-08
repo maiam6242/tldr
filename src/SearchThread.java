@@ -13,11 +13,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.stream.Stream;
 
 public class SearchThread implements Runnable {
 
   private ArrayList<Integer> pageNums = new ArrayList<>();
-  public static ArrayList<String> keywords = new ArrayList<>();
+  private static ArrayList<String> keywords = new ArrayList<>();
   private PDDocument doc;
   private String fileName;
   private PDFRenderer renderer;
@@ -29,14 +30,15 @@ public class SearchThread implements Runnable {
   private String[] wordsFromLine;
   private boolean testing = tldr.testing;
 
+
   public static int totalNumberInstances = 0;
 
   private final int WHITE = 0;
   private final int BLACK = 1;
 
 
-
-  public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, String filePath, String fileName) {
+  public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, String filePath, String fileName)
+  {
     /*
      * Parameters:
      * - pageNums --> list of page numbers in the doc that this thread will search through
@@ -61,10 +63,14 @@ public class SearchThread implements Runnable {
 
     try {
       this.doc = PDDocument.load(new File(filePath));
+
     } catch (IOException e) {
       e.printStackTrace();
     }
+
     this.fileName = fileName;
+    //makes desktop directory with filename to put all other folders into
+    makeTitleDirectory(fileName);
     renderer = new PDFRenderer(doc);
     try {
       textStripper = new PDFTextStripper();
@@ -79,17 +85,18 @@ public class SearchThread implements Runnable {
 
   }
 
-  private void pixelAnalysis(int pageNum) {
-    /**
+  private void pixelAnalysis(int pageNum)
+  {
+    /*
      * Paramters: pageNum - the number of the page that will be analyzed
      *
      * This method analyzes the pixels in the image representation of the given page to identify key layout features like
      * spaces, section breaks, and lines. It also determines and records, for each line, the nearest section breaks in
      * order to make snapshotting easier in the future.
      */
-
+    if(testing){
     System.out.println("Starting pixel analysis");
-    System.out.println("Pixel analysis page " + pageNum);
+    System.out.println("Pixel analysis page " + pageNum);}
     try {
 
       // Converts the page to an image
@@ -118,7 +125,8 @@ public class SearchThread implements Runnable {
       }
   }
 
-  private void print(@NotNull ArrayList<Line> lines) {
+  private void print(@NotNull ArrayList<Line> lines)
+  {
     /*
      * Parameter: Takes in a list of Line objects to be printed
      *
@@ -126,14 +134,17 @@ public class SearchThread implements Runnable {
      */
 
     for (Line line : lines) {
+
       System.out.println("Line: " + line);
     }
   }
 
-  private void printPageLines() {
+  private void printPageLines()
+  {
     /*
      * Print the list of Lines for each page by iterating through pageLines.
      */
+
     System.out.println("Printing page lines");
     for (ArrayList<Line> lines : pageLines) {
       print(lines);
@@ -141,7 +152,7 @@ public class SearchThread implements Runnable {
   }
 
   @Contract("_, _ -> param1")
-  private ArrayList<Line> findSnapshotBoundaries(@NotNull ArrayList<Line> lines, ArrayList<SectionBreak> sectionBreaks)
+  private ArrayList<Line> findSnapshotBoundaries(@NotNull ArrayList <Line> lines, ArrayList<SectionBreak> sectionBreaks)
   {
     /*
      * Parameters:
@@ -253,7 +264,8 @@ public class SearchThread implements Runnable {
     return lines;
   }
 
-  private ArrayList<Space> convertSpaces(@NotNull ArrayList<LayoutFeature> layoutFeatures) {
+  private ArrayList<Space> convertSpaces(@NotNull ArrayList<LayoutFeature> layoutFeatures)
+  {
     /*
      * Converts a generic list of layout features into space objects.
      *
@@ -271,7 +283,8 @@ public class SearchThread implements Runnable {
     return spaces;
   }
 
-  private ArrayList<Line> convertLines(@NotNull ArrayList<LayoutFeature> lfs, int pageNum) {
+  private ArrayList<Line> convertLines(@NotNull ArrayList<LayoutFeature> lfs, int pageNum)
+  {
     /*
      * Converts a generic list of layout features into Line objects.
      *
@@ -282,14 +295,15 @@ public class SearchThread implements Runnable {
      */
 
     // Casts each LayoutFeature object into a Line object
-    ArrayList<Line> lines = new ArrayList<>();
+    ArrayList <Line> lines = new ArrayList<>();
     for (LayoutFeature lf : lfs) {
       lines.add(new Line(lf.startIndex(), lf.endIndex(), pageNum));
     }
     return lines;
   }
 
-  private ArrayList<SectionBreak> convertSectionBreaks(@NotNull ArrayList<LayoutFeature> lfs) {
+  private ArrayList<SectionBreak> convertSectionBreaks(@NotNull ArrayList<LayoutFeature> lfs)
+  {
     /*
      * Converts a generic list of layout features into SectionBreak objects.
      *
@@ -306,8 +320,8 @@ public class SearchThread implements Runnable {
     return sectionBreaks;
   }
 
-
-  private ArrayList<ArrayList<LayoutFeature>> identifyLayoutFeatures(@NotNull ArrayList<LineChange> lineChanges, int pageNum, int height) {
+  private ArrayList<ArrayList<LayoutFeature>> identifyLayoutFeatures(@NotNull ArrayList<LineChange> lineChanges, int pageNum, int height)
+  {
     /*
      * Parameters:
      * lineChanges -- list of line changes, or rows where the image of the page changes from all-white to not-all-white and vice versa.
@@ -386,14 +400,16 @@ public class SearchThread implements Runnable {
     layoutFeatures.add(spaces);
     layoutFeatures.add(lines);
     layoutFeatures.add(sectionBreaks);
-
+    if(testing){
     System.out.println("There are " + spaces.size() + " spaces.");
     System.out.println("There are " + lines.size() + " lines.");
-    System.out.println("There are " + sectionBreaks.size() + " section breaks.");
+    System.out.println("There are " + sectionBreaks.size() + " section breaks" +
+            ".");}
     return layoutFeatures;
   }
 
-  private ArrayList<LineChange> findLineChanges(@NotNull BufferedImage bim) {
+  private ArrayList<LineChange> findLineChanges(@NotNull BufferedImage bim)
+  {
     /*
      * Paramters:
      * bim - the image of the page
@@ -462,9 +478,11 @@ public class SearchThread implements Runnable {
     return lineChanges;
   }
 
-  public void run() {
+  public void run()
+  {
       analyzeKeywords();
     for (int pgNum : pageNums) {
+      if(testing)
       System.out.println("Currently analyzing page " + pgNum);
 
       // Analyzes each page and finds the section breaks, lines, and spaces
@@ -486,6 +504,8 @@ public class SearchThread implements Runnable {
     }
 
     takeSnapshots();
+    deleteEmptyDirectory();
+
     try {
       doc.close();
     } catch (IOException e) {
@@ -493,7 +513,8 @@ public class SearchThread implements Runnable {
     }
   }
 
-  private void findKeywordsInLine(@NotNull String textLine, int pageNum, int line) {
+  private void findKeywordsInLine(@NotNull String textLine, int pageNum, int line)
+  {
 
 
     //TODO: Ideally we want to iterate only once through line, looking for both
@@ -515,6 +536,7 @@ public class SearchThread implements Runnable {
       //not getting here the second time
 //      System.out.println("Found keyword: "+keyword);
       if (keyword != null) {
+        if(testing)
         System.out.println("Found keyword " + keyword + " on line " + line);
         ArrayList<Loc> locs = map.get(keyword);
 //          ArrayList<Line> lines = pageLines.get(pageNums.indexOf(pageNum - 1));
@@ -621,9 +643,11 @@ public class SearchThread implements Runnable {
     }
 
   @Nullable
-  private ArrayList<String> extractTextFromPage(int pg) {
+  private ArrayList<String> extractTextFromPage(int pg)
+  {
 
-    System.out.println("Page for Text Stripper" + pg);
+    if(testing)
+    System.out.println("Page for Text Stripper " + pg);
     textStripper.setStartPage(pg);
     textStripper.setEndPage(pg);
     try {
@@ -631,13 +655,26 @@ public class SearchThread implements Runnable {
       String[] pageLines = pageText.split("\n");
       ArrayList<String> pgLines = new ArrayList<>();
 
+
+
       for (String pageLine : pageLines) {
-        if (pageLine.length() > 5) {
+        if (pageLine.length() > 0) {
           pgLines.add(pageLine);
         }
       }
 
+      if(!testing){
+      System.out.println("size of pgLines: " + pgLines.size()+" on page "+ pg);
+      System.out.println("Original size of pageLines: " + pageLines.length+
+              " on page "+ pg);
+
+//      for(int i = 0; i< pageLines.length; i++){
+//
+//      }
+      }
+
       return pgLines;
+
     } catch (IOException e) {
       // TODO: Deal w/ exception
       e.printStackTrace();
@@ -645,9 +682,11 @@ public class SearchThread implements Runnable {
     return null;
   }
 
-  private void takeSnapshots() {
+  private void takeSnapshots()
+  {
 
     for (String key : map.keySet()) {
+      if(testing)
       System.out.println("Taking snapshots for keyword: " + key);
       ArrayList<Loc> locs = map.get(key);
 
@@ -664,41 +703,53 @@ public class SearchThread implements Runnable {
       //this one is throwing: Exception in thread "Thread-0" java.lang
       // .IndexOutOfBoundsException: Index 0 out-of-bounds for length 0
       if(map.get(key).size()>0)
+        if(testing)
       System.out.println("First instance of locs: "+locs.get(0));
 
       //TODO: Figure this out for when multiple keywords are inputted
       for (Loc loc:locs){
-        System.out.println("line: "+loc.line());
+        if(testing)
+        System.out.println("line: " + loc.line());
       }
 
       for (Loc loc : locs) {
         int pageNum = loc.page();
         int lineNum = loc.line();
+        System.out.println("Line Num: " + lineNum);
+
 
 
         if (pageNums.indexOf(pageNum) != -1)
         {
+          if(testing)
           System.out.println(key + " found on " + pageNum + " page, line " + lineNum);
           ArrayList<Line> lines = pageLines.get(pageNums.indexOf(pageNum));
           // error pops up on pg 266, line 23, page 243 line 12, page 127 line 38, page 280 line 29, page 204 line 42,
           // page 142 line 30, page 173 line 52, page 49 line 47, page 197 line 47
+          if(testing)
           System.out.println("lines.size() = " + lines.size());
           //pageLines has first page indexed at 0
+          if(testing)
           System.out.println("lines.size() of previous"+ pageNum +" page = " +
                            pageLines.get(pageNums.indexOf(pageNum)));
+
+          System.out.println("lines.size(): " + lines.size() +" on page " + pageNum);
           Line line = lines.get(lineNum);
           String filePath = snapshotLine(line, key, lineNum);
+          if(testing)
           System.out.println("Filepath of snapshot: " + filePath);
           if (filePath != null) loc.setFilePath(filePath);
         }
       }
+      if(testing)
       System.out.println("Done Snapshotting " +key);
       locs.clear();
     }
   }
 
   @Nullable
-  private String snapshotLine(Line line, String keyword, int lineNum) {
+  private String snapshotLine(Line line, String keyword, int lineNum)
+  {
     int page = line.page();
     try {
       BufferedImage pgImg = renderer.renderImageWithDPI((page-1), 300);
@@ -713,7 +764,7 @@ public class SearchThread implements Runnable {
       int imHeight = endIndex - startIndex;
 
       BufferedImage keywordSnapshot = pgImg.getSubimage(0, startIndex, pgImg.getWidth(), imHeight);
-      String dirPath = makeDirectory(fileName + "-" + keyword);
+      String dirPath = makeDirectory(fileName + "-" + keyword, fileName);
       String pageString = Integer.toString(page);
       String filePath = makeFilePath(keyword + "-pg" + pageString + "-line" + lineNum + ".png", dirPath);
       ImageIO.write(keywordSnapshot, "png", new File(filePath));
@@ -727,16 +778,47 @@ public class SearchThread implements Runnable {
     return null;
   }
 
-  @Nullable
-  private String makeDirectory(String word)
+  private String makeTitleDirectory(String title)
   {
     /* Creates a directory in the users home folder
   Inputs: Name of the Directory to be created
   Returns: Path of the directory
     */
-    Path path = Paths.get(System.getProperty("user.home"),"Desktop", word);
+    Path path = Paths.get(System.getProperty("user.home"),"Desktop", title);
     if(testing)
-    System.out.print("Path: "+path);
+      System.out.print("Path: " + path);
+
+    if(!Files.isDirectory(path))
+    try{
+      Files.createDirectories(path);}
+    catch (IOException e){
+      e.printStackTrace();
+    }
+    else
+      tldr.print("Directory with this title already exists");
+
+    if(Files.isDirectory(path)){
+      return path.toString();
+    }
+
+    else
+      tldr.print("Sorry directory was not created");
+    return makeTitleDirectory(title);
+
+  }
+
+  @Nullable
+  private String makeDirectory(String word, String title)
+  {
+    /* Creates a directory in the users home folder under the name of the
+    title doc
+  Inputs: Name of the Directory to be created
+  Returns: Path of the directory
+    */
+    Path path = Paths.get(System.getProperty("user.home"),"Desktop", title,
+            word);
+    if(testing)
+    System.out.print("Path: " + path);
 
     try{
     Files.createDirectories(path);}
@@ -755,14 +837,39 @@ public class SearchThread implements Runnable {
 
     else
       tldr.print("Sorry directory was not created");
-      return makeDirectory(word);
+      return makeDirectory(word, title);
 
 
   }
 
-  //TODO: Jeremy (?) said that he wanted files to be made and saved on
-  // desktop... need to test this code!!
+  private void deleteEmptyDirectory()
+  {
+    /*
+    If the title directory is empty (no words are found), delete it
+    Returns: If directory was deleted, true; if not, false
+     */
 
+    Path path = Paths.get(System.getProperty("user.home"),"Desktop", this.fileName);
+
+    try {
+      Files.getAttribute(path, "basic:isDirectory");
+      //go through every file and see if there are any directories
+
+      Stream stream = Files.walk(path).filter(Files::isDirectory);
+
+        //number of things (including the folder itself) in the directory is
+      // less than one, ie the only thing there is the original directory
+       if (stream.count() <= 1){
+          Files.delete(path);
+      }
+
+      stream.close();
+    }
+    catch(IOException e){
+      e.printStackTrace();
+    }
+
+  }
   @NotNull
   private String makeFilePath(String name)
   {/*Creates a new file in the users desktop directory

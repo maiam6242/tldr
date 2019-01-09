@@ -12,6 +12,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Set;
 
 // UI imports
 
@@ -43,6 +45,7 @@ class tldr implements ActionListener {
   private static Workbook XSSF = null;
   private static FileWriter fileWriter;
   private static PDDocument doc;
+  public static boolean toWriteSummarySheet = false;
 
 
   //private static SearchThread MaiaTest = new SearchThread();
@@ -348,6 +351,7 @@ class tldr implements ActionListener {
     {
 //      if (testing) System.out.println("Open file button clicked.");
       openSearchFile();
+      createSummarySheet(file);
     }
 
     /*makeFilePath
@@ -375,6 +379,7 @@ class tldr implements ActionListener {
 //      if (testing) System.out.println("Merge files button clicked.");
        mergePDFFiles();
     }
+
   }
 
   private void createSummarySheet(File docName)
@@ -395,14 +400,16 @@ class tldr implements ActionListener {
       }
 
       //this is a .XLS file
-      if (officeVersion <= 7 || officeVersion > 83) {
+      else if (officeVersion <= 7 || officeVersion > 83) {
         createHSSFFile(docName);
       }
 
       //this is a .XLSX file
-      if (officeVersion > 7) {
+      else if (officeVersion > 7) {
         createXSSFFile(docName);
       }
+
+      writeSummarySheet();
     }
 
   private void writeSummarySheet()
@@ -413,6 +420,8 @@ class tldr implements ActionListener {
      */
     //TODO: Implement writeSummarySheet
 
+
+      System.out.println("Did this work?!");
     //writes content to doc type which isn't null
     if(CSV != null)
     {
@@ -432,15 +441,13 @@ class tldr implements ActionListener {
 
     //if no sheet has been created
     else
-      {
-        if(testing)
-          System.out.println("Summary sheet not created when writeSummarySheet " +
-                  "called");
-        createSummarySheet(file);
-        writeSummarySheet();
+    {
+      if(testing)
+        System.out.println("Summary sheet not created when writeSummarySheet " +
+           "called");
     }
 
-  }
+}
 
   private void openSummarySheet()
   {
@@ -505,23 +512,48 @@ class tldr implements ActionListener {
   /* Writes CSV file with the contents of the hashmap (name, line, page,
   keyword, file path) each into a new row of a CSV file and saves the file
   */
-   // HashMap fullMap = MaiaTest.getHashMap();
-    //for (int counter = 0; counter< fullMap.size(); counter ++)
-    {
-      //TODO: check that the map is written and not null etc etc
-//      HashMap hashMap = SearchThread.getHashMap();
-//      for(int i =0; i<hashMap.size(); i++)
-//      {
-//        for(String keyword: SearchThread.keywords)
-//        {
-//          hashMap.get(keyword);
-//        }
-//
-//      }
-      //map is (keyword, page, line #)
+  SearchThread MaiaTest = new SearchThread();
+  String fileNameforCSV = MaiaTest.getFileName();
+  int pageNumberforCSV = 0;
+  int lineNumberforCSV = 0;
+  String filePathforCSV = null;
+  String keywordforCSV;
 
-    }
-  }
+  HashMap<String, ArrayList<Loc>> hashMap = MaiaTest.getHashMap();
+
+    //iterate through the whole map to check that it all exists
+    //TODO: Is this needed??
+    //TODO: check that the map is written and not null etc etc
+
+   for(String keyword: keywords)
+   {
+      keywordforCSV = keyword;
+      ArrayList<Loc> l = hashMap.get(keyword);
+
+      for(Loc location: l)
+      {
+        pageNumberforCSV = location.getPage();
+        lineNumberforCSV = location.getLine();
+        filePathforCSV = location.getFilePath();
+      }
+
+      String CSVString =
+      (fileNameforCSV + " , " + keywordforCSV + " , " + pageNumberforCSV +
+            " , " + lineNumberforCSV + " , " + filePathforCSV);
+      try
+      {
+        fileWriter.append(CSVString);
+        fileWriter.append("\n");
+        fileWriter.flush();
+      }
+      catch(IOException e){
+          e.printStackTrace();
+      }
+   }
+
+      //map is (key: keyword, value: Loc: page, line number, full path)
+}
+
 
   private void writeHSSFFile()
   {
@@ -741,8 +773,9 @@ class tldr implements ActionListener {
       //see if any office is installed
 
       if (officeVersion == null){
+       if(testing)
         System.out.println("No Office is Installed");
-        System.exit(1);
+        // System.exit(1);
         return 0;
       }
 
@@ -797,6 +830,7 @@ class tldr implements ActionListener {
     //writes the created CSV file to static CSV to be accessed for writing later
 
     CSV = CSVFile;
+    System.out.println(CSV);
     return CSVFile.getAbsolutePath();
   }
 

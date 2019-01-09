@@ -9,12 +9,12 @@ public class Loc {
         this.line = line;
     }
 
-    int page()
+    int getPage()
     {
         return page;
     }
 
-    int line()
+    int getLine()
     {
         return line;
     }
@@ -33,7 +33,7 @@ public class Loc {
         this.filePath = filePath;
     }
 
-    public String filePath()
+    public String getFilePath()
     {
         return filePath;
     }

@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 public class SearchThread implements Runnable {
 
   private ArrayList<Integer> pageNums = new ArrayList<>();
-  private static ArrayList<String> keywords = new ArrayList<>();
+  public static ArrayList<String> keywords = new ArrayList<>();
   private PDDocument doc;
   private String fileName;
   private PDFRenderer renderer;
@@ -36,6 +36,11 @@ public class SearchThread implements Runnable {
   private final int WHITE = 0;
   private final int BLACK = 1;
 
+
+  public SearchThread()
+  {
+
+  }
 
   public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, String filePath, String fileName)
   {
@@ -111,6 +116,8 @@ public class SearchThread implements Runnable {
     }
 
     takeSnapshots();
+    //TODO: Write summary sheet here if possible
+
     deleteEmptyDirectory();
 
     try {
@@ -551,9 +558,6 @@ public class SearchThread implements Runnable {
         System.out.println("Original size of pageLines: " + pageLines.length+
                 " on page "+ pg);
 
-//      for(int i = 0; i< pageLines.length; i++){
-//
-//      }
       }
 
       return pgLines;
@@ -591,7 +595,8 @@ public class SearchThread implements Runnable {
         if(testing)
         System.out.println("Found keyword " + keyword + " on line " + line);
         ArrayList<Loc> locs = map.get(keyword);
-//          ArrayList<Line> lines = pageLines.get(pageNums.indexOf(pageNum - 1));
+
+//        ArrayList<Line> lines = pageLines.get(pageNums.indexOf(pageNum - 1));
 //        System.out.println("Size of Lines on page " + pageNum + ": " + lines);
           locs.add(new Loc(pageNum, line));
           map.put(keyword, locs);
@@ -694,8 +699,6 @@ public class SearchThread implements Runnable {
     return null;
     }
 
-
-
   private void takeSnapshots()
   {
 
@@ -723,12 +726,12 @@ public class SearchThread implements Runnable {
       //TODO: Figure this out for when multiple keywords are inputted
       for (Loc loc:locs){
         if(testing)
-        System.out.println("line: " + loc.line());
+        System.out.println("line: " + loc.getLine());
       }
 
       for (Loc loc : locs) {
-        int pageNum = loc.page();
-        int lineNum = loc.line();
+        int pageNum = loc.getPage();
+        int lineNum = loc.getLine();
         System.out.println("Line Num: " + lineNum);
 
 
@@ -766,7 +769,7 @@ public class SearchThread implements Runnable {
   }
 
   @Nullable
-  private String snapshotLine(Line line, String keyword, int lineNum)
+  private String snapshotLine(@NotNull Line line, String keyword, int lineNum)
   {
     int page = line.page();
     try {
@@ -877,6 +880,7 @@ public class SearchThread implements Runnable {
 
         //number of things (including the folder itself) in the directory is
       // less than one, ie the only thing there is the original directory
+        //TODO: When summary sheet working, test this again
        if (stream.count() <= 1){
           Files.delete(path);
       }
@@ -925,8 +929,15 @@ public class SearchThread implements Runnable {
     return file.getAbsolutePath();
   }
 
+  public String getFileName()
+  {/*
+    Returns file name for use in main tldr class
+  */
+      return fileName;
+  }
+
   @Contract(pure = true)
-  public HashMap getHashMap()
+  public HashMap<String, ArrayList<Loc>> getHashMap()
   {
     /*
       Returns HashMap for use in main tldr class

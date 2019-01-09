@@ -46,9 +46,7 @@ class tldr implements ActionListener {
   private static FileWriter fileWriter;
   private static PDDocument doc;
   public static boolean toWriteSummarySheet = false;
-
-
-  //private static SearchThread MaiaTest = new SearchThread();
+  private SearchThread newlyCreatedThread;
 
   static boolean testing = false;
 
@@ -409,7 +407,7 @@ class tldr implements ActionListener {
         createXSSFFile(docName);
       }
 
-      writeSummarySheet();
+
     }
 
   private void writeSummarySheet()
@@ -446,7 +444,7 @@ class tldr implements ActionListener {
         System.out.println("Summary sheet not created when writeSummarySheet " +
            "called");
     }
-
+openSummarySheet();
 }
 
   private void openSummarySheet()
@@ -512,14 +510,14 @@ class tldr implements ActionListener {
   /* Writes CSV file with the contents of the hashmap (name, line, page,
   keyword, file path) each into a new row of a CSV file and saves the file
   */
-  SearchThread MaiaTest = new SearchThread();
-  String fileNameforCSV = MaiaTest.getFileName();
+
+  String fileNameforCSV = newlyCreatedThread.getFileName();
   int pageNumberforCSV = 0;
   int lineNumberforCSV = 0;
   String filePathforCSV = null;
   String keywordforCSV;
 
-  HashMap<String, ArrayList<Loc>> hashMap = MaiaTest.getHashMap();
+  HashMap<String, ArrayList<Loc>> hashMap = newlyCreatedThread.getHashMap();;
 
     //iterate through the whole map to check that it all exists
     //TODO: Is this needed??
@@ -528,7 +526,15 @@ class tldr implements ActionListener {
    for(String keyword: keywords)
    {
       keywordforCSV = keyword;
+      System.out.println(keyword);
+
+      System.out.println(hashMap.get(keyword));
       ArrayList<Loc> l = hashMap.get(keyword);
+
+      if (!testing)
+          for(Loc loctest: l){
+              System.out.println(loctest.getLine());
+          }
 
       for(Loc location: l)
       {
@@ -553,7 +559,6 @@ class tldr implements ActionListener {
 
       //map is (key: keyword, value: Loc: page, line number, full path)
 }
-
 
   private void writeHSSFFile()
   {
@@ -685,6 +690,44 @@ class tldr implements ActionListener {
     }
   }
 
+  @NotNull
+  private String createCSVFile(@NotNull File toBeCSV)
+  {
+    /* Creates a file of type CSV with header
+       Input: PDF File with name that is wanted (Name inputted to search)
+       Returns: path of CSV File
+     */
+
+        //creates CSV File with same name as inputted PDF file
+        int indexOfPDF = toBeCSV.getName().lastIndexOf(".pdf");
+        File CSVFile = new File(toBeCSV.getName().substring(0,indexOfPDF));
+        if(testing)
+        System.out.println(CSVFile.getAbsolutePath());
+        CSVFile.setReadable(true);
+        CSVFile.setWritable(true);
+        CSVFile.setExecutable(true);
+
+        CSV = CSVFile;
+        //writes a header to the file
+        try
+        {
+            fileWriter = new FileWriter(CSV);
+            fileWriter.append("Document Name, Keyword, Page, Line Number, File Path");
+            fileWriter.append("\n");
+            fileWriter.flush();
+        }
+        catch(IOException exception)
+        {
+            exception.printStackTrace();
+            print(exception.getMessage());
+        }
+        //writes the created CSV file to static CSV to be accessed for writing later
+
+
+        System.out.println(CSV);
+        return CSVFile.getAbsolutePath();
+    }
+
   public static void print(String s)
   {
     /*
@@ -799,41 +842,6 @@ class tldr implements ActionListener {
 
   }
 
-  @NotNull
-  private String createCSVFile(@NotNull File toBeCSV)
-  {
-    /* Creates a file of type CSV with header
-       Input: PDF File with name that is wanted (Name inputted to search)
-       Returns: path of CSV File
-     */
-
-    //creates CSV File with same name as inputted PDF file
-    int indexOfPDF = toBeCSV.getName().lastIndexOf(".pdf");
-    File CSVFile = new File(toBeCSV.getName().substring(0,indexOfPDF));
-    CSVFile.setReadable(true);
-    CSVFile.setWritable(true);
-    CSVFile.setExecutable(true);
-
-    //writes a header to the file
-    try
-    {
-      fileWriter = new FileWriter(CSVFile);
-      fileWriter.append("Document Name, Keyword, Page, Line Number, File Path");
-      fileWriter.append("\n");
-      fileWriter.flush();
-    }
-    catch(IOException exception)
-    {
-      exception.printStackTrace();
-        print(exception.getMessage());
-    }
-    //writes the created CSV file to static CSV to be accessed for writing later
-
-    CSV = CSVFile;
-    System.out.println(CSV);
-    return CSVFile.getAbsolutePath();
-  }
-
   private void getInputtedKeywords()
   {
     /*
@@ -940,12 +948,21 @@ class tldr implements ActionListener {
 
     for (Thread thread : threads)
     {
-      try {
+
+      try
+      {
         thread.join();
-      } catch (InterruptedException e) {
+      }
+      catch (InterruptedException e) {
         e.printStackTrace();
       }
+
+      if(!thread.isAlive())
+          writeSummarySheet();
     }
+
+    openSummarySheet();
+
 //
 //    System.out.println(SearchThread.totalNumberInstances);
 //    try {
@@ -989,7 +1006,9 @@ class tldr implements ActionListener {
     {
       if (pageGroups != null) {
         for (ArrayList<Integer> pageGroup : pageGroups) {
-          threads.add(new Thread(new SearchThread(pageGroup, keywords, file.getAbsolutePath(), file.getName())));
+          newlyCreatedThread = new SearchThread(pageGroup, keywords,
+                    file.getAbsolutePath(), file.getName());
+          threads.add(new Thread(newlyCreatedThread));
         }
         if(testing)
         System.out.println("Created threads: " + threads.size());

@@ -117,7 +117,6 @@ public class SearchThread implements Runnable {
 
     takeSnapshots();
     //TODO: Write summary sheet here if possible
-
     deleteEmptyDirectory();
 
     try {
@@ -942,6 +941,7 @@ public class SearchThread implements Runnable {
     /*
       Returns HashMap for use in main tldr class
      */
+
     return map;
   }
 

@@ -547,7 +547,7 @@ public class SearchThread implements Runnable {
 
       // FIlters out lines of text that are empty
       for (String pageLine : pageLines) {
-        if (pageLine.length() > 0) {
+        if (pageLine.trim().length() > 0) {
           pgLines.add(pageLine);
         }
       }

@@ -36,12 +36,6 @@ public class SearchThread implements Runnable {
   private final int WHITE = 0;
   private final int BLACK = 1;
 
-
-  public SearchThread()
-  {
-
-  }
-
   public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, String filePath, String fileName)
   {
     /*

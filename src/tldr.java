@@ -517,7 +517,8 @@ openSummarySheet();
   String filePathforCSV = null;
   String keywordforCSV;
 
-  HashMap<String, ArrayList<Loc>> hashMap = newlyCreatedThread.getHashMap();;
+  newlyCreatedThread.run();
+  HashMap<String, ArrayList<Loc>> hashMap = newlyCreatedThread.getHashMap();
 
     //iterate through the whole map to check that it all exists
     //TODO: Is this needed??
@@ -948,6 +949,7 @@ openSummarySheet();
 
     for (Thread thread : threads)
     {
+      writeSummarySheet();
 
       try
       {
@@ -957,8 +959,7 @@ openSummarySheet();
         e.printStackTrace();
       }
 
-      if(!thread.isAlive())
-          writeSummarySheet();
+      writeSummarySheet();
     }
 
     openSummarySheet();

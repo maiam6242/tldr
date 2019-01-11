@@ -597,6 +597,12 @@ public class SearchThread implements Runnable {
 
 //        ArrayList<Line> lines = pageLines.get(pageNums.indexOf(pageNum - 1));
 //        System.out.println("Size of Lines on page " + pageNum + ": " + lines);
+        System.out.println("Line number where keyword was found on page " + pageNum + ": " + line);
+        System.out.println("Number of visual lines: " + pageLines.get(pageNums.indexOf(pageNum)).size());
+        if (line >= pageLines.get(pageNums.indexOf(pageNum)).size())
+        {
+          line = pageLines.get(pageNums.indexOf(pageNum)).size() - 1;
+        }
           locs.add(new Loc(pageNum, line));
           map.put(keyword, locs);
     }

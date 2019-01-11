@@ -731,6 +731,7 @@ public class SearchThread implements Runnable {
       for (Loc loc : locs) {
         int pageNum = loc.getPage();
         int lineNum = loc.getLine();
+        if(testing)
         System.out.println("Line Num: " + lineNum);
 
 
@@ -750,7 +751,7 @@ public class SearchThread implements Runnable {
           if(testing)
           System.out.println("lines.size() of previous"+ pageNum +" page = " +
                            pageLines.get(pageNums.indexOf(pageNum)));
-
+          if(testing)
           System.out.println("lines.size(): " + lines.size() +" on page " + pageNum);
 
           // Retrieves the correct line

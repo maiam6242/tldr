@@ -45,12 +45,11 @@ class tldr implements ActionListener {
   private static Workbook XSSF = null;
   private static FileWriter fileWriter;
   private static PDDocument doc;
-  public static boolean toWriteSummarySheet = false;
-  private SearchThread newlyCreatedThread;
-  private int threadsstarted = 0;
-  private int threadsfinished = 0;
+   private SearchThread newlyCreatedThread;
+  private int threadsStarted = 0;
+  private int threadsFinished = 0;
 
-  static boolean testing = false;
+  static boolean testing = true;
 
   tldr() {
     initializeGUI();
@@ -400,7 +399,7 @@ class tldr implements ActionListener {
      */
     //TODO: Implement writeSummarySheet
 
-
+    if(testing)
     System.out.println("Did this work?!");
     //writes content to doc type which isn't null
     if (CSV != null) {
@@ -487,12 +486,13 @@ class tldr implements ActionListener {
 
     for (String keyword : keywords) {
       keywordforCSV = keyword;
+      if(testing){
       System.out.println(keyword);
 
-      System.out.println(hashMap.get(keyword));
+      System.out.println(hashMap.get(keyword));}
       ArrayList<Loc> l = hashMap.get(keyword);
 
-      if (!testing)
+      if (testing)
         for (Loc loctest : l) {
           System.out.println(loctest.getLine());
         }
@@ -663,7 +663,7 @@ class tldr implements ActionListener {
     }
     //writes the created CSV file to static CSV to be accessed for writing later
 
-
+    if(testing)
     System.out.println(CSV);
     return CSVFile.getAbsolutePath();
   }
@@ -864,16 +864,16 @@ class tldr implements ActionListener {
 
       thread.start();
 
-      threadsstarted++;
+      threadsStarted++;
 
-      if (threadsstarted >= 2) {
+      if (threadsStarted >= 2) {
         if (testing)
-          System.out.println(threadsstarted + " threads started out of " + threads.size());
-        print(threadsstarted + " threads started out of " + threads.size());
+          System.out.println(threadsStarted + " threads started out of " + threads.size());
+        print(threadsStarted + " threads started out of " + threads.size());
       } else {
         if (testing)
-          System.out.println(threadsstarted + " thread started out of " + threads.size());
-        print(threadsstarted + " thread started out of " + threads.size());
+          System.out.println(threadsStarted + " thread started out of " + threads.size());
+        print(threadsStarted + " thread started out of " + threads.size());
       }
 
     }
@@ -888,16 +888,16 @@ class tldr implements ActionListener {
         e.printStackTrace();
       }
 
-      threadsfinished++;
+      threadsFinished++;
 
-      if (threadsfinished >= 2) {
+      if (threadsFinished >= 2) {
         if (testing)
-          System.out.println(threadsfinished + " threads finished out of " + threads.size());
-        print(threadsfinished + " threads finished out of " + threads.size());
+          System.out.println(threadsFinished + " threads finished out of " + threads.size());
+        print(threadsFinished + " threads finished out of " + threads.size());
       } else {
         if (testing)
-          System.out.println(threadsfinished + " thread finished out of " + threads.size());
-        print(threadsfinished + " thread finished out of " + threads.size());
+          System.out.println(threadsFinished + " thread finished out of " + threads.size());
+        print(threadsFinished + " thread finished out of " + threads.size());
       }
 
       writeSummarySheet();

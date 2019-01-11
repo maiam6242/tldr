@@ -934,10 +934,11 @@ openSummarySheet();
   private void runThreads()
   {
 //    System.out.println("Running threads");
-//    threads.get(0).start();
+    threads.get(0).start();
 //    threads.get(1).start();
-//    try {
+   // try {
 //      threads.get(0).join();
+
 //      threads.get(1).join();
 //    } catch (InterruptedException e) {
 //      e.printStackTrace();
@@ -960,7 +961,27 @@ openSummarySheet();
       }
 
       writeSummarySheet();
+
     }
+//    for (Thread thread : threads)
+//    {
+//      thread.start();
+//    }
+//
+//    for (Thread thread : threads)
+//    {
+//
+//      try
+//      {
+//        thread.join();
+//      }
+//      catch (InterruptedException e) {
+//        e.printStackTrace();
+//      }
+//
+//      if(!thread.isAlive())
+//          writeSummarySheet();
+//    }
 
     openSummarySheet();
 

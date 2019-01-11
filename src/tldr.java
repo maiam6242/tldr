@@ -47,17 +47,16 @@ class tldr implements ActionListener {
   private static PDDocument doc;
   public static boolean toWriteSummarySheet = false;
   private SearchThread newlyCreatedThread;
+  private int threadsstarted = 0;
+  private int threadsfinished = 0;
 
   static boolean testing = false;
 
-  tldr()
-
-  {
-     initializeGUI();
+  tldr() {
+    initializeGUI();
   }
 
-  private void initializeGUI()
-  {
+  private void initializeGUI() {
     /*
       Initializes the user interface using Java Swing.
      */
@@ -71,8 +70,7 @@ class tldr implements ActionListener {
     frame.setVisible(true);
   }
 
-  private void initializeFrame()
-  {
+  private void initializeFrame() {
      /*
       Creates and configures the window.
      */
@@ -98,19 +96,18 @@ class tldr implements ActionListener {
     // Configures grid bag layout
     GridBagLayout gbl_contentPane = new GridBagLayout();
     // Determines sizes of each row and column
-    gbl_contentPane.columnWidths = new int[] {0, 0, 0, 0, 0, 0, 0, 0};
-    gbl_contentPane.rowHeights = new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    gbl_contentPane.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0, 0};
+    gbl_contentPane.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     // Determines weights TODO: figure out what the weights mean??
-    gbl_contentPane.columnWeights = new double[] { 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE };
-    gbl_contentPane.rowWeights = new double[] { 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, Double.MIN_VALUE };
+    gbl_contentPane.columnWeights = new double[]{1.0, 1.0, 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+    gbl_contentPane.rowWeights = new double[]{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, Double.MIN_VALUE};
     // Adds layout to the content pane
     contentPane.setLayout(gbl_contentPane);
 
   }
 
-  private void initializeLabels()
-  {
+  private void initializeLabels() {
     /*
       Creates and positions all the labels (title label and instruction labels).
      */
@@ -153,8 +150,7 @@ class tldr implements ActionListener {
     contentPane.add(selectInstructionsLbl, gbc_selectInstructionsLbl);
   }
 
-  private void initializeTextField()
-  {
+  private void initializeTextField() {
     /*
       Creates and configures text field where user can input keywords.
      */
@@ -184,8 +180,7 @@ class tldr implements ActionListener {
 
   }
 
-  private void initializeDropDown()
-  {
+  private void initializeDropDown() {
     /*
       Initializes the dropdown from which user can select from preloaded keywords.
      */
@@ -218,8 +213,7 @@ class tldr implements ActionListener {
   }
 
   @Contract(pure = true)
-  private String[] fillPreloaded()
-  {
+  private String[] fillPreloaded() {
     /*
       Fills list of preloaded keywords with keywords (currently hardcoded).
     */
@@ -235,8 +229,7 @@ class tldr implements ActionListener {
     return HTwords;
   }
 
-  private void initializeButtons()
-  {
+  private void initializeButtons() {
     /*
       Creates and configures all the buttons
      */
@@ -285,8 +278,7 @@ class tldr implements ActionListener {
 
   }
 
-  private void initializeConsole()
-  {
+  private void initializeConsole() {
     /*
       Creates console where output messages are printed.
      */
@@ -308,8 +300,7 @@ class tldr implements ActionListener {
     contentPane.add(consoleScrollPane, gbc_console);
   }
 
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     /*
       Controls response to button clicks for each of the buttons.
      */
@@ -320,22 +311,18 @@ class tldr implements ActionListener {
       2. Gets all user-selected keywords from preloaded list
       3. Searches file for keywords
      */
-    if (event.getSource() == searchBtn)
-    {
+    if (event.getSource() == searchBtn) {
 //      if (testing) System.out.println("Search button clicked.");
       getInputtedKeywords();
       getSelectedKeywords();
-      if (keywords.size() > 0)
-      {
+      if (keywords.size() > 0) {
         try {
           searchKeywords();
         } catch (Exception e) {
           print(e.getMessage());
           e.printStackTrace();
         }
-      }
-      else
-      {
+      } else {
         print("ERROR: Please select or input keywords.");
       }
     }
@@ -345,8 +332,7 @@ class tldr implements ActionListener {
       1. Opens file dialog
       2. Retrieves selected file
      */
-    if (event.getSource() == searchFileBtn)
-    {
+    if (event.getSource() == searchFileBtn) {
 //      if (testing) System.out.println("Open file button clicked.");
       openSearchFile();
       createSummarySheet(file);
@@ -358,11 +344,10 @@ class tldr implements ActionListener {
       2. Retrieves selected text file
       3. Reads text file and retrieves keywords found in file
      */
-    if (event.getSource() == textFileBtn)
-    {
+    if (event.getSource() == textFileBtn) {
 //      if (testing) System.out.println("Open text file button clicked.");
 
-        openKeywordsFile();
+      openKeywordsFile();
 
     }
 
@@ -372,16 +357,14 @@ class tldr implements ActionListener {
       2. Retrieves files
       3. Merges files
      */
-    if (event.getSource() == mergeBtn)
-    {
+    if (event.getSource() == mergeBtn) {
 //      if (testing) System.out.println("Merge files button clicked.");
-       mergePDFFiles();
+      mergePDFFiles();
     }
 
   }
 
-  private void createSummarySheet(File docName)
-  {
+  private void createSummarySheet(File docName) {
     /* Creates a file based on the Office Version Installed
         Input: File (presumably the one inputted originally by user) which will
         have the same name as summary sheet
@@ -392,26 +375,25 @@ class tldr implements ActionListener {
     int officeVersion;
     officeVersion = getOfficeVersion();
 
-      //this is a .CSV file
-      if (officeVersion == 0) {
-        createCSVFile(docName);
-      }
-
-      //this is a .XLS file
-      else if (officeVersion <= 7 || officeVersion > 83) {
-        createHSSFFile(docName);
-      }
-
-      //this is a .XLSX file
-      else if (officeVersion > 7) {
-        createXSSFFile(docName);
-      }
-
-
+    //this is a .CSV file
+    if (officeVersion == 0) {
+      createCSVFile(docName);
     }
 
-  private void writeSummarySheet()
-  {
+    //this is a .XLS file
+    else if (officeVersion <= 7 || officeVersion > 83) {
+      createHSSFFile(docName);
+    }
+
+    //this is a .XLSX file
+    else if (officeVersion > 7) {
+      createXSSFFile(docName);
+    }
+
+
+  }
+
+  private void writeSummarySheet() {
     /*
     Checks which static variable has been written (which sheet type has been
     created), gets the content of hash map then writes it to the sheet
@@ -419,53 +401,41 @@ class tldr implements ActionListener {
     //TODO: Implement writeSummarySheet
 
 
-      System.out.println("Did this work?!");
+    System.out.println("Did this work?!");
     //writes content to doc type which isn't null
-    if(CSV != null)
-    {
+    if (CSV != null) {
       writeCSVFile();
-    }
-
-    else if(XSSF != null)
-    {
+    } else if (XSSF != null) {
       writeXSSFFile();
-    }
-
-
-    else if(HSSF != null)
-    {
+    } else if (HSSF != null) {
       writeHSSFFile();
     }
 
     //if no sheet has been created
-    else
-    {
-      if(testing)
+    else {
+      if (testing)
         System.out.println("Summary sheet not created when writeSummarySheet " +
-           "called");
+                "called");
     }
-openSummarySheet();
-}
+    openSummarySheet();
+  }
 
-  private void openSummarySheet()
-  {
+  private void openSummarySheet() {
     /* Opens the summary sheet which has been created if desktop is supported
      */
     //TODO: Implement openSummarySheet
 
     //checks if desktop is supported
-    if(Desktop.isDesktopSupported()) {
+    if (Desktop.isDesktopSupported()) {
       Desktop desktop = Desktop.getDesktop();
 
       try {
         if (CSV != null) {
           desktop.open(CSV);
         }
-      }
-      catch(IOException exception)
-      {
-        if(testing)
-        print(exception.getMessage());
+      } catch (IOException exception) {
+        if (testing)
+          print(exception.getMessage());
         exception.printStackTrace();
       }
 
@@ -474,11 +444,9 @@ openSummarySheet();
         if (XSSF != null) {
           desktop.open(XSSFFile);
         }
-      }
-      catch(IOException exception)
-      {
+      } catch (IOException exception) {
         if (testing)
-        print(exception.getMessage());
+          print(exception.getMessage());
         exception.printStackTrace();
       }
 
@@ -487,45 +455,37 @@ openSummarySheet();
         if (HSSF != null) {
           desktop.open(HSSFFile);
         }
-      }
-
-      catch(IOException exception)
-      {
-        if(testing)
-        print(exception.getMessage());
+      } catch (IOException exception) {
+        if (testing)
+          print(exception.getMessage());
         exception.printStackTrace();
       }
 
+    } else {
+      print("Cannot open Summary Sheet because Desktop is not supported");
     }
-
-    else
-      {
-        print("Cannot open Summary Sheet because Desktop is not supported");
-      }
 
   }
 
-  private void writeCSVFile()
-  {
+  private void writeCSVFile() {
   /* Writes CSV file with the contents of the hashmap (name, line, page,
   keyword, file path) each into a new row of a CSV file and saves the file
   */
 
-  String fileNameforCSV = newlyCreatedThread.getFileName();
-  int pageNumberforCSV = 0;
-  int lineNumberforCSV = 0;
-  String filePathforCSV = null;
-  String keywordforCSV;
+    String fileNameforCSV = newlyCreatedThread.getFileName();
+    int pageNumberforCSV = 0;
+    int lineNumberforCSV = 0;
+    String filePathforCSV = null;
+    String keywordforCSV;
 
-  newlyCreatedThread.run();
-  HashMap<String, ArrayList<Loc>> hashMap = newlyCreatedThread.getHashMap();
+    newlyCreatedThread.run();
+    HashMap<String, ArrayList<Loc>> hashMap = newlyCreatedThread.getHashMap();
 
     //iterate through the whole map to check that it all exists
     //TODO: Is this needed??
     //TODO: check that the map is written and not null etc etc
 
-   for(String keyword: keywords)
-   {
+    for (String keyword : keywords) {
       keywordforCSV = keyword;
       System.out.println(keyword);
 
@@ -533,36 +493,32 @@ openSummarySheet();
       ArrayList<Loc> l = hashMap.get(keyword);
 
       if (!testing)
-          for(Loc loctest: l){
-              System.out.println(loctest.getLine());
-          }
+        for (Loc loctest : l) {
+          System.out.println(loctest.getLine());
+        }
 
-      for(Loc location: l)
-      {
+      for (Loc location : l) {
         pageNumberforCSV = location.getPage();
         lineNumberforCSV = location.getLine();
         filePathforCSV = location.getFilePath();
       }
 
       String CSVString =
-      (fileNameforCSV + " , " + keywordforCSV + " , " + pageNumberforCSV +
-            " , " + lineNumberforCSV + " , " + filePathforCSV);
-      try
-      {
+              (fileNameforCSV + " , " + keywordforCSV + " , " + pageNumberforCSV +
+                      " , " + lineNumberforCSV + " , " + filePathforCSV);
+      try {
         fileWriter.append(CSVString);
         fileWriter.append("\n");
         fileWriter.flush();
+      } catch (IOException e) {
+        e.printStackTrace();
       }
-      catch(IOException e){
-          e.printStackTrace();
-      }
-   }
+    }
 
-      //map is (key: keyword, value: Loc: page, line number, full path)
-}
+    //map is (key: keyword, value: Loc: page, line number, full path)
+  }
 
-  private void writeHSSFFile()
-  {
+  private void writeHSSFFile() {
     /*Writes .XLS file with the contents of the hashmap (name, line, page,
       keyword, file path) each into a new row of a HSSF file and saves the file
     */
@@ -570,8 +526,7 @@ openSummarySheet();
 
   }
 
-  private void writeXSSFFile()
-  {
+  private void writeXSSFFile() {
     /*Writes .XLS file with the contents of the hashmap (name, line, page,
       keyword, file path) each into a new row of a HSSF file and saves the file
     */
@@ -580,79 +535,69 @@ openSummarySheet();
   }
 
   @NotNull
-  private String createHSSFFile(@NotNull File toBeHSSF)
-  {
+  private String createHSSFFile(@NotNull File toBeHSSF) {
       /*Creates a file of type .XLS with header
       Input: PDF File with name that is wanted (Name inputted to search)
       Returns: path of HSSF File
       */
 
-      //creates file with right name
-      int indexOfPDF = toBeHSSF.getName().lastIndexOf(".pdf");
-      HSSFFile = new File(toBeHSSF.getName().substring(0,indexOfPDF));
+    //creates file with right name
+    int indexOfPDF = toBeHSSF.getName().lastIndexOf(".pdf");
+    HSSFFile = new File(toBeHSSF.getName().substring(0, indexOfPDF));
 
-      //creates workbook based on that file
-      try
-      {
-          HSSF = WorkbookFactory.create(HSSFFile);
-          formatHSSF();
-      }
-      catch(IOException exception)
-      {
-          print(exception.getMessage());
-          exception.printStackTrace();
-      }
+    //creates workbook based on that file
+    try {
+      HSSF = WorkbookFactory.create(HSSFFile);
+      formatHSSF();
+    } catch (IOException exception) {
+      print(exception.getMessage());
+      exception.printStackTrace();
+    }
 
-      return HSSFFile.getAbsolutePath();
+    return HSSFFile.getAbsolutePath();
   }
 
-  private void formatHSSF()
-  {
+  private void formatHSSF() {
     /*
       Creates a sheet in an HSSF workbook with correct format and header
    */
-      Sheet sheet = HSSF.createSheet();
+    Sheet sheet = HSSF.createSheet();
 
-      //sets font
-      org.apache.poi.ss.usermodel.Font hssfFont = HSSF.createFont();
-      hssfFont.setFontName("Tahoma");
+    //sets font
+    org.apache.poi.ss.usermodel.Font hssfFont = HSSF.createFont();
+    hssfFont.setFontName("Tahoma");
 
-      //creates and freezes first row
-      Row firstRow = sheet.createRow(1);
-      sheet.createFreezePane(0,1,0,1);
-      firstRow.createCell(0).setCellValue("Document Name");
-      firstRow.createCell(1).setCellValue("Keyword");
-      firstRow.createCell(2).setCellValue("Page");
-      firstRow.createCell(3).setCellValue("Line Number");
+    //creates and freezes first row
+    Row firstRow = sheet.createRow(1);
+    sheet.createFreezePane(0, 1, 0, 1);
+    firstRow.createCell(0).setCellValue("Document Name");
+    firstRow.createCell(1).setCellValue("Keyword");
+    firstRow.createCell(2).setCellValue("Page");
+    firstRow.createCell(3).setCellValue("Line Number");
 
-      //makes the text wrapped for each cell in header
-      CellStyle wrapStyle = HSSF.createCellStyle();
-      wrapStyle.setWrapText(true);
-      for (Cell cell: firstRow)
-      {
-          cell.setCellStyle(wrapStyle);
-      }
+    //makes the text wrapped for each cell in header
+    CellStyle wrapStyle = HSSF.createCellStyle();
+    wrapStyle.setWrapText(true);
+    for (Cell cell : firstRow) {
+      cell.setCellStyle(wrapStyle);
+    }
   }
 
   @NotNull
-  private String createXSSFFile(@NotNull File toBeXSSF)
-  {     /*Creates a file of type .XLXS with header
+  private String createXSSFFile(@NotNull File toBeXSSF) {     /*Creates a file of type .XLXS with header
       Input: PDF File with name that is wanted (Name inputted to search)
       Returns: path of XSSF File
       */
 
     //creates file with right name
     int indexOfPDF = toBeXSSF.getName().lastIndexOf(".pdf");
-    XSSFFile = new File(toBeXSSF.getName().substring(0,indexOfPDF));
+    XSSFFile = new File(toBeXSSF.getName().substring(0, indexOfPDF));
 
     //creates workbook based on that file
-    try
-    {
+    try {
       HSSF = WorkbookFactory.create(XSSFFile);
       formatXSSF();
-    }
-    catch(IOException exception)
-    {
+    } catch (IOException exception) {
       print(exception.getMessage());
       exception.printStackTrace();
     }
@@ -661,8 +606,7 @@ openSummarySheet();
 
   }
 
-  private static void formatXSSF()
-  {
+  private static void formatXSSF() {
     /*
     Creates a sheet in an XSSF workbook with correct format and header
      */
@@ -675,7 +619,7 @@ openSummarySheet();
 
     //creates and freezes first row
     Row firstRow = sheet.createRow(1);
-    sheet.createFreezePane(0,1,0,1);
+    sheet.createFreezePane(0, 1, 0, 1);
     firstRow.createCell(0).setCellValue("Document Name");
     firstRow.createCell(1).setCellValue("Keyword");
     firstRow.createCell(2).setCellValue("Page");
@@ -685,99 +629,88 @@ openSummarySheet();
     //makes the text wrapped for each cell in header
     CellStyle wrapStyle = XSSF.createCellStyle();
     wrapStyle.setWrapText(true);
-    for (Cell cell: firstRow)
-    {
+    for (Cell cell : firstRow) {
       cell.setCellStyle(wrapStyle);
     }
   }
 
   @NotNull
-  private String createCSVFile(@NotNull File toBeCSV)
-  {
+  private String createCSVFile(@NotNull File toBeCSV) {
     /* Creates a file of type CSV with header
        Input: PDF File with name that is wanted (Name inputted to search)
        Returns: path of CSV File
      */
 
-        //creates CSV File with same name as inputted PDF file
-        int indexOfPDF = toBeCSV.getName().lastIndexOf(".pdf");
-        File CSVFile = new File(toBeCSV.getName().substring(0,indexOfPDF));
-        if(testing)
-        System.out.println(CSVFile.getAbsolutePath());
-        CSVFile.setReadable(true);
-        CSVFile.setWritable(true);
-        CSVFile.setExecutable(true);
+    //creates CSV File with same name as inputted PDF file
+    int indexOfPDF = toBeCSV.getName().lastIndexOf(".pdf");
+    File CSVFile = new File(toBeCSV.getName().substring(0, indexOfPDF));
+    if (testing)
+      System.out.println(CSVFile.getAbsolutePath());
+    CSVFile.setReadable(true);
+    CSVFile.setWritable(true);
+    CSVFile.setExecutable(true);
 
-        CSV = CSVFile;
-        //writes a header to the file
-        try
-        {
-            fileWriter = new FileWriter(CSV);
-            fileWriter.append("Document Name, Keyword, Page, Line Number, File Path");
-            fileWriter.append("\n");
-            fileWriter.flush();
-        }
-        catch(IOException exception)
-        {
-            exception.printStackTrace();
-            print(exception.getMessage());
-        }
-        //writes the created CSV file to static CSV to be accessed for writing later
-
-
-        System.out.println(CSV);
-        return CSVFile.getAbsolutePath();
+    CSV = CSVFile;
+    //writes a header to the file
+    try {
+      fileWriter = new FileWriter(CSV);
+      fileWriter.append("Document Name, Keyword, Page, Line Number, File Path");
+      fileWriter.append("\n");
+      fileWriter.flush();
+    } catch (IOException exception) {
+      exception.printStackTrace();
+      print(exception.getMessage());
     }
+    //writes the created CSV file to static CSV to be accessed for writing later
 
-  public static void print(String s)
-  {
+
+    System.out.println(CSV);
+    return CSVFile.getAbsolutePath();
+  }
+
+  public static void print(String s) {
     /*
       Prints a string to the user console and Eclipse console.
      */
     console.setText(currText + s + "\n");
     currText.append(s);
-    currText.append( "\n");
+    currText.append("\n");
     System.out.println(s);
   }
 
-  public void print(@NotNull ArrayList<String> strings)
-  {
+  public void print(@NotNull ArrayList<String> strings) {
     /*
       Prints an ArrayList of strings to the user console and Eclipse console.
      */
-    for (String s : strings)
-    {
+    for (String s : strings) {
       console.setText(currText + s + "\n");
       currText.append(s);
-      currText.append( "\n");
+      currText.append("\n");
       System.out.println(s);
     }
   }
 
-  public void print(@NotNull String[] strings)
-  {
+  public void print(@NotNull String[] strings) {
     /*
       Prints an array of strings to the user console and Eclipse console.
      */
-    for (String s : strings)
-    {
+    for (String s : strings) {
       console.setText(currText + s + "\n");
       currText.append(s);
-      currText.append( "\n");
+      currText.append("\n");
       System.out.println(s);
     }
   }
 
   @Nullable
-  private String getOS()
-  { /*
+  private String getOS() { /*
       Gets the Operating System of Computer for Use with getOfficeVersion Method
     */
     String OS = null;
 
     OS = System.getProperty("os.name");
 
-    if(OS.startsWith("Win"))
+    if (OS.startsWith("Win"))
       return "Windows";
 
     else if (OS.startsWith("Lin"))
@@ -789,15 +722,14 @@ openSummarySheet();
     else return null;
   }
 
-  private int getOfficeVersion()
-  {
+  private int getOfficeVersion() {
     /* Checks what (if any) version of office is on the system.
        Returns 0 if no office is installed and the version number if office is installed
        The version number is the last two digits of the year that the office package came out (83-Present)
      */
 
     //TODO: work on making this work regardless of OS (rn windows dependent) and understanding functionality a little bit better
-    try{
+    try {
 
       //creates process which looks for the office version then reads it, WINDOWS DEPENDENT
 
@@ -805,9 +737,7 @@ openSummarySheet();
       String officeVersion = null;
       BufferedReader officeVersionReader = null;
       Process process = null;
-      if(getOS().equals("Windows"))
-
-      {
+      if (getOS().equals("Windows")) {
         process = Runtime.getRuntime().exec(new String[]{"cmd.exe", "/c", "assoc", ".xls"});
         officeVersionReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         officeVersion = officeVersionReader.readLine();
@@ -816,14 +746,14 @@ openSummarySheet();
 
       //see if any office is installed
 
-      if (officeVersion == null){
-       if(testing)
-        System.out.println("No Office is Installed");
+      if (officeVersion == null) {
+        if (testing)
+          System.out.println("No Office is Installed");
         // System.exit(1);
         return 0;
       }
 
-      if(getOS().equals("Windows")) {
+      if (getOS().equals("Windows")) {
         //determine what version the office installed is
         String[] fileType = officeVersion.split("=");
         process = Runtime.getRuntime().exec(new String[]{"cmd.exe", "/c", "ftype", fileType[1]});
@@ -833,18 +763,16 @@ openSummarySheet();
         officeVersion = fullOfficeVersion.replaceAll("[^0-9]+", "");
         return Integer.parseInt(officeVersion);
       }
-    }
-    catch(Exception error){
-        print(error.getMessage());
-        error.printStackTrace();
+    } catch (Exception error) {
+      print(error.getMessage());
+      error.printStackTrace();
     }
 
     return 0;
 
   }
 
-  private void getInputtedKeywords()
-  {
+  private void getInputtedKeywords() {
     /*
       Retrieves user-inputted keywords
      */
@@ -855,10 +783,8 @@ openSummarySheet();
     // Adds each individual inputted keyword to list of keywords
     String[] keywordsArray = keywordString.split(",");
     trim(keywordsArray);
-    for (String keyword : keywordsArray)
-    {
-      if (!keyword.equals(""))
-      {
+    for (String keyword : keywordsArray) {
+      if (!keyword.equals("")) {
         keywords.add(keyword);
       }
     }
@@ -867,30 +793,25 @@ openSummarySheet();
     trim(keywords);
   }
 
-  private void trim(@NotNull String[] arr)
-  {
+  private void trim(@NotNull String[] arr) {
     /*
       Removes white space from words in a String array.
      */
-    for (int i = 0; i < arr.length; i++)
-    {
+    for (int i = 0; i < arr.length; i++) {
       arr[i] = arr[i].trim();
     }
   }
 
-  private void trim(@NotNull ArrayList<String> arr)
-  {
+  private void trim(@NotNull ArrayList<String> arr) {
     /*
       Removes white space from words in an ArrayList of strings.
      */
-    for (int i = 0; i < arr.size(); i++)
-    {
+    for (int i = 0; i < arr.size(); i++) {
       arr.set(i, arr.get(i).trim());
     }
   }
 
-  private void getSelectedKeywords()
-  {
+  private void getSelectedKeywords() {
     /*
       Retrieves user-selected keywords from preloaded list and adds them to list of keywords to search.
      */
@@ -899,70 +820,88 @@ openSummarySheet();
     ArrayList<String> selectedKeywords;
 
     // Adds words to list of keywords
-    if (preloadedList.getSelectedValuesList().size() > 0)
-    {
+    if (preloadedList.getSelectedValuesList().size() > 0) {
       selectedKeywords = (ArrayList<String>) preloadedList.getSelectedValuesList();
       keywords.addAll(selectedKeywords);
     }
   }
 
-  private void searchKeywords()
-  {
+  private void searchKeywords() {
     /*
     1. Extract pages from PDF
     2. Split up pages into increments of 20
     3. Create a thread for each increment (possibly put in ArrayList?)
     4. Start each thread
     */
-  try {
-  // TODO: Implement search keywords method
-    print("Searching for following keywords: ");
-    print(keywords);
-    createThreads(separateContent());
-    runThreads();
-  }
+    try {
+      // TODO: Implement search keywords method
+      print("Searching for following keywords: ");
+      print(keywords);
+      createThreads(separateContent());
+      runThreads();
+    }
 
-  //add in IOException if that's actually what can be thrown
-  catch(Exception exception)
-    {
-      if(testing)
+    //add in IOException if that's actually what can be thrown
+    catch (Exception exception) {
+      if (testing)
         print(exception.getMessage());
       exception.printStackTrace();
-  }
+    }
   }
 
-  private void runThreads()
-  {
+  private void runThreads() {
 //    System.out.println("Running threads");
     threads.get(0).start();
 //    threads.get(1).start();
-   // try {
+    // try {
 //      threads.get(0).join();
 
 //      threads.get(1).join();
 //    } catch (InterruptedException e) {
 //      e.printStackTrace();
 //    }
-    for (Thread thread : threads)
-    {
+    for (Thread thread : threads) {
       thread.start();
+      threadsstarted++;
+
+      if (threadsstarted >= 2) {
+        if (testing)
+          System.out.println(threadsstarted + " threads started out of " + threads.size());
+        print(threadsstarted + " threads started out of " + threads.size());
+      } else {
+        if (testing)
+          System.out.println(threadsstarted + " thread started out of " + threads.size());
+        print(threadsstarted + " thread started out of " + threads.size());
+      }
+
     }
 
-    for (Thread thread : threads)
-    {
-      writeSummarySheet();
+    for (Thread thread : threads) {
 
-      try
-      {
+
+      try {
         thread.join();
       }
       catch (InterruptedException e) {
         e.printStackTrace();
       }
 
-      writeSummarySheet();
+      threadsfinished++;
 
+      if (threadsfinished >= 2) {
+        if (testing)
+          System.out.println(threadsfinished + " threads finished out of " + threads.size());
+        print(threadsfinished + " threads finished out of " + threads.size());
+      } else {
+        if (testing)
+          System.out.println(threadsfinished + " thread finished out of " + threads.size());
+        print(threadsfinished + " thread finished out of " + threads.size());
+      }
+
+      writeSummarySheet();
     }
+    openSummarySheet();
+  }
 //    for (Thread thread : threads)
 //    {
 //      thread.start();
@@ -983,40 +922,11 @@ openSummarySheet();
 //          writeSummarySheet();
 //    }
 
-    openSummarySheet();
 
-//
-//    System.out.println(SearchThread.totalNumberInstances);
-//    try {
-//      doc.close();
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
 
-//    threads.get(0).start();
-//    try {
-//      threads.get(0).join();
-//    } catch (InterruptedException e) {
-//      e.printStackTrace();
-//    }
-//    for (Thread thread : threads) {
-//      try {
-//        thread.join();
-//      } catch (InterruptedException e) {
-//        e.printStackTrace();
-//      }
-//    }
-    // TODO: Implement run threads method
-//    for (Thread t : threads)
-//    {
-//      t.start();
-//    }
-//
-//    for (Thread t : threads)
-//    {
-//      t.join();
-//    }
-  }
+
+  // TODO: Implement run threads method
+
 
   private void createThreads(ArrayList<ArrayList<Integer>> pageGroups)
   {

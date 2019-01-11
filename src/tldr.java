@@ -851,7 +851,7 @@ class tldr implements ActionListener {
 
   private void runThreads() {
 //    System.out.println("Running threads");
-    threads.get(0).start();
+//    threads.get(0).start();
 //    threads.get(1).start();
     // try {
 //      threads.get(0).join();
@@ -861,7 +861,9 @@ class tldr implements ActionListener {
 //      e.printStackTrace();
 //    }
     for (Thread thread : threads) {
+
       thread.start();
+
       threadsstarted++;
 
       if (threadsstarted >= 2) {

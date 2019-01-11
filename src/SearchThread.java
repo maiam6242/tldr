@@ -36,7 +36,7 @@ public class SearchThread implements Runnable {
   private final int WHITE = 0;
   private final int BLACK = 1;
 
-  public SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, String filePath, String fileName)
+  SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, String filePath, String fileName)
   {
     /*
      * Parameters:
@@ -112,12 +112,12 @@ public class SearchThread implements Runnable {
     takeSnapshots();
     //TODO: Write summary sheet here if possible
     deleteEmptyDirectory();
-
-    try {
-      doc.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+//
+//    try {
+//      doc.close();
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//    }
   }
 
   private void pixelAnalysis(int pageNum)
@@ -928,7 +928,7 @@ public class SearchThread implements Runnable {
     return file.getAbsolutePath();
   }
 
-  public String getFileName()
+  String getFileName()
   {/*
     Returns file name for use in main tldr class
   */
@@ -936,7 +936,7 @@ public class SearchThread implements Runnable {
   }
 
   @Contract(pure = true)
-  public HashMap<String, ArrayList<Loc>> getHashMap()
+  synchronized HashMap<String, ArrayList<Loc>> getHashMap()
   {
     /*
       Returns HashMap for use in main tldr class

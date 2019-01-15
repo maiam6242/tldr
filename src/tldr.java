@@ -477,7 +477,12 @@ class tldr implements ActionListener {
     String filePathforCSV = null;
     String keywordforCSV;
 
-    newlyCreatedThread.run();
+    if(testing){
+      System.out.println();
+      System.out.println("hashmap???" + SearchThread.map);
+      System.out.println("hashmap???" + newlyCreatedThread.getHashMap());
+    }
+    //newlyCreatedThread.run();
     HashMap<String, ArrayList<Loc>> hashMap = newlyCreatedThread.getHashMap();
 
     //iterate through the whole map to check that it all exists
@@ -487,14 +492,14 @@ class tldr implements ActionListener {
     for (String keyword : keywords) {
       keywordforCSV = keyword;
       if(testing){
-      System.out.println(keyword);
+      System.out.println("keyword: "+keyword);
 
       System.out.println(hashMap.get(keyword));}
       ArrayList<Loc> l = hashMap.get(keyword);
 
       if (testing)
         for (Loc loctest : l) {
-          System.out.println(loctest.getLine());
+          System.out.println("loctest.getLine(): "+loctest.getLine());
         }
 
       for (Loc location : l) {
@@ -664,7 +669,7 @@ class tldr implements ActionListener {
     //writes the created CSV file to static CSV to be accessed for writing later
 
     if(testing)
-    System.out.println(CSV);
+    System.out.println("CSV "+CSV);
     return CSVFile.getAbsolutePath();
   }
 
@@ -850,16 +855,7 @@ class tldr implements ActionListener {
   }
 
   private void runThreads() {
-//    System.out.println("Running threads");
-//    threads.get(0).start();
-//    threads.get(1).start();
-    // try {
-//      threads.get(0).join();
-
-//      threads.get(1).join();
-//    } catch (InterruptedException e) {
-//      e.printStackTrace();
-//    }
+   System.out.println("Running threads");
     for (Thread thread : threads) {
 
       thread.start();
@@ -870,7 +866,8 @@ class tldr implements ActionListener {
         if (testing)
           System.out.println(threadsStarted + " threads started out of " + threads.size());
         print(threadsStarted + " threads started out of " + threads.size());
-      } else {
+      } else
+        {
         if (testing)
           System.out.println(threadsStarted + " thread started out of " + threads.size());
         print(threadsStarted + " thread started out of " + threads.size());
@@ -880,9 +877,38 @@ class tldr implements ActionListener {
 
     for (Thread thread : threads) {
 
+      if(testing){
+        System.out.println();
+        System.out.println();
+        System.out.println("tldr.keywords.get(0):" + tldr.keywords.get(0));
+        System.out.println("SearchThreads.keywords.get(0):" + SearchThread.keywords.get(0));
+        System.out.println("SearchThread.map.get(tldr.keywords.get(0)).size()" +
+                " "+SearchThread.map.get(tldr.keywords.get(0)).size());
+
+      }
+      boolean [] writtenToSheet = new boolean[keywords.size()];
+      int counter = 0;
+
+      while(thread.isAlive()) {
+//        if (testing)
+//          System.out.println("SearchThread.map.get(tldr.keywords.get(0)).size" +
+//                  "(): " +SearchThread.map.get(tldr.keywords.get(0)).size());
+          //if (SearchThread.map.get(tldr.keywords.get(0)).get(0).getFilePath
+          // () != null) {
+            for(int i = 0; i< keywords.size(); i++){
+              if (SearchThread.map.get(tldr.keywords.get(i)).size() > 0) {
+
+              writeSummarySheet();
+              }
+            //counter++;
+
+          //}
+        }
+      }
 
       try {
         thread.join();
+
       }
       catch (InterruptedException e) {
         e.printStackTrace();
@@ -900,32 +926,10 @@ class tldr implements ActionListener {
         print(threadsFinished + " thread finished out of " + threads.size());
       }
 
-      writeSummarySheet();
+
     }
     openSummarySheet();
   }
-//    for (Thread thread : threads)
-//    {
-//      thread.start();
-//    }
-//
-//    for (Thread thread : threads)
-//    {
-//
-//      try
-//      {
-//        thread.join();
-//      }
-//      catch (InterruptedException e) {
-//        e.printStackTrace();
-//      }
-//
-//      if(!thread.isAlive())
-//          writeSummarySheet();
-//    }
-
-
-
 
   // TODO: Implement run threads method
 

@@ -22,7 +22,7 @@ public class SearchThread implements Runnable {
   private PDDocument doc;
   private String fileName;
   private PDFRenderer renderer;
-  private HashMap<String, ArrayList<Loc>> map = new HashMap<>();
+  public static HashMap<String, ArrayList<Loc>> map = new HashMap<>();
   private PDFTextStripper textStripper;
   private ArrayList<ArrayList<Line>> pageLines;
   private ArrayList<String> oneWordKeywords = new ArrayList<>();
@@ -36,7 +36,8 @@ public class SearchThread implements Runnable {
   private final int WHITE = 0;
   private final int BLACK = 1;
 
-  SearchThread(ArrayList<Integer> pageNums, @NotNull ArrayList<String> keywords, String filePath, String fileName)
+  SearchThread(ArrayList<Integer> pageNums,
+                @NotNull ArrayList<String> keywords, String filePath, String fileName)
   {
     /*
      * Parameters:
@@ -45,7 +46,7 @@ public class SearchThread implements Runnable {
      * - doc --> the document (as a PDDocument object) that this thread will search through
      * - fileName --> String representation of the name of the file this thread will search through
      */
-
+    synchronized (this){
     // Copies all pageNums from the pageNums paramter to the pageNums class variable
     // Making a copy prevents pointer errors from arising later
     this.pageNums.addAll(pageNums);
@@ -80,7 +81,7 @@ public class SearchThread implements Runnable {
       pageLines = new ArrayList<ArrayList<Line>>();
     } catch (IOException e) {
       e.printStackTrace();
-    }
+    }}
 
   }
 
@@ -562,7 +563,8 @@ public class SearchThread implements Runnable {
     return null;
   }
 
-  private void findKeywordsInLine(@NotNull String textLine, int pageNum, int line)
+  private synchronized void findKeywordsInLine(@NotNull String textLine, int pageNum,
+                                   int line)
   {
 
 
@@ -610,7 +612,7 @@ public class SearchThread implements Runnable {
   }
 
   @Nullable
-  private String matchKeyword(String randomWord, int positionOfWord)
+  private synchronized String matchKeyword(String randomWord, int positionOfWord)
   {/*
 
   Inputs: Word from line of text to be checked against each keyword and the
@@ -698,7 +700,7 @@ public class SearchThread implements Runnable {
     return null;
     }
 
-  private void takeSnapshots()
+  private synchronized void takeSnapshots()
   {
 
     for (String key : map.keySet()) {
@@ -943,7 +945,9 @@ public class SearchThread implements Runnable {
       Returns HashMap for use in main tldr class
      */
 
+
     return map;
+
   }
 
   private void analyzeKeywords()

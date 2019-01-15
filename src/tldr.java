@@ -466,7 +466,7 @@ class tldr implements ActionListener {
 
   }
 
-  private void writeCSVFile() {
+  private synchronized void writeCSVFile() {
   /* Writes CSV file with the contents of the hashmap (name, line, page,
   keyword, file path) each into a new row of a CSV file and saves the file
   */
@@ -483,7 +483,7 @@ class tldr implements ActionListener {
       System.out.println("hashmap???" + newlyCreatedThread.getHashMap());
     }
     //newlyCreatedThread.run();
-    HashMap<String, ArrayList<Loc>> hashMap = newlyCreatedThread.getHashMap();
+    HashMap<String, ArrayList<Loc>> hashMap = SearchThread.map;
 
     //iterate through the whole map to check that it all exists
     //TODO: Is this needed??
@@ -880,10 +880,10 @@ class tldr implements ActionListener {
       if(testing){
         System.out.println();
         System.out.println();
-        System.out.println("tldr.keywords.get(0):" + tldr.keywords.get(0));
-        System.out.println("SearchThreads.keywords.get(0):" + SearchThread.keywords.get(0));
+        System.out.println("tldr.keywords.get(0): " + tldr.keywords.get(0));
+        System.out.println("SearchThreads.keywords.get(0): " + SearchThread.keywords.get(0));
         System.out.println("SearchThread.map.get(tldr.keywords.get(0)).size()" +
-                " "+SearchThread.map.get(tldr.keywords.get(0)).size());
+                ": "+SearchThread.map.get(tldr.keywords.get(0)).size());
 
       }
       boolean [] writtenToSheet = new boolean[keywords.size()];
@@ -893,8 +893,12 @@ class tldr implements ActionListener {
 //        if (testing)
 //          System.out.println("SearchThread.map.get(tldr.keywords.get(0)).size" +
 //                  "(): " +SearchThread.map.get(tldr.keywords.get(0)).size());
-          //if (SearchThread.map.get(tldr.keywords.get(0)).get(0).getFilePath
-          // () != null) {
+          if (
+                  //SearchThread.map.get(tldr.keywords.get(0)).get(0)
+            // .getFilePath
+           //() != null &&
+                          SearchThread.map.get(tldr.keywords.get(0)).size() > 0 ) {
+            System.out.println("did we get here?");
             for(int i = 0; i< keywords.size(); i++){
               if (SearchThread.map.get(tldr.keywords.get(i)).size() > 0) {
 
@@ -902,7 +906,7 @@ class tldr implements ActionListener {
               }
             //counter++;
 
-          //}
+          }
         }
       }
 

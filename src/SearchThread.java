@@ -22,7 +22,7 @@ public class SearchThread implements Runnable {
   private PDDocument doc;
   private String fileName;
   private PDFRenderer renderer;
-  public static HashMap<String, ArrayList<Loc>> map = new HashMap<>();
+  public HashMap<String, ArrayList<Loc>> map = new HashMap<>();
   private PDFTextStripper textStripper;
   private ArrayList<ArrayList<Line>> pageLines;
   private ArrayList<String> oneWordKeywords = new ArrayList<>();
@@ -111,8 +111,11 @@ public class SearchThread implements Runnable {
     }
 
     takeSnapshots();
+    getHashMap();
     //TODO: Write summary sheet here if possible
     deleteEmptyDirectory();
+
+    //TODO: This is where the threads end... does this need to be changed??
 //
 //    try {
 //      doc.close();
@@ -700,12 +703,13 @@ public class SearchThread implements Runnable {
     return null;
     }
 
-  private synchronized void takeSnapshots()
+  private void takeSnapshots()
   {
 
     for (String key : map.keySet()) {
       if(testing)
       System.out.println("Taking snapshots for keyword: " + key);
+
       ArrayList<Loc> locs = map.get(key);
 
       totalNumberInstances += locs.size();
@@ -714,6 +718,7 @@ public class SearchThread implements Runnable {
        System.out.println("Size of map.keySet (how many keywords searched): " + map.keySet().size());
        System.out.println("Keyword: " + key);
        System.out.println("map.get(key) size: " + map.get(key).size());
+
        if(map.get(key).size()>0)
        System.out.println("map.get(key) sub 0: " + map.get(key).get(0));
        System.out.println("Size of locs ArrayList: " + locs.size());
@@ -721,22 +726,21 @@ public class SearchThread implements Runnable {
       //this one is throwing: Exception in thread "Thread-0" java.lang
       // .IndexOutOfBoundsException: Index 0 out-of-bounds for length 0
       if(map.get(key).size()>0)
+
         if(testing)
-      System.out.println("First instance of locs: "+locs.get(0));
+      System.out.println("First instance of locs: "+ locs.get(0));
 
       //TODO: Figure this out for when multiple keywords are inputted
-      for (Loc loc:locs){
-        if(testing)
-        System.out.println("line: " + loc.getLine());
-      }
+      //TODO:^^ Is this todo still live??
 
       for (Loc loc : locs) {
+        if(testing)
+          System.out.println("line: " + loc.getLine());
         int pageNum = loc.getPage();
         int lineNum = loc.getLine();
+
         if(testing)
         System.out.println("Line Num: " + lineNum);
-
-
 
         if (pageNums.indexOf(pageNum) != -1)
         {
@@ -759,14 +763,25 @@ public class SearchThread implements Runnable {
           // Retrieves the correct line
           Line line = lines.get(lineNum);
           String filePath = snapshotLine(line, key, lineNum);
+
           if(testing)
           System.out.println("Filepath of snapshot: " + filePath);
-          if (filePath != null) loc.setFilePath(filePath);
+
+          if (filePath != null)
+            loc.setFilePath(filePath);
+
+          if(testing)
+            System.out.println();
+            System.out.println();
+            System.out.println();
+            System.out.println();
+            System.out.println();
+            System.out.println("map.get(key).get(0).getFilePath(): "+map.get(key).get(0).getFilePath());
         }
       }
       if(testing)
       System.out.println("Done Snapshotting " +key);
-      locs.clear();
+      //locs.clear();
     }
   }
 

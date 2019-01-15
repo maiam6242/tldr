@@ -45,7 +45,7 @@ class tldr implements ActionListener {
   private static Workbook XSSF = null;
   private static FileWriter fileWriter;
   private static PDDocument doc;
-   private SearchThread newlyCreatedThread;
+  private SearchThread newlyCreatedThread;
   private int threadsStarted = 0;
   private int threadsFinished = 0;
 
@@ -404,10 +404,13 @@ class tldr implements ActionListener {
     //writes content to doc type which isn't null
     if (CSV != null) {
       writeCSVFile();
+      openSummarySheet();
     } else if (XSSF != null) {
       writeXSSFFile();
+      openSummarySheet();
     } else if (HSSF != null) {
       writeHSSFFile();
+      openSummarySheet();
     }
 
     //if no sheet has been created
@@ -416,7 +419,7 @@ class tldr implements ActionListener {
         System.out.println("Summary sheet not created when writeSummarySheet " +
                 "called");
     }
-    openSummarySheet();
+
   }
 
   private void openSummarySheet() {
@@ -479,47 +482,54 @@ class tldr implements ActionListener {
 
     if(testing){
       System.out.println();
-      System.out.println("hashmap???" + SearchThread.map);
+      //System.out.println("hashmap???" + SearchThread.map);
       System.out.println("hashmap???" + newlyCreatedThread.getHashMap());
     }
-    //newlyCreatedThread.run();
-    HashMap<String, ArrayList<Loc>> hashMap = SearchThread.map;
+    if(newlyCreatedThread.getHashMap().get(keywords.get(keywords.size()-1)).get(0).getFilePath() != null) {
+      HashMap<String, ArrayList<Loc>> hashMap = newlyCreatedThread.getHashMap();
 
-    //iterate through the whole map to check that it all exists
-    //TODO: Is this needed??
-    //TODO: check that the map is written and not null etc etc
+      //iterate through the whole map to check that it all exists
+      //TODO: Is this needed??
+      //TODO: check that the map is written and not null etc etc
 
-    for (String keyword : keywords) {
-      keywordforCSV = keyword;
-      if(testing){
-      System.out.println("keyword: "+keyword);
+      for (String keyword : keywords) {
+        keywordforCSV = keyword;
+        if (testing) {
+          System.out.println("keyword: " + keyword);
 
-      System.out.println(hashMap.get(keyword));}
-      ArrayList<Loc> l = hashMap.get(keyword);
-
-      if (testing)
-        for (Loc loctest : l) {
-          System.out.println("loctest.getLine(): "+loctest.getLine());
+          System.out.println(hashMap.get(keyword));
         }
+        ArrayList<Loc> l = hashMap.get(keyword);
 
-      for (Loc location : l) {
-        pageNumberforCSV = location.getPage();
-        lineNumberforCSV = location.getLine();
-        filePathforCSV = location.getFilePath();
-      }
+        if (testing)
+          for (Loc loctest : l) {
+            System.out.println("loctest.getLine(): " + loctest.getLine());
+          }
+        String CSVString = null;
+        try {
 
-      String CSVString =
-              (fileNameforCSV + " , " + keywordforCSV + " , " + pageNumberforCSV +
-                      " , " + lineNumberforCSV + " , " + filePathforCSV);
-      try {
-        fileWriter.append(CSVString);
-        fileWriter.append("\n");
-        fileWriter.flush();
-      } catch (IOException e) {
-        e.printStackTrace();
+          for (Loc location : l) {
+            pageNumberforCSV = location.getPage();
+            lineNumberforCSV = location.getLine();
+            filePathforCSV = location.getFilePath();
+
+            if(testing) {
+              System.out.println("CSVString: " + CSVString);
+              System.out.println("location.getFilePath()" + location.getFilePath());
+            }
+
+            CSVString =
+                    (fileNameforCSV + " , " + keywordforCSV + " , " + pageNumberforCSV +
+                            " , " + lineNumberforCSV + " , " + filePathforCSV);
+
+          fileWriter.append(CSVString);
+          fileWriter.append("\n");
+          fileWriter.flush();}
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
     }
-
     //map is (key: keyword, value: Loc: page, line number, full path)
   }
 
@@ -883,32 +893,46 @@ class tldr implements ActionListener {
         System.out.println("tldr.keywords.get(0): " + tldr.keywords.get(0));
         System.out.println("SearchThreads.keywords.get(0): " + SearchThread.keywords.get(0));
         System.out.println("SearchThread.map.get(tldr.keywords.get(0)).size()" +
-                ": "+SearchThread.map.get(tldr.keywords.get(0)).size());
+                ": "+newlyCreatedThread.getHashMap().get(tldr.keywords.get(0)).size());
 
       }
       boolean [] writtenToSheet = new boolean[keywords.size()];
       int counter = 0;
 
+      //TODO: Make this code parametric (or coding equivalent lol) for second if
+
       while(thread.isAlive()) {
 //        if (testing)
 //          System.out.println("SearchThread.map.get(tldr.keywords.get(0)).size" +
 //                  "(): " +SearchThread.map.get(tldr.keywords.get(0)).size());
-          if (
-                  //SearchThread.map.get(tldr.keywords.get(0)).get(0)
-            // .getFilePath
-           //() != null &&
-                          SearchThread.map.get(tldr.keywords.get(0)).size() > 0 ) {
-            System.out.println("did we get here?");
-            for(int i = 0; i< keywords.size(); i++){
-              if (SearchThread.map.get(tldr.keywords.get(i)).size() > 0) {
+            //TODO: probably need while loop somewhere in here or at top of
+            // write summary to keep this here
+
+            if(newlyCreatedThread.getHashMap().get(keywords.get(0)).size()> 0){
+             // if(newlyCreatedThread.getHashMap().get(tldr.keywords.get(0))
+              // .get(0).getFilePath() != null){
+               System.out.println("did we get here?");
 
               writeSummarySheet();
-              }
+              //}
             //counter++;
 
-          }
         }
       }
+      //TODO: Maia thoughts on mapping and making summary sheets:
+      // The newlycreatedthread fills the map. First it puts the keyword then
+      // the page number and line number. After this, it has a
+      // value for .get(key).size(), but it doesn't have the file path in the
+      // map. I don't think that the variable is dynamically referenced in
+      // here (but can check, though it doesn't really matter). After that,
+      // the snapshots are taken and the file paths of those shots are
+      // generated and put in the map. At this point, the directory with the
+      // given keyword exists and has a size. That is done when you can walk
+      // the files or get some other count of the files in the directory and
+      // it is equal to the size of values for that given keyword. At that
+      // point, it makes the most sense to populate the summary sheet... when
+      // does the thread finish? If the thread finishes before the snapshots
+      // are taken, then that needs to be changed
 
       try {
         thread.join();
@@ -924,7 +948,10 @@ class tldr implements ActionListener {
         if (testing)
           System.out.println(threadsFinished + " threads finished out of " + threads.size());
         print(threadsFinished + " threads finished out of " + threads.size());
-      } else {
+      }
+
+      else
+        {
         if (testing)
           System.out.println(threadsFinished + " thread finished out of " + threads.size());
         print(threadsFinished + " thread finished out of " + threads.size());
@@ -932,7 +959,16 @@ class tldr implements ActionListener {
 
 
     }
-    openSummarySheet();
+//    try
+//    {
+//      wait();
+//    }
+//    catch(java.lang.InterruptedException e)
+//    {
+//      e.printStackTrace();
+//    }
+
+
   }
 
   // TODO: Implement run threads method

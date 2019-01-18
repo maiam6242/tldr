@@ -12,10 +12,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static org.awaitility.Awaitility.await;
 import org.hamcrest.Matcher;
@@ -398,7 +401,7 @@ class tldr implements ActionListener {
 
   }
 
-  public static synchronized void writeSummarySheet(HashMap<String,
+  static synchronized void writeSummarySheet(HashMap<String,
           ArrayList<Loc>>  mapforSummarySheet) {
     /*
     Checks which static variable has been written (which sheet type has been
@@ -494,7 +497,14 @@ class tldr implements ActionListener {
 
     try {
       if (hashMap != null) {
-        for (String keyword : SearchThread.keywords) {
+        //TODO: Figure out the right keywords to use. SearchThread.keywords
+        // wasn't right and this is JUST the user inputted words
+        for (String keyword : keywords) {
+
+          if(testing){
+            System.out.println(keyword);
+          }
+
           keywordforCSV = keyword;
           ArrayList<Loc> l = hashMap.get(keyword);
 
@@ -661,9 +671,11 @@ class tldr implements ActionListener {
        Returns: path of CSV File
      */
 
-    //creates CSV File with same name as inputted PDF file
+    //creates CSV File with same name as inputted PDF file on desktop
     int indexOfPDF = toBeCSV.getName().lastIndexOf(".pdf");
-    File CSVFile = new File(toBeCSV.getName().substring(0, indexOfPDF));
+    File CSVFile = new File (System.getProperty("user.home") + File.separator +
+            "Desktop" + File.separator + toBeCSV.getName() + File.separator + toBeCSV.getName().substring(0, indexOfPDF));
+
     if (testing)
       System.out.println(CSVFile.getAbsolutePath());
     CSVFile.setReadable(true);
@@ -842,7 +854,10 @@ class tldr implements ActionListener {
     // Adds words to list of keywords
     if (preloadedList.getSelectedValuesList().size() > 0) {
       selectedKeywords = (ArrayList<String>) preloadedList.getSelectedValuesList();
-      keywords.addAll(selectedKeywords);
+      for(String kw: selectedKeywords){
+        keywords.add(kw);
+      }
+      //keywords.addAll(selectedKeywords);
     }
   }
 
@@ -867,6 +882,37 @@ class tldr implements ActionListener {
         print(exception.getMessage());
       exception.printStackTrace();
     }
+  }
+
+  private void deleteEmptyDirectory()
+  {
+    /*
+    If the title directory is empty (no words are found), delete it
+    Returns: If directory was deleted, true; if not, false
+     */
+
+    Path path = Paths.get(System.getProperty("user.home"),"Desktop",
+            SearchThread.fileName);
+
+    try {
+      Files.getAttribute(path, "basic:isDirectory");
+      //go through every file and see if there are any directories
+
+      Stream stream = Files.walk(path).filter(Files::isDirectory);
+
+      //number of things (including the folder itself) in the directory is
+      // less than one, ie the only thing there is the original directory
+
+      if (stream.count() <= 1){
+        Files.delete(path);
+      }
+
+      stream.close();
+    }
+    catch(IOException e){
+      e.printStackTrace();
+    }
+
   }
 
   private void runThreads() {
@@ -919,6 +965,7 @@ class tldr implements ActionListener {
 
     }
     openSummarySheet();
+    deleteEmptyDirectory();
   }
 
 

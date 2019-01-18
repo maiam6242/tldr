@@ -18,18 +18,18 @@ import java.util.stream.Stream;
 public class SearchThread implements Runnable {
 
   private ArrayList<Integer> pageNums = new ArrayList<>();
-  public static ArrayList<String> keywords = new ArrayList<>();
+  private static ArrayList<String> keywords = new ArrayList<>();
   private PDDocument doc;
-  private String fileName;
+  public static String fileName;
   private PDFRenderer renderer;
-  public HashMap<String, ArrayList<Loc>> map = new HashMap<>();
+  private HashMap<String, ArrayList<Loc>> map = new HashMap<>();
   private PDFTextStripper textStripper;
   private ArrayList<ArrayList<Line>> pageLines;
   private ArrayList<String> oneWordKeywords = new ArrayList<>();
   private ArrayList<String> multiWordKeywords = new ArrayList<>();
   private String[] wordsFromLine;
   private boolean testing = tldr.testing;
-  public boolean full = false;
+
 
 
   private static int totalNumberInstances = 0;
@@ -115,7 +115,7 @@ public class SearchThread implements Runnable {
 
 
     //TODO: Write summary sheet here if possible
-    deleteEmptyDirectory();
+
 
     //TODO: This is where the threads end... does this need to be changed??
 //
@@ -786,7 +786,7 @@ public class SearchThread implements Runnable {
       //locs.clear();
     }
 
-
+  //after taking all snapshots, write the summary sheet
   tldr.writeSummarySheet(map);
   }
 
@@ -828,6 +828,7 @@ public class SearchThread implements Runnable {
   Returns: Path of the directory
     */
     Path path = Paths.get(System.getProperty("user.home"),"Desktop", title);
+
     if(testing)
       System.out.print("Path: " + path);
 
@@ -881,35 +882,6 @@ public class SearchThread implements Runnable {
 
   }
 
-  private void deleteEmptyDirectory()
-  {
-    /*
-    If the title directory is empty (no words are found), delete it
-    Returns: If directory was deleted, true; if not, false
-     */
-
-    Path path = Paths.get(System.getProperty("user.home"),"Desktop", this.fileName);
-
-    try {
-      Files.getAttribute(path, "basic:isDirectory");
-      //go through every file and see if there are any directories
-
-      Stream stream = Files.walk(path).filter(Files::isDirectory);
-
-        //number of things (including the folder itself) in the directory is
-      // less than one, ie the only thing there is the original directory
-        //TODO: When summary sheet working, test this again
-       if (stream.count() <= 1){
-          Files.delete(path);
-      }
-
-      stream.close();
-    }
-    catch(IOException e){
-      e.printStackTrace();
-    }
-
-  }
   @NotNull
   private String makeFilePath(String name)
   {/*Creates a new file in the users desktop directory
@@ -947,9 +919,6 @@ public class SearchThread implements Runnable {
     return file.getAbsolutePath();
   }
 
-  public boolean isWriteReady(){
-    return full;
-  }
   @Contract(pure = true)
   synchronized HashMap<String, ArrayList<Loc>> getHashMap()
   {

@@ -573,7 +573,8 @@ class tldr implements ActionListener {
 
     //creates file with right name
     int indexOfPDF = toBeHSSF.getName().lastIndexOf(".pdf");
-    HSSFFile = new File(toBeHSSF.getName().substring(0, indexOfPDF));
+    HSSFFile = new File(System.getProperty("user.home") + File.separator +
+            "Desktop" + File.separator + toBeHSSF.getName() + File.separator + toBeHSSF.getName().substring(0, indexOfPDF));
 
     //creates workbook based on that file
     try {
@@ -621,7 +622,8 @@ class tldr implements ActionListener {
 
     //creates file with right name
     int indexOfPDF = toBeXSSF.getName().lastIndexOf(".pdf");
-    XSSFFile = new File(toBeXSSF.getName().substring(0, indexOfPDF));
+    XSSFFile = new File(System.getProperty("user.home") + File.separator +
+            "Desktop" + File.separator + toBeXSSF.getName() + File.separator + toBeXSSF.getName().substring(0, indexOfPDF));
 
     //creates workbook based on that file
     try {

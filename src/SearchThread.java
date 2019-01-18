@@ -29,6 +29,7 @@ public class SearchThread implements Runnable {
   private ArrayList<String> multiWordKeywords = new ArrayList<>();
   private String[] wordsFromLine;
   private boolean testing = tldr.testing;
+  public boolean full = false;
 
 
   public static int totalNumberInstances = 0;
@@ -112,6 +113,7 @@ public class SearchThread implements Runnable {
 
     takeSnapshots();
     getHashMap();
+
     //TODO: Write summary sheet here if possible
     deleteEmptyDirectory();
 
@@ -783,6 +785,8 @@ public class SearchThread implements Runnable {
       System.out.println("Done Snapshotting " +key);
       //locs.clear();
     }
+
+  full = true;
   }
 
   @Nullable
@@ -864,10 +868,6 @@ public class SearchThread implements Runnable {
       e.printStackTrace();
     }
 
-//    try {
-//      return Files.createDirectory(g.toPath()).toString();
-//    } catch (IOException e) {
-//      e.printStackTrace();
 
     if(Files.isDirectory(path)){
       return path.toString();

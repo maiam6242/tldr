@@ -11,9 +11,14 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static org.awaitility.Awaitility.await;
+import org.hamcrest.Matcher;
 
 // UI imports
 
@@ -48,6 +53,7 @@ class tldr implements ActionListener {
   private SearchThread newlyCreatedThread;
   private int threadsStarted = 0;
   private int threadsFinished = 0;
+  private boolean written = false;
 
   static boolean testing = true;
 
@@ -392,7 +398,7 @@ class tldr implements ActionListener {
 
   }
 
-  private void writeSummarySheet() {
+  private void writeSummarySheet(HashMap<String, ArrayList<Loc>>  mapforSummarySheet) {
     /*
     Checks which static variable has been written (which sheet type has been
     created), gets the content of hash map then writes it to the sheet
@@ -403,14 +409,14 @@ class tldr implements ActionListener {
     System.out.println("Did this work?!");
     //writes content to doc type which isn't null
     if (CSV != null) {
-      writeCSVFile();
-      openSummarySheet();
+      writeCSVFile(mapforSummarySheet);
+
     } else if (XSSF != null) {
-      writeXSSFFile();
-      openSummarySheet();
+      writeXSSFFile(mapforSummarySheet);
+
     } else if (HSSF != null) {
-      writeHSSFFile();
-      openSummarySheet();
+      writeHSSFFile(mapforSummarySheet);
+
     }
 
     //if no sheet has been created
@@ -469,7 +475,7 @@ class tldr implements ActionListener {
 
   }
 
-  private synchronized void writeCSVFile() {
+  private void writeCSVFile(HashMap<String, ArrayList<Loc>>  mapforCSV) {
   /* Writes CSV file with the contents of the hashmap (name, line, page,
   keyword, file path) each into a new row of a CSV file and saves the file
   */
@@ -479,74 +485,88 @@ class tldr implements ActionListener {
     int lineNumberforCSV = 0;
     String filePathforCSV = null;
     String keywordforCSV;
+    String CSVString = null;
+    HashMap<String, ArrayList<Loc>> hashMap = mapforCSV;
+    String lastFilePath = null;
 
-    if(testing){
-      System.out.println();
-      //System.out.println("hashmap???" + SearchThread.map);
-      System.out.println("hashmap???" + newlyCreatedThread.getHashMap());
-    }
-    if(newlyCreatedThread.getHashMap().get(keywords.get(keywords.size()-1)).get(0).getFilePath() != null) {
-      HashMap<String, ArrayList<Loc>> hashMap = newlyCreatedThread.getHashMap();
+    //checks if the last file path of the last keyword, theoretically the
+    //last thing written has been created
+//    try {
+//      fileWriter.flush();
+//    }
+//    catch (IOException e){
+//      e.printStackTrace();
+//    }
 
-      //iterate through the whole map to check that it all exists
-      //TODO: Is this needed??
-      //TODO: check that the map is written and not null etc etc
 
-      for (String keyword : keywords) {
-        keywordforCSV = keyword;
-        if (testing) {
-          System.out.println("keyword: " + keyword);
 
-          System.out.println(hashMap.get(keyword));
-        }
-        ArrayList<Loc> l = hashMap.get(keyword);
+    try {
+      if (hashMap != null) {
+        for (String keyword : keywords) {
+          keywordforCSV = keyword;
+          ArrayList<Loc> l = hashMap.get(keyword);
 
-        if (testing)
-          for (Loc loctest : l) {
-            System.out.println("loctest.getLine(): " + loctest.getLine());
+          for (int i = 0 ; i < l.size(); i++){
+          Loc location = l.get(i);
+          pageNumberforCSV = location.getPage();
+          lineNumberforCSV = location.getLine();
+          filePathforCSV = location.getFilePath();
+
+          if (testing) {
+            System.out.println("CSVString: " + CSVString);
+            System.out.println("location.getFilePath()" + location.getFilePath());
           }
-        String CSVString = null;
-        try {
 
-          for (Loc location : l) {
-            pageNumberforCSV = location.getPage();
-            lineNumberforCSV = location.getLine();
-            filePathforCSV = location.getFilePath();
+          CSVString =
+                  (fileNameforCSV + " , " + keywordforCSV + " , " + pageNumberforCSV +
+                          " , " + lineNumberforCSV + " , " + filePathforCSV);
 
-            if(testing) {
-              System.out.println("CSVString: " + CSVString);
-              System.out.println("location.getFilePath()" + location.getFilePath());
-            }
+          if (filePathforCSV != null && !filePathforCSV.equals(lastFilePath)) {
 
-            CSVString =
-                    (fileNameforCSV + " , " + keywordforCSV + " , " + pageNumberforCSV +
-                            " , " + lineNumberforCSV + " , " + filePathforCSV);
+            fileWriter.append(CSVString);
+            fileWriter.append("\n");
+            fileWriter.flush();
+          }
 
-          fileWriter.append(CSVString);
-          fileWriter.append("\n");
-          fileWriter.flush();}
-        } catch (IOException e) {
-          e.printStackTrace();
+          lastFilePath = filePathforCSV;
+        }
         }
       }
-    }
-    //map is (key: keyword, value: Loc: page, line number, full path)
-  }
+      }
+      catch(IOException e){
+          e.printStackTrace();
 
-  private void writeHSSFFile() {
+
+        }
+    written = true;
+
+//        try {
+//          fileWriter.close();
+//        } catch (IOException e) {
+//          e.printStackTrace();
+//        }
+//        if(filePathforCSV!=null)
+//        openSummarySheet();
+        //map is (key: keyword, value: Loc: page, line number, full path)
+      }
+
+
+  private void writeHSSFFile(HashMap<String, ArrayList<Loc>>  mapforHSSF)
+  {
     /*Writes .XLS file with the contents of the hashmap (name, line, page,
       keyword, file path) each into a new row of a HSSF file and saves the file
     */
 
-
+  openSummarySheet();
   }
 
-  private void writeXSSFFile() {
+  private void writeXSSFFile(HashMap<String, ArrayList<Loc>>  mapforXSSF)
+  {
     /*Writes .XLS file with the contents of the hashmap (name, line, page,
       keyword, file path) each into a new row of a HSSF file and saves the file
     */
 
-
+  openSummarySheet();
   }
 
   @NotNull
@@ -885,7 +905,59 @@ class tldr implements ActionListener {
 
     }
 
-    for (Thread thread : threads) {
+    int i = 0;
+      while (i< threads.size()) {
+        written = false;
+        System.out.println("newlyCreatedThread.map: " + newlyCreatedThread.map);
+        System.out.println("newlyCreatedThread.full: "+newlyCreatedThread.full);
+
+        await().atMost(30, TimeUnit.MINUTES).until(() -> newlyCreatedThread.full);
+        System.out.println("newlyCreatedThread.map: " + newlyCreatedThread.map);
+        System.out.println("newlyCreatedThread.full: "+newlyCreatedThread.full);
+        writeSummarySheet(newlyCreatedThread.map);
+        if(written) i++;
+      }
+
+    openSummarySheet();
+
+    for(Thread thread : threads){
+
+     System.out.println("newlyCreatedThread.full: " + newlyCreatedThread.full);
+     System.out.println("newlyCreatedThread.map: " + newlyCreatedThread.map);
+     System.out.println("file path of last object in map: " + newlyCreatedThread.map.get(keywords.get(0)).get(2).getFilePath());
+
+        //TODO: Make this into one statement or logical thing
+        //TODO: Fix thissssssss aghhhh
+//       int hashMapTotal = 0;
+//
+//      //TODO: total num instances is assigned later, need a way to wait this
+//      // parametrically
+//
+//      System.out.println("file.toPath:" + file.toPath());
+//      //TODO: need some way to determine if the map is full before writing
+//      // summary sheet
+//      //if directory with same name exists
+//      if (newlyCreatedThread.map.values().isEmpty()) {
+//
+//        while (hashMapTotal != SearchThread.totalNumberInstances) {
+//          hashMapTotal = 0;
+//
+//          System.out.println("newlyCreatedThread.map: " + newlyCreatedThread.map);
+//          System.out.println("newlyCreatedThread.getHashMap: " + newlyCreatedThread.getHashMap());
+//
+//          if (!newlyCreatedThread.map.values().isEmpty()) {
+
+//            for (String key : keywords) {
+//              hashMapTotal += newlyCreatedThread.getHashMap().get(key).size();
+//            }
+//          }
+//        }
+
+
+
+
+      //}
+
 
       if(testing){
         System.out.println();
@@ -896,29 +968,7 @@ class tldr implements ActionListener {
                 ": "+newlyCreatedThread.getHashMap().get(tldr.keywords.get(0)).size());
 
       }
-      boolean [] writtenToSheet = new boolean[keywords.size()];
-      int counter = 0;
 
-      //TODO: Make this code parametric (or coding equivalent lol) for second if
-
-      while(thread.isAlive()) {
-//        if (testing)
-//          System.out.println("SearchThread.map.get(tldr.keywords.get(0)).size" +
-//                  "(): " +SearchThread.map.get(tldr.keywords.get(0)).size());
-            //TODO: probably need while loop somewhere in here or at top of
-            // write summary to keep this here
-
-            if(newlyCreatedThread.getHashMap().get(keywords.get(0)).size()> 0){
-             // if(newlyCreatedThread.getHashMap().get(tldr.keywords.get(0))
-              // .get(0).getFilePath() != null){
-               System.out.println("did we get here?");
-
-              writeSummarySheet();
-              //}
-            //counter++;
-
-        }
-      }
       //TODO: Maia thoughts on mapping and making summary sheets:
       // The newlycreatedthread fills the map. First it puts the keyword then
       // the page number and line number. After this, it has a
@@ -936,7 +986,6 @@ class tldr implements ActionListener {
 
       try {
         thread.join();
-
       }
       catch (InterruptedException e) {
         e.printStackTrace();
@@ -959,16 +1008,6 @@ class tldr implements ActionListener {
 
 
     }
-//    try
-//    {
-//      wait();
-//    }
-//    catch(java.lang.InterruptedException e)
-//    {
-//      e.printStackTrace();
-//    }
-
-
   }
 
   // TODO: Implement run threads method

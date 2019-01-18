@@ -20,9 +20,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
-import static org.awaitility.Awaitility.await;
-import org.hamcrest.Matcher;
-
 // UI imports
 
 class tldr implements ActionListener {
@@ -343,7 +340,7 @@ class tldr implements ActionListener {
     if (event.getSource() == searchFileBtn) {
 //      if (testing) System.out.println("Open file button clicked.");
       openSearchFile();
-      createSummarySheet(file);
+
     }
 
     /*makeFilePath
@@ -406,11 +403,14 @@ class tldr implements ActionListener {
     /*
     Checks which static variable has been written (which sheet type has been
     created), gets the content of hash map then writes it to the sheet
+
+    Input: map for the summary sheet methods to use
      */
     //TODO: Implement writeSummarySheet
 
     if(testing)
     System.out.println("Did this work?!");
+
     //writes content to doc type which isn't null
     if (CSV != null) {
       writeCSVFile(mapforSummarySheet);
@@ -435,13 +435,14 @@ class tldr implements ActionListener {
   private void openSummarySheet() {
     /* Opens the summary sheet which has been created if desktop is supported
      */
-    //TODO: Implement openSummarySheet
 
     //checks if desktop is supported
     if (Desktop.isDesktopSupported()) {
       Desktop desktop = Desktop.getDesktop();
 
       try {
+
+        //TODO: Only open if the file hasn't been deleted
         if (CSV != null) {
           desktop.open(CSV);
         }
@@ -540,10 +541,10 @@ class tldr implements ActionListener {
           e.printStackTrace();
 
 
-        }
+    }
 
         //map is (key: keyword, value: Loc: page, line number, full path)
-      }
+  }
 
 
   private static void writeHSSFFile(HashMap<String, ArrayList<Loc>>  mapforHSSF)
@@ -685,6 +686,7 @@ class tldr implements ActionListener {
     CSVFile.setExecutable(true);
 
     CSV = CSVFile;
+
     //writes a header to the file
     try {
       fileWriter = new FileWriter(CSV);
@@ -875,6 +877,7 @@ class tldr implements ActionListener {
       print("Searching for following keywords: ");
       print(keywords);
       createThreads(separateContent());
+      createSummarySheet(file);
       runThreads();
     }
 
@@ -906,7 +909,17 @@ class tldr implements ActionListener {
       // less than one, ie the only thing there is the original directory
 
       if (stream.count() <= 1){
+        File toBeDeleted =
+                new File(System.getProperty("user.home") + File.separator+
+                        "Desktop" + File.separator + SearchThread.fileName);
+        String[] contents = toBeDeleted.list();
+        for(String f: contents){
+          File current = new File(toBeDeleted.getPath(),f);
+          current.delete();
+        }
+
         Files.delete(path);
+
       }
 
       stream.close();
@@ -969,9 +982,6 @@ class tldr implements ActionListener {
     openSummarySheet();
     deleteEmptyDirectory();
   }
-
-
-
 
   private void createThreads(ArrayList<ArrayList<Integer>> pageGroups)
   {

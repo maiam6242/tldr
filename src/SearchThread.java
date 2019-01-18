@@ -32,7 +32,7 @@ public class SearchThread implements Runnable {
   public boolean full = false;
 
 
-  public static int totalNumberInstances = 0;
+  private static int totalNumberInstances = 0;
 
   private final int WHITE = 0;
   private final int BLACK = 1;
@@ -112,7 +112,7 @@ public class SearchThread implements Runnable {
     }
 
     takeSnapshots();
-    getHashMap();
+
 
     //TODO: Write summary sheet here if possible
     deleteEmptyDirectory();
@@ -705,7 +705,7 @@ public class SearchThread implements Runnable {
     return null;
     }
 
-  private void takeSnapshots()
+  private synchronized void takeSnapshots()
   {
 
     for (String key : map.keySet()) {
@@ -786,7 +786,8 @@ public class SearchThread implements Runnable {
       //locs.clear();
     }
 
-  full = true;
+
+  tldr.writeSummarySheet(map);
   }
 
   @Nullable
@@ -946,13 +947,9 @@ public class SearchThread implements Runnable {
     return file.getAbsolutePath();
   }
 
-  String getFileName()
-  {/*
-    Returns file name for use in main tldr class
-  */
-      return fileName;
+  public boolean isWriteReady(){
+    return full;
   }
-
   @Contract(pure = true)
   synchronized HashMap<String, ArrayList<Loc>> getHashMap()
   {

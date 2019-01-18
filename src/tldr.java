@@ -627,7 +627,7 @@ class tldr implements ActionListener {
 
     //creates workbook based on that file
     try {
-      HSSF = WorkbookFactory.create(XSSFFile);
+      XSSF = WorkbookFactory.create(XSSFFile);
       formatXSSF();
     } catch (IOException exception) {
       print(exception.getMessage());

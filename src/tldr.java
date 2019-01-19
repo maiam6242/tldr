@@ -4,6 +4,7 @@ import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFHyperlink;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.jetbrains.annotations.*;
 
@@ -49,7 +50,8 @@ class tldr implements ActionListener {
   private static ArrayList<Thread> threads = new ArrayList<>();
   private static File CSV = null;
   private static Workbook HSSF = null;
-  private static File HSSFFile;
+  private static String HSSFPath;
+  private static OutputStream HSSFFileOut;
   private static Sheet HSSFSheet;
   private static File XSSFFile;
   private static Workbook XSSF = null;
@@ -469,7 +471,7 @@ class tldr implements ActionListener {
         exception.printStackTrace();
       }
 
-
+      File HSSFFile = new File(HSSFPath);
       try {
         if (HSSF != null && HSSFFile.exists()) {
           desktop.open(HSSFFile);
@@ -547,6 +549,7 @@ class tldr implements ActionListener {
         //map is (key: keyword, value: Loc: page, line number, full path)
   }
 
+  //TODO: TEST TEST TEST!!
   private static void writeHSSFFile(HashMap<String, ArrayList<Loc>> mapforHSSF)
   {
     /*Writes .XLS file with the contents of the hashmap (name, line, page,
@@ -593,6 +596,14 @@ class tldr implements ActionListener {
             next.createCell(2).setCellValue(pageNumberforHSSF);
             next.createCell(3).setCellValue(lineNumberforHSSF);
             next.createCell(4).setHyperlink(link);
+
+            try{
+              HSSF.write(HSSFFileOut);
+            }
+            catch(IOException e){
+              e.getMessage();
+              e.printStackTrace();
+            }
       }
 
     }
@@ -662,17 +673,17 @@ class tldr implements ActionListener {
 
     //creates file with right name
     int indexOfPDF = toBeHSSF.getName().lastIndexOf(".pdf");
-    HSSFFile = new File(System.getProperty("user.home") + File.separator +
-            "Desktop" + File.separator + toBeHSSF.getName() + File.separator + toBeHSSF.getName().substring(0, indexOfPDF));
+    HSSFPath = System.getProperty("user.home") + File.separator +
+            "Desktop" + File.separator + toBeHSSF.getName() + File.separator + toBeHSSF.getName().substring(0, indexOfPDF);
 
     //creates workbook based on that file
-    try {
-      HSSF = WorkbookFactory.create(HSSFFile);
+//    try {
+      HSSF = new HSSFWorkbook();
       formatHSSF();
-    } catch (IOException exception) {
-      print(exception.getMessage());
-      exception.printStackTrace();
-    }
+//    } catch (IOException exception) {
+//      print(exception.getMessage());
+//      exception.printStackTrace();
+//    }
 
   }
 
@@ -700,6 +711,13 @@ class tldr implements ActionListener {
     wrapStyle.setWrapText(true);
     for (Cell cell : firstRow) {
       cell.setCellStyle(wrapStyle);
+    }
+    try{
+      HSSFFileOut = new FileOutputStream(HSSFPath);
+      HSSF.write(HSSFFileOut);
+    }
+    catch(IOException e){
+      e.printStackTrace();
     }
   }
 

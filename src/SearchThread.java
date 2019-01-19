@@ -29,6 +29,7 @@ public class SearchThread implements Runnable {
   private ArrayList<String> multiWordKeywords = new ArrayList<>();
   private String[] wordsFromLine;
   private boolean testing = tldr.testing;
+  private ArrayList<String> linesFromPage;
 
 
 
@@ -97,15 +98,15 @@ public class SearchThread implements Runnable {
       pixelAnalysis(pgNum);
 
       // Extracts text from the page
-      ArrayList<String> lines = extractTextFromPage(pgNum);
+     linesFromPage = extractTextFromPage(pgNum);
 //      System.out.println("Number of text lines on page " + pgNum + ": " + lines.size());
 
-      if (lines != null) {
+      if (linesFromPage != null) {
 
         // For each line of text on page, looks for the keyword and records if the keyword is found to
         // snapshot later
-        for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++) {
-          String textLine = lines.get(lineIndex);
+        for (int lineIndex = 0; lineIndex < linesFromPage.size(); lineIndex++) {
+          String textLine = linesFromPage.get(lineIndex);
           findKeywordsInLine(textLine, pgNum, lineIndex);
         }
       }
@@ -587,7 +588,7 @@ public class SearchThread implements Runnable {
     // for each word in the line of text from document
     for (int i = 0; i < wordsFromLine.length; i ++)
     {
-      String keyword = matchKeyword(wordsFromLine[i], i);
+      String keyword = matchKeyword(wordsFromLine[i], i, line);
 
       //not getting here the second time
 //      System.out.println("Found keyword: "+keyword);
@@ -600,6 +601,9 @@ public class SearchThread implements Runnable {
 //        System.out.println("Size of Lines on page " + pageNum + ": " + lines);
         System.out.println("Line number where keyword was found on page " + pageNum + ": " + line);
         System.out.println("Number of visual lines: " + pageLines.get(pageNums.indexOf(pageNum)).size());
+
+        //this is short term solution for the out of bounds errors
+        //TODO: Should this just equal .size() instead??
         if (line >= pageLines.get(pageNums.indexOf(pageNum)).size())
         {
           line = pageLines.get(pageNums.indexOf(pageNum)).size() - 1;
@@ -617,7 +621,8 @@ public class SearchThread implements Runnable {
   }
 
   @Nullable
-  private synchronized String matchKeyword(String randomWord, int positionOfWord)
+  private synchronized String matchKeyword(String randomWord,
+                                           int positionOfWord, int line)
   {/*
 
   Inputs: Word from line of text to be checked against each keyword and the
@@ -631,13 +636,8 @@ public class SearchThread implements Runnable {
 
     for (String keyword : oneWordKeywords) {
 //      System.out.println("keyword3" + keyword);
-    /*
-      TODO: Figure out what we want to do here and whether we want to make
-       methods for this like what we did before with the isKeywordHere stuff
-       (think about time and scalability)
-      */
 
-      // I used .matches in CB, and I don't remember why
+        // I used .matches in CB, and I don't remember why
       if (randomWord.contains(keyword)
               || randomWord.contains(keyword.toLowerCase())
               || randomWord.contains(keyword.toUpperCase()) // this doesn't
@@ -669,6 +669,7 @@ public class SearchThread implements Runnable {
         for (int wordIndex = 1; wordIndex < separateWords.length; wordIndex++)
         {
             //as soon as a word that isn;t in the phrase is found, exit
+          //TODO: Does count need to be reset when new line or page starts??
             if(count != wordIndex)
             {
                 return null;
@@ -696,11 +697,23 @@ public class SearchThread implements Runnable {
               if(separateWords.length == count)
                 return keyPhrase;
           }
+              //TODO: This may need to come out one loop
+              //when the index of the word is equal to the length of the line
+              // ie at end of text line
+              else if(wordIndex == wordsFromLine.length -1){
+                int numOtherLines = 1;
+                String text = linesFromPage.get(line+numOtherLines);
+                wordsFromLine = text.split(" ");
 
-          //TODO: Write for when phrase spills over onto next line
+
+              }
         }
 
-      }}
+      }
+
+      }
+
+
     }
     return null;
     }

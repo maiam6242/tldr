@@ -1,5 +1,9 @@
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.poi.common.usermodel.HyperlinkType;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFHyperlink;
 import org.apache.poi.ss.usermodel.*;
 import org.jetbrains.annotations.*;
 
@@ -46,8 +50,10 @@ class tldr implements ActionListener {
   private static File CSV = null;
   private static Workbook HSSF = null;
   private static File HSSFFile;
+  private static Sheet HSSFSheet;
   private static File XSSFFile;
   private static Workbook XSSF = null;
+  private static Sheet XSSFSheet;
   private static FileWriter fileWriter;
   private static PDDocument doc;
   private SearchThread newlyCreatedThread;
@@ -443,7 +449,7 @@ class tldr implements ActionListener {
       try {
 
         //TODO: Only open if the file hasn't been deleted
-        if (CSV != null) {
+        if (CSV != null && CSV.exists()) {
           desktop.open(CSV);
         }
       } catch (IOException exception) {
@@ -454,7 +460,7 @@ class tldr implements ActionListener {
 
 
       try {
-        if (XSSF != null) {
+        if (XSSF != null && XSSFFile.exists()) {
           desktop.open(XSSFFile);
         }
       } catch (IOException exception) {
@@ -465,7 +471,7 @@ class tldr implements ActionListener {
 
 
       try {
-        if (HSSF != null) {
+        if (HSSF != null && HSSFFile.exists()) {
           desktop.open(HSSFFile);
         }
       } catch (IOException exception) {
@@ -480,7 +486,7 @@ class tldr implements ActionListener {
 
   }
 
-  private static void writeCSVFile(HashMap<String, ArrayList<Loc>>  mapforCSV) {
+  private static void writeCSVFile(HashMap<String, ArrayList<Loc>> mapforCSV) {
   /* Writes CSV file with the contents of the hashmap (name, line, page,
   keyword, file path) each into a new row of a CSV file and saves the file
 
@@ -498,8 +504,6 @@ class tldr implements ActionListener {
 
     try {
       if (hashMap != null) {
-        //TODO: Figure out the right keywords to use. SearchThread.keywords
-        // wasn't right and this is JUST the user inputted words
         for (String keyword : keywords) {
 
           if(testing){
@@ -539,34 +543,118 @@ class tldr implements ActionListener {
       }
       catch(IOException e){
           e.printStackTrace();
-
-
     }
-
         //map is (key: keyword, value: Loc: page, line number, full path)
   }
 
-
-  private static void writeHSSFFile(HashMap<String, ArrayList<Loc>>  mapforHSSF)
+  private static void writeHSSFFile(HashMap<String, ArrayList<Loc>> mapforHSSF)
   {
     /*Writes .XLS file with the contents of the hashmap (name, line, page,
       keyword, file path) each into a new row of a HSSF file and saves the file
+
+      Input: hashmap to be used
     */
 
+    String fileNameforHSSF = file.getName();
+    int pageNumberforHSSF;
+    int lineNumberforHSSF;
+    String filePathforHSSF;
+    String keywordforHSSF;
+    HashMap<String, ArrayList<Loc>> hashMap = mapforHSSF;
 
+
+    CreationHelper createHelper = HSSF.getCreationHelper();
+    HSSFHyperlink link =
+            (HSSFHyperlink)createHelper.createHyperlink(HyperlinkType.FILE);
+
+      if (hashMap != null) {
+
+        for (String keyword : keywords) {
+
+          if(testing){
+            System.out.println(keyword);
+          }
+
+          keywordforHSSF = keyword;
+          ArrayList<Loc> l = hashMap.get(keyword);
+
+          for (int i = 2; i< l.size()+2; i++){
+            Loc location = l.get(i);
+            pageNumberforHSSF = location.getPage();
+            lineNumberforHSSF = location.getLine();
+            filePathforHSSF = location.getFilePath();
+
+            link.setAddress(filePathforHSSF);
+
+
+            Row next = HSSFSheet.createRow(i);
+            next.createCell(0).setCellValue(fileNameforHSSF);
+            next.createCell(1).setCellValue(keywordforHSSF);
+            next.createCell(2).setCellValue(pageNumberforHSSF);
+            next.createCell(3).setCellValue(lineNumberforHSSF);
+            next.createCell(4).setHyperlink(link);
+      }
+
+    }
   }
 
-  private static void writeXSSFFile(HashMap<String, ArrayList<Loc>>  mapforXSSF)
+
+
+    //map is (key: keyword, value: Loc: page, line number, full path)
+ }
+
+  private static void writeXSSFFile(HashMap<String, ArrayList<Loc>> mapforXSSF)
   {
-    /*Writes .XLS file with the contents of the hashmap (name, line, page,
-      keyword, file path) each into a new row of a HSSF file and saves the file
+    /*Writes .XLXS file with the contents of the hashmap (name, line, page,
+      keyword, file path) each into a new row of a XSSF file and saves the file
     */
+    String fileNameforXSSF = file.getName();
+    int pageNumberforXSSF;
+    int lineNumberforXSSF;
+    String filePathforXSSF;
+    String keywordforXSSF;
+    HashMap<String, ArrayList<Loc>> hashMap = mapforXSSF;
 
 
+    CreationHelper createHelper = XSSF.getCreationHelper();
+    HSSFHyperlink link =
+            (HSSFHyperlink)createHelper.createHyperlink(HyperlinkType.FILE);
+
+    if (hashMap != null) {
+
+      for (String keyword : keywords) {
+
+        if(testing){
+          System.out.println(keyword);
+        }
+
+        keywordforXSSF = keyword;
+        ArrayList<Loc> l = hashMap.get(keyword);
+
+        for (int i = 2; i< l.size()+2; i++){
+          Loc location = l.get(i);
+          pageNumberforXSSF = location.getPage();
+          lineNumberforXSSF = location.getLine();
+          filePathforXSSF = location.getFilePath();
+
+          link.setAddress(filePathforXSSF);
+
+
+          Row next = XSSFSheet.createRow(i);
+          next.createCell(0).setCellValue(fileNameforXSSF);
+          next.createCell(1).setCellValue(keywordforXSSF);
+          next.createCell(2).setCellValue(pageNumberforXSSF);
+          next.createCell(3).setCellValue(lineNumberforXSSF);
+          next.createCell(4).setHyperlink(link);
+        }
+
+      }
+    }
+
+    //map is (key: keyword, value: Loc: page, line number, full path)
   }
 
-  @NotNull
-  private String createHSSFFile(@NotNull File toBeHSSF) {
+  private void createHSSFFile(@NotNull File toBeHSSF) {
       /*Creates a file of type .XLS with header
       Input: PDF File with name that is wanted (Name inputted to search)
       Returns: path of HSSF File
@@ -586,7 +674,6 @@ class tldr implements ActionListener {
       exception.printStackTrace();
     }
 
-    return HSSFFile.getAbsolutePath();
   }
 
   private void formatHSSF() {
@@ -594,6 +681,7 @@ class tldr implements ActionListener {
       Creates a sheet in an HSSF workbook with correct format and header
    */
     Sheet sheet = HSSF.createSheet();
+    HSSFSheet = sheet;
 
     //sets font
     org.apache.poi.ss.usermodel.Font hssfFont = HSSF.createFont();
@@ -615,8 +703,8 @@ class tldr implements ActionListener {
     }
   }
 
-  @NotNull
-  private String createXSSFFile(@NotNull File toBeXSSF) {     /*Creates a file of type .XLXS with header
+  private void createXSSFFile(@NotNull File toBeXSSF) {     /*Creates a file of
+  type .XLXS with header
       Input: PDF File with name that is wanted (Name inputted to search)
       Returns: path of XSSF File
       */
@@ -634,9 +722,6 @@ class tldr implements ActionListener {
       print(exception.getMessage());
       exception.printStackTrace();
     }
-
-    return XSSFFile.getAbsolutePath();
-
   }
 
   private static void formatXSSF() {
@@ -644,6 +729,7 @@ class tldr implements ActionListener {
     Creates a sheet in an XSSF workbook with correct format and header
      */
     Sheet sheet = XSSF.createSheet();
+    XSSFSheet = sheet;
 
 
     //sets font
@@ -667,8 +753,7 @@ class tldr implements ActionListener {
     }
   }
 
-  @NotNull
-  private String createCSVFile(@NotNull File toBeCSV) {
+  private void createCSVFile(@NotNull File toBeCSV) {
     /* Creates a file of type CSV with header
        Input: PDF File with name that is wanted (Name inputted to search)
        Returns: path of CSV File
@@ -701,10 +786,10 @@ class tldr implements ActionListener {
 
     if(testing)
     System.out.println("CSV "+CSV);
-    return CSVFile.getAbsolutePath();
+
   }
 
-  public static void print(String s) {
+  static void print(String s) {
     /*
       Prints a string to the user console and Eclipse console.
      */
@@ -714,7 +799,7 @@ class tldr implements ActionListener {
     System.out.println(s);
   }
 
-  public void print(@NotNull ArrayList<String> strings) {
+  private void print(@NotNull ArrayList<String> strings) {
     /*
       Prints an ArrayList of strings to the user console and Eclipse console.
      */
@@ -913,11 +998,12 @@ class tldr implements ActionListener {
                 new File(System.getProperty("user.home") + File.separator+
                         "Desktop" + File.separator + SearchThread.fileName);
         String[] contents = toBeDeleted.list();
-        for(String f: contents){
-          File current = new File(toBeDeleted.getPath(),f);
-          current.delete();
+        if(contents!=null) {
+          for (String f : contents) {
+            File current = new File(toBeDeleted.getPath(), f);
+            current.delete();
+          }
         }
-
         Files.delete(path);
 
       }
@@ -979,8 +1065,8 @@ class tldr implements ActionListener {
 
 
     }
-    openSummarySheet();
     deleteEmptyDirectory();
+    openSummarySheet();
   }
 
   private void createThreads(ArrayList<ArrayList<Integer>> pageGroups)

@@ -651,10 +651,10 @@ public class SearchThread implements Runnable {
 
     //this loop is used to check against key words that are multiple words
     for (String keyPhrase : multiWordKeywords) {
-//      System.out.println("keyword3" + keyPhrase);
+
       String[] separateWords = keyPhrase.split(" ");
       //if the word inputted matches the first word of multi word keyword string
-      int count;
+      int count = 0;
 
       if (randomWord.contains(separateWords[0])
               || randomWord.contains(separateWords[0].toLowerCase())
@@ -664,56 +664,72 @@ public class SearchThread implements Runnable {
               || randomWord.matches("\\p{Punct}\\p{IsPunctuation}" + separateWords[0])
               || randomWord.matches(separateWords[0] + "\\p{Punct}\\p" +
               "{IsPunctuation}")) {
-        count = 1;
+        count = 1;}
 
         for (int wordIndex = 1; wordIndex < separateWords.length; wordIndex++)
         {
             //as soon as a word that isn;t in the phrase is found, exit
           //TODO: Does count need to be reset when new line or page starts??
             if(count != wordIndex)
-            {
-                return null;
-            }
+              return null;
 
             //if the word exists and it's index is still in the line
 
             //TODO: Check if this is an off by one
-            if (wordsFromLine[positionOfWord + wordIndex-1] != null){
-              if(wordIndex < wordsFromLine.length)
-            //TODO: write the else to this which should be go to the next line
-            {
+            if (wordsFromLine[positionOfWord + wordIndex-1] != null) {
+              //TODO: write the else to this which should be go to the next line
 
-               if(wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex])
+
+              if (wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex])
                       || wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex].toLowerCase())
                       || wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex].toUpperCase())
                       // this
                       // doesn't really need to be checked because randomWord will always be
                       // lowercase
-                      || wordsFromLine[positionOfWord + wordIndex].matches("\\p{Punct}\\p{IsPunctuation}" + separateWords[wordIndex])
+                      || wordsFromLine[positionOfWord + wordIndex].matches(
+                              "\\p{Punct}\\p{IsPunctuation}" + separateWords[wordIndex])
                       || wordsFromLine[positionOfWord + wordIndex].matches(separateWords[wordIndex] + "\\p{Punct" +
                       "}\\p" + "{IsPunctuation}"))
-                count ++;
+                count++;
 
-              if(separateWords.length == count)
+              if (separateWords.length == count)
                 return keyPhrase;
-          }
-              //TODO: This may need to come out one loop
+              }
+
+            //TODO: Doing it this way doesn't make a ton of sense, could be
+            // more parametric
               //when the index of the word is equal to the length of the line
               // ie at end of text line
-              else if(wordIndex == wordsFromLine.length -1){
+              else if(wordIndex + positionOfWord == wordsFromLine.length -1){
+
                 int numOtherLines = 1;
-                String text = linesFromPage.get(line+numOtherLines);
+                String text = linesFromPage.get(line + numOtherLines);
                 wordsFromLine = text.split(" ");
 
-
+                //now iterate just position of word...
+                positionOfWord = 0;
+              //need to check for it going thru mult lines... don't know if
+              // that goes here, logic thru that
+              if (wordsFromLine[positionOfWord].contains(separateWords[wordIndex])
+                      || wordsFromLine[positionOfWord].contains(separateWords[wordIndex].toLowerCase())
+                      || wordsFromLine[positionOfWord].contains(separateWords[wordIndex].toUpperCase())
+                      // this
+                      // doesn't really need to be checked because randomWord will always be
+                      // lowercase
+                      || wordsFromLine[positionOfWord].matches(
+                      "\\p{Punct}\\p{IsPunctuation}" + separateWords[wordIndex])
+                      || wordsFromLine[positionOfWord].matches(separateWords[wordIndex] + "\\p{Punct" +
+                      "}\\p" + "{IsPunctuation}")){
+                count ++;
+                positionOfWord++;
               }
+              if(count == separateWords.length){
+                  return keyPhrase;
+              }
+
         }
 
       }
-
-      }
-
-
     }
     return null;
     }

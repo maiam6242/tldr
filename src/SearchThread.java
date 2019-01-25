@@ -664,6 +664,7 @@ public class SearchThread implements Runnable {
       else return null;
 
       //fills the array of substring from line
+      int wordsIn = 0;
       for (int i = 0; i < phraseLength; i++){
         //this fills the entire string of words, if the phrase has three
         // words starting with "the" the first word in this array would also
@@ -671,7 +672,8 @@ public class SearchThread implements Runnable {
         if(i + positionOfWord < wordsFromLine.length)
         {
         String wordToBePutIn = wordsFromLine[positionOfWord + i];
-        substringFromLine[i] = wordToBePutIn;
+        substringFromLine[wordsIn] = wordToBePutIn;
+        wordsIn++;
         }
         else {
           i = 0;
@@ -680,6 +682,11 @@ public class SearchThread implements Runnable {
           //TODO: Check this!!
           String text = linesFromPage.get(line + numOtherLines);
           wordsFromLine = text.split(" ");
+        }
+      }
+      if(testing){
+        if(wordsIn != phraseLength){
+          tldr.print("Something wrong with keyword matching loops");
         }
       }
 

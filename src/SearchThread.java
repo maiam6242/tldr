@@ -652,69 +652,52 @@ public class SearchThread implements Runnable {
 
       String[] separateWords = keyPhrase.split(" ");
       int phraseLength = separateWords.length;
-      //if the word inputted matches the first word of multi word keyword string
+
       int count = 0;
-      int wordIndex = 0;
-      if(matchesWord(randomWord, separateWords[wordIndex]))
-      {
-        count = 1;}
-        else
-          return null;
+      //TODO: SOOOO We need to take an array or substring of the next x number
+      // of words equal to phrase length starting at position of word
 
+      String[] substringFromLine = new String[phraseLength];
 
-        for (wordIndex = 1; wordIndex < separateWords.length && wordIndex + positionOfWord <= wordsFromLine.length - 1; wordIndex++)
+      if(matchesWord(randomWord, separateWords[0]))
+        count++;
+      else return null;
+
+      //fills the array of substring from line
+      for (int i = 0; i < phraseLength; i++){
+        //this fills the entire string of words, if the phrase has three
+        // words starting with "the" the first word in this array would also
+        // be "the"
+        if(i + positionOfWord < wordsFromLine.length)
         {
-            //as soon as a word that isn;t in the phrase is found, exit
-          //TODO: Does count need to be reset when new line or page starts??
-            if(count != wordIndex)
-              return null;
-
-            //if the word exists and it's index is still in the line
-
-            //TODO: Check if this is an off by one
-            if (wordsFromLine[positionOfWord + wordIndex - 1] != null) {
-              //TODO: write the else to this which should be go to the next line
-
-                if(matchesWord(wordsFromLine[positionOfWord+wordIndex],
-                        separateWords[wordIndex]))
-                count++;
-
-              if (separateWords.length == count)
-                return keyPhrase;
-              }
+        String wordToBePutIn = wordsFromLine[positionOfWord + i];
+        substringFromLine[i] = wordToBePutIn;
         }
-
-      //TODO: Doing it this way doesn't make a ton of sense, could be
-      // more parametric
-      //when the index of the word is equal to the length of the line
-      // ie at end of text line
-
-      if(wordIndex + positionOfWord >= wordsFromLine.length - 1){
-      numOtherLines++;
-      //TODO: Check this!!
-      String text = linesFromPage.get(line + numOtherLines);
-      wordsFromLine = text.split(" ");
-
-
-      for(int position = 0; position <= separateWords.length; position++) {
-          //now iterate just position of word...
-
-          //need to check for it going thru mult lines... don't know if
-          // that goes here, logic thru that
-
-          System.out.println("wordsfromline size: " + wordsFromLine.length);
-          System.out.println("separateWords size: " + separateWords.length);
-          if(matchesWord(wordsFromLine[position], separateWords[wordIndex])){
-
-            count++;
-          }
-          if (count == separateWords.length) {
-            return keyPhrase;
-
+        else {
+          i = 0;
+          positionOfWord = 0;
+          numOtherLines++;
+          //TODO: Check this!!
+          String text = linesFromPage.get(line + numOtherLines);
+          wordsFromLine = text.split(" ");
         }
       }
+
+      //check that the arrays match
+      for(int m = 0; m < substringFromLine.length; m++){
+        if(matchesWord(substringFromLine[m], separateWords[m])){
+          count ++;
+        }
+        else
+          return null;
+      }
+
+      if (count == phraseLength){
+        return keyPhrase;
+      }
+
     }
-    }
+
     return null;
   }
 

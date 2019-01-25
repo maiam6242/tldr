@@ -632,19 +632,17 @@ public class SearchThread implements Runnable {
   */
     // this loop is used to check against the keywords that are one word
 //    System.out.println("Checking this word: " + word);
+
+    //TODO: Check the length then next X # of words, then go from there...
     randomWord = randomWord.toLowerCase();
+    int numOtherLines = 0;
 
     for (String keyword : oneWordKeywords) {
 //      System.out.println("keyword3" + keyword);
 
         // I used .matches in CB, and I don't remember why
-      if (randomWord.contains(keyword)
-              || randomWord.contains(keyword.toLowerCase())
-              || randomWord.contains(keyword.toUpperCase()) // this doesn't
-              // really need to be checked because randomword will always be
-              // lowercase
-              || randomWord.matches("\\p{Punct}\\p{IsPunctuation}" + keyword)
-              || randomWord.matches(keyword + "\\p{Punct}\\p{IsPunctuation}")) {
+      if(matchesWord(randomWord, keyword))
+     {
         return keyword;
       }
     }
@@ -653,20 +651,18 @@ public class SearchThread implements Runnable {
     for (String keyPhrase : multiWordKeywords) {
 
       String[] separateWords = keyPhrase.split(" ");
+      int phraseLength = separateWords.length;
       //if the word inputted matches the first word of multi word keyword string
       int count = 0;
-
-      if (randomWord.contains(separateWords[0])
-              || randomWord.contains(separateWords[0].toLowerCase())
-              || randomWord.contains(separateWords[0].toUpperCase()) // this
-              // doesn't really need to be checked because randomWord will always be
-              // lowercase
-              || randomWord.matches("\\p{Punct}\\p{IsPunctuation}" + separateWords[0])
-              || randomWord.matches(separateWords[0] + "\\p{Punct}\\p" +
-              "{IsPunctuation}")) {
+      int wordIndex = 0;
+      if(matchesWord(randomWord, separateWords[wordIndex]))
+      {
         count = 1;}
+        else
+          return null;
 
-        for (int wordIndex = 1; wordIndex < separateWords.length; wordIndex++)
+
+        for (wordIndex = 1; wordIndex < separateWords.length && wordIndex + positionOfWord <= wordsFromLine.length - 1; wordIndex++)
         {
             //as soon as a word that isn;t in the phrase is found, exit
           //TODO: Does count need to be reset when new line or page starts??
@@ -676,63 +672,51 @@ public class SearchThread implements Runnable {
             //if the word exists and it's index is still in the line
 
             //TODO: Check if this is an off by one
-            if (wordsFromLine[positionOfWord + wordIndex-1] != null) {
+            if (wordsFromLine[positionOfWord + wordIndex - 1] != null) {
               //TODO: write the else to this which should be go to the next line
 
-
-              if (wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex])
-                      || wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex].toLowerCase())
-                      || wordsFromLine[positionOfWord + wordIndex].contains(separateWords[wordIndex].toUpperCase())
-                      // this
-                      // doesn't really need to be checked because randomWord will always be
-                      // lowercase
-                      || wordsFromLine[positionOfWord + wordIndex].matches(
-                              "\\p{Punct}\\p{IsPunctuation}" + separateWords[wordIndex])
-                      || wordsFromLine[positionOfWord + wordIndex].matches(separateWords[wordIndex] + "\\p{Punct" +
-                      "}\\p" + "{IsPunctuation}"))
+                if(matchesWord(wordsFromLine[positionOfWord+wordIndex],
+                        separateWords[wordIndex]))
                 count++;
 
               if (separateWords.length == count)
                 return keyPhrase;
               }
-
-            //TODO: Doing it this way doesn't make a ton of sense, could be
-            // more parametric
-              //when the index of the word is equal to the length of the line
-              // ie at end of text line
-              else if(wordIndex + positionOfWord == wordsFromLine.length -1){
-
-                int numOtherLines = 1;
-                String text = linesFromPage.get(line + numOtherLines);
-                wordsFromLine = text.split(" ");
-
-                //now iterate just position of word...
-                positionOfWord = 0;
-              //need to check for it going thru mult lines... don't know if
-              // that goes here, logic thru that
-              if (wordsFromLine[positionOfWord].contains(separateWords[wordIndex])
-                      || wordsFromLine[positionOfWord].contains(separateWords[wordIndex].toLowerCase())
-                      || wordsFromLine[positionOfWord].contains(separateWords[wordIndex].toUpperCase())
-                      // this
-                      // doesn't really need to be checked because randomWord will always be
-                      // lowercase
-                      || wordsFromLine[positionOfWord].matches(
-                      "\\p{Punct}\\p{IsPunctuation}" + separateWords[wordIndex])
-                      || wordsFromLine[positionOfWord].matches(separateWords[wordIndex] + "\\p{Punct" +
-                      "}\\p" + "{IsPunctuation}")){
-                count ++;
-                positionOfWord++;
-              }
-              if(count == separateWords.length){
-                  return keyPhrase;
-              }
-
         }
 
+      //TODO: Doing it this way doesn't make a ton of sense, could be
+      // more parametric
+      //when the index of the word is equal to the length of the line
+      // ie at end of text line
+
+      if(wordIndex + positionOfWord >= wordsFromLine.length - 1){
+      numOtherLines++;
+      //TODO: Check this!!
+      String text = linesFromPage.get(line + numOtherLines);
+      wordsFromLine = text.split(" ");
+
+
+      for(int position = 0; position <= separateWords.length; position++) {
+          //now iterate just position of word...
+
+          //need to check for it going thru mult lines... don't know if
+          // that goes here, logic thru that
+
+          System.out.println("wordsfromline size: " + wordsFromLine.length);
+          System.out.println("separateWords size: " + separateWords.length);
+          if(matchesWord(wordsFromLine[position], separateWords[wordIndex])){
+
+            count++;
+          }
+          if (count == separateWords.length) {
+            return keyPhrase;
+
+        }
       }
     }
-    return null;
     }
+    return null;
+  }
 
   private synchronized void takeSnapshots()
   {
@@ -989,4 +973,16 @@ public class SearchThread implements Runnable {
     }
   }
 
+  private boolean matchesWord(String randomWord, String wordToMatch)
+  {
+    return randomWord.contains(wordToMatch)
+            || randomWord.contains(wordToMatch.toLowerCase())
+            || randomWord.contains(wordToMatch.toUpperCase())
+            // this doesn't really need to be checked because randomWord will
+            // always be lowercase
+            || randomWord.matches(
+            "\\p{Punct}\\p{IsPunctuation}" + wordToMatch)
+            || randomWord.matches(wordToMatch + "\\p{Punct" +
+            "}\\p" + "{IsPunctuation}");
+  }
 }

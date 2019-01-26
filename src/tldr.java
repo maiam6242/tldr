@@ -63,7 +63,7 @@ class tldr implements ActionListener {
   private int threadsFinished = 0;
 
 
-  static boolean testing = true;
+  static boolean testing = !true;
 
   tldr() {
     initializeGUI();

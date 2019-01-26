@@ -573,15 +573,6 @@ public class SearchThread implements Runnable {
                                    int line)
   {
 
-
-    //TODO: Ideally we want to iterate only once through line, looking for both
-    // one word and multi-word keywords based on the word in the line. Maybe it
-    // makes sense to sort the keywords alphabetically(?), and check each word
-    // in the line. If it matches a one word word, the one word word is
-    // returned and the word matches the beginnings of any multi-word words,
-    // each word in that multi-word word is iterated through in order to see if
-    // the text matches. That can be done through nested for loops
-
     //array of words in a line separated based on spaces
     wordsFromLine = textLine.split(" ");
 
@@ -629,7 +620,21 @@ public class SearchThread implements Runnable {
   position of the word in the line (int)
   Returns: the String of the keyword or keyphrase that was being searched for
    if the phrase or word was matched
+
+
   */
+    //TODO: What if one of the two word phrases begins with same word as a
+    // single word one??
+    for (String keyword : oneWordKeywords) {
+//      System.out.println("keyword3" + keyword);
+
+        // I used .matches in CB, and I don't remember why
+      if(matchesWord(randomWord, keyword))
+     {
+        return keyword;
+      }
+    }
+
     // this loop is used to check against the keywords that are one word
 //    System.out.println("Checking this word: " + word);
 
@@ -650,56 +655,91 @@ public class SearchThread implements Runnable {
     //this loop is used to check against key words that are multiple words
     for (String keyPhrase : multiWordKeywords) {
 
-      String[] separateWords = keyPhrase.split(" ");
-      int phraseLength = separateWords.length;
+      //split the phrase into an array of separate words
+      String[] separateWordsFromPhrase = keyPhrase.split(" ");
 
       int count = 0;
-      //TODO: SOOOO We need to take an array or substring of the next x number
-      // of words equal to phrase length starting at position of word
 
-      String[] substringFromLine = new String[phraseLength];
+      String[] substringFromLine = new String[separateWordsFromPhrase.length];
 
-      if(matchesWord(randomWord, separateWords[0]))
+      if(matchesWord(randomWord, separateWordsFromPhrase[0])){
         count++;
-      else return null;
+        if(!testing){
+        System.out.println("Count is: " + count);
+        System.out.println("Matching word is: " + randomWord + " and " + separateWordsFromPhrase[0]);
+        System.out.println("separateWordsFromPhrase[1]: " + separateWordsFromPhrase[1]);
+        System.out.println("substringFromLine[1]: " + substringFromLine[1]);
+      }
+      }
+
+      else
+        return null;
 
       //fills the array of substring from line
       int wordsIn = 0;
-      for (int i = 0; i < phraseLength; i++){
+
+      for (int i = 0; wordsIn < separateWordsFromPhrase.length; i++){
         //this fills the entire string of words, if the phrase has three
         // words starting with "the" the first word in this array would also
         // be "the"
+
+        //TODO: words.length or words.length-1
         if(i + positionOfWord < wordsFromLine.length)
         {
+
         String wordToBePutIn = wordsFromLine[positionOfWord + i];
+
+        if(!testing){
+        System.out.println();
+        System.out.println("wordsIn (starting at 0): " + wordsIn);
+        System.out.println();
+        System.out.println("wordToBePutIn: " + wordToBePutIn);}
+
         substringFromLine[wordsIn] = wordToBePutIn;
+        if(!testing){
+          System.out.println();
+          System.out.println("Substring from line [words in]: " + substringFromLine[wordsIn]);
+
+        }
         wordsIn++;
         }
         else {
-          i = 0;
+          i = -1;
           positionOfWord = 0;
           numOtherLines++;
           //TODO: Check this!!
           String text = linesFromPage.get(line + numOtherLines);
+          if(!testing)
+          System.out.println("text from next line: " + text);
           wordsFromLine = text.split(" ");
         }
+
+
       }
-      if(testing){
-        if(wordsIn != phraseLength){
+
+      if(!testing){
+        if(wordsIn != separateWordsFromPhrase.length){
           tldr.print("Something wrong with keyword matching loops");
         }
       }
 
       //check that the arrays match
-      for(int m = 0; m < substringFromLine.length; m++){
-        if(matchesWord(substringFromLine[m], separateWords[m])){
+
+      for(int m = 1; m < substringFromLine.length; m++){
+        if(matchesWord(substringFromLine[m], separateWordsFromPhrase[m])){
           count ++;
+          System.out.println();
+          System.out.println("Count is: " + count);
+          System.out.println("m is: " + m);
         }
         else
           return null;
       }
 
-      if (count == phraseLength){
+      if (count == separateWordsFromPhrase.length){
+        if(!testing){
+          System.out.println("keyphrase: "+ keyPhrase);
+        }
         return keyPhrase;
       }
 
@@ -833,7 +873,7 @@ public class SearchThread implements Runnable {
     Path path = Paths.get(System.getProperty("user.home"),"Desktop", title);
 
     if(testing)
-      System.out.print("Path: " + path);
+      System.out.print("Path: " + path + " ");
 
     if(!Files.isDirectory(path))
     try{

@@ -25,8 +25,8 @@ public class SearchThread implements Runnable {
   private HashMap<String, ArrayList<Loc>> map = new HashMap<>();
   private PDFTextStripper textStripper;
   private ArrayList<ArrayList<Line>> pageLines;
-  private ArrayList<String> oneWordKeywords = new ArrayList<>();
-  private ArrayList<String> multiWordKeywords = new ArrayList<>();
+  private static ArrayList<String> oneWordKeywords = tldr.oneWordKeywords;
+  private static ArrayList<String> multiWordKeywords = tldr.multiWordKeywords;
   private String[] wordsFromLine;
   private boolean testing = tldr.testing;
   private ArrayList<String> linesFromPage;
@@ -48,6 +48,7 @@ public class SearchThread implements Runnable {
      * - doc --> the document (as a PDDocument object) that this thread will search through
      * - fileName --> String representation of the name of the file this thread will search through
      */
+
     synchronized (this){
     // Copies all pageNums from the pageNums paramter to the pageNums class variable
     // Making a copy prevents pointer errors from arising later
@@ -73,6 +74,7 @@ public class SearchThread implements Runnable {
     this.fileName = fileName;
     //makes desktop directory with filename to put all other folders into
     makeTitleDirectory(fileName);
+
     renderer = new PDFRenderer(doc);
     try {
       textStripper = new PDFTextStripper();
@@ -89,7 +91,7 @@ public class SearchThread implements Runnable {
 
   public void run()
   {
-    analyzeKeywords();
+
     for (int pgNum : pageNums) {
       if(testing)
         System.out.println("Currently analyzing page " + pgNum);
@@ -576,32 +578,38 @@ public class SearchThread implements Runnable {
     //array of words in a line separated based on spaces
     wordsFromLine = textLine.split(" ");
 
+    String word;
     // for each word in the line of text from document
     for (int i = 0; i < wordsFromLine.length; i ++)
     {
-      String keyword = matchKeyword(wordsFromLine[i], i, line);
+      ArrayList<String> keyword = matchKeyword(wordsFromLine[i], i, line);
 
-      //not getting here the second time
+      if(keyword != null){
+        for (String s : keyword) {
+          word = s;
+          //not getting here the second time
 //      System.out.println("Found keyword: "+keyword);
-      if (keyword != null) {
-        if(testing)
-        System.out.println("Found keyword " + keyword + " on line " + line);
-        ArrayList<Loc> locs = map.get(keyword);
+          if (word != null) {
+            if (testing)
+              System.out.println("Found keyword " + word + " on line " + line);
+            ArrayList<Loc> locs = map.get(word);
 
 //        ArrayList<Line> lines = pageLines.get(pageNums.indexOf(pageNum - 1));
 //        System.out.println("Size of Lines on page " + pageNum + ": " + lines);
-        System.out.println("Line number where keyword was found on page " + pageNum + ": " + line);
-        System.out.println("Number of visual lines: " + pageLines.get(pageNums.indexOf(pageNum)).size());
+            System.out.println("Line number where keyword was found on page " + pageNum + ": " + line);
+            System.out.println("Number of visual lines: " + pageLines.get(pageNums.indexOf(pageNum)).size());
 
-        //this is short term solution for the out of bounds errors
-        //TODO: Should this just equal .size() instead??
-        if (line >= pageLines.get(pageNums.indexOf(pageNum)).size())
-        {
-          line = pageLines.get(pageNums.indexOf(pageNum)).size() - 1;
+            //this is short term solution for the out of bounds errors
+            //TODO: Should this just equal .size() instead??
+            if (line >= pageLines.get(pageNums.indexOf(pageNum)).size()) {
+              line = pageLines.get(pageNums.indexOf(pageNum)).size() - 1;
+            }
+            locs.add(new Loc(pageNum, line));
+            map.put(word, locs);
+          }
         }
-          locs.add(new Loc(pageNum, line));
-          map.put(keyword, locs);
-    }
+
+  }
 
     }
 
@@ -612,7 +620,7 @@ public class SearchThread implements Runnable {
   }
 
   @Nullable
-  private synchronized String matchKeyword(String randomWord,
+  private synchronized ArrayList<String> matchKeyword(String randomWord,
                                            int positionOfWord, int line)
   {/*
 
@@ -620,25 +628,12 @@ public class SearchThread implements Runnable {
   position of the word in the line (int)
   Returns: the String of the keyword or keyphrase that was being searched for
    if the phrase or word was matched
-
-
   */
+
     //TODO: What if one of the two word phrases begins with same word as a
     // single word one??
-    for (String keyword : oneWordKeywords) {
-//      System.out.println("keyword3" + keyword);
 
-        // I used .matches in CB, and I don't remember why
-      if(matchesWord(randomWord, keyword))
-     {
-        return keyword;
-      }
-    }
-
-    // this loop is used to check against the keywords that are one word
-//    System.out.println("Checking this word: " + word);
-
-    //TODO: Check the length then next X # of words, then go from there...
+    ArrayList<String> toBeReturned = new ArrayList<>();
     randomWord = randomWord.toLowerCase();
     int numOtherLines = 0;
 
@@ -648,12 +643,27 @@ public class SearchThread implements Runnable {
         // I used .matches in CB, and I don't remember why
       if(matchesWord(randomWord, keyword))
      {
-        return keyword;
+        toBeReturned.add(keyword);
       }
     }
 
+    //check if there are no one word keywords that work and no two word ones
+    // to be checked
+
+    if(multiWordKeywords.isEmpty()){
+      if(toBeReturned.isEmpty()){
+        return null;
+      }
+      else return toBeReturned;
+    }
+    // this loop is used to check against the keywords that are one word
+//    System.out.println("Checking this word: " + word);
+
+    //TODO: Check the length then next X # of words, then go from there...
+
     //this loop is used to check against key words that are multiple words
-    for (String keyPhrase : multiWordKeywords) {
+    for (int g = 0; g < multiWordKeywords.size(); g++) {
+      String keyPhrase = multiWordKeywords.get(g);
 
       //split the phrase into an array of separate words
       String[] separateWordsFromPhrase = keyPhrase.split(" ");
@@ -664,7 +674,7 @@ public class SearchThread implements Runnable {
 
       if(matchesWord(randomWord, separateWordsFromPhrase[0])){
         count++;
-        if(!testing){
+        if(testing){
         System.out.println("Count is: " + count);
         System.out.println("Matching word is: " + randomWord + " and " + separateWordsFromPhrase[0]);
         System.out.println("separateWordsFromPhrase[1]: " + separateWordsFromPhrase[1]);
@@ -674,8 +684,12 @@ public class SearchThread implements Runnable {
 
       else
         return null;
+      //TODO: CHANGE THIS FOR MULTI THAT START WITH SAME WORD
 
-      //fills the array of substring from line
+
+
+      //fills the array of substring from line, this is a count starting at 0
+      // of how many are in the array
       int wordsIn = 0;
 
       for (int i = 0; wordsIn < separateWordsFromPhrase.length; i++){
@@ -683,34 +697,22 @@ public class SearchThread implements Runnable {
         // words starting with "the" the first word in this array would also
         // be "the"
 
-        //TODO: words.length or words.length-1
         if(i + positionOfWord < wordsFromLine.length)
         {
 
         String wordToBePutIn = wordsFromLine[positionOfWord + i];
-
-        if(!testing){
-        System.out.println();
-        System.out.println("wordsIn (starting at 0): " + wordsIn);
-        System.out.println();
-        System.out.println("wordToBePutIn: " + wordToBePutIn);}
-
         substringFromLine[wordsIn] = wordToBePutIn;
-        if(!testing){
-          System.out.println();
-          System.out.println("Substring from line [words in]: " + substringFromLine[wordsIn]);
-
-        }
         wordsIn++;
         }
         else {
           i = -1;
           positionOfWord = 0;
           numOtherLines++;
-          //TODO: Check this!!
           String text = linesFromPage.get(line + numOtherLines);
+
           if(!testing)
           System.out.println("text from next line: " + text);
+
           wordsFromLine = text.split(" ");
         }
 
@@ -724,27 +726,31 @@ public class SearchThread implements Runnable {
       }
 
       //check that the arrays match
-
       for(int m = 1; m < substringFromLine.length; m++){
         if(matchesWord(substringFromLine[m], separateWordsFromPhrase[m])){
           count ++;
-          System.out.println();
-          System.out.println("Count is: " + count);
-          System.out.println("m is: " + m);
+//          System.out.println();
+//          System.out.println("Count is: " + count);
+//          System.out.println("m is: " + m);
         }
         else
           return null;
       }
 
       if (count == separateWordsFromPhrase.length){
-        if(!testing){
+
+        if(testing){
           System.out.println("keyphrase: "+ keyPhrase);
         }
-        return keyPhrase;
+
+        toBeReturned.add(keyPhrase);
       }
 
     }
-
+    if(toBeReturned.size() > 0){
+      return toBeReturned;
+    }
+    else
     return null;
   }
 
@@ -974,36 +980,9 @@ public class SearchThread implements Runnable {
 
   }
 
-  private void analyzeKeywords()
-  {
-    /*
-    Looks at each word in the keywords list and sorts based on whether or not
-     the word is multiple words or a single word
-    */
 
-    //for every keyword in the list of keywords
-    for (String keyword: keywords) {
 
-      if(keyword != null) {
-
-        int indexOfSpace = keyword.indexOf(" ");
-
-       //there is no space in the word
-       if (indexOfSpace == -1) {
-         oneWordKeywords.add(keyword);
-//         System.out.println("Keyword1: "+ keyword);
-       }
-
-       // keyword is actually multiple words
-       else {
-         multiWordKeywords.add(keyword);
-
-       }
-     }
-    }
-  }
-
-  private boolean matchesWord(String randomWord, String wordToMatch)
+  private boolean matchesWord(@NotNull String randomWord, String wordToMatch)
   {
     return randomWord.contains(wordToMatch)
             || randomWord.contains(wordToMatch.toLowerCase())

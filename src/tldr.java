@@ -58,12 +58,14 @@ class tldr implements ActionListener {
   private static Sheet XSSFSheet;
   private static FileWriter fileWriter;
   private static PDDocument doc;
-  private SearchThread newlyCreatedThread;
+
   private int threadsStarted = 0;
   private int threadsFinished = 0;
 
 
   static boolean testing = !true;
+  static ArrayList<String> oneWordKeywords = new ArrayList<>();
+  static ArrayList<String> multiWordKeywords = new ArrayList<>();
 
   tldr() {
     initializeGUI();
@@ -329,9 +331,10 @@ class tldr implements ActionListener {
       getInputtedKeywords();
       getSelectedKeywords();
       if (keywords.size() > 0) {
+        analyzeKeywords();
         try {
           searchKeywords();
-        } catch (Exception e) {
+          } catch (Exception e) {
           print(e.getMessage());
           e.printStackTrace();
         }
@@ -377,6 +380,38 @@ class tldr implements ActionListener {
 
   }
 
+  private void analyzeKeywords()
+  {
+    /*
+    Looks at each word in the keywords list and sorts based on whether or not
+     the word is multiple words or a single word
+    */
+
+    //for every keyword in the list of keywords
+    for (String keyword: keywords) {
+
+      tldr.print("keywords.size(): " + keywords.size());
+
+      if(keyword != null) {
+
+        int indexOfSpace = keyword.indexOf(" ");
+
+        //there is no space in the word
+        if (indexOfSpace == -1) {
+          oneWordKeywords.add(keyword);
+
+          tldr.print("Keyword (one word): "+ keyword);
+        }
+
+        // keyword is actually multiple words
+        else {
+          multiWordKeywords.add(keyword);
+          tldr.print("Keyword (not one word): "+ keyword);
+
+        }
+      }
+    }
+  }
   private void createSummarySheet(File docName) {
     /* Creates a file based on the Office Version Installed
         Input: File (presumably the one inputted originally by user) which will
@@ -1097,9 +1132,9 @@ class tldr implements ActionListener {
     {
       if (pageGroups != null) {
         for (ArrayList<Integer> pageGroup : pageGroups) {
-         newlyCreatedThread = new SearchThread(pageGroup, keywords,
-                    file.getAbsolutePath(), file.getName());
-          threads.add(new Thread(newlyCreatedThread));
+
+          threads.add(new Thread(new SearchThread(pageGroup, keywords,
+                  file.getAbsolutePath(), file.getName())));
         }
         if(testing)
         System.out.println("Created threads: " + threads.size());

@@ -1,18 +1,23 @@
-
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.poi.common.usermodel.HyperlinkType;
-import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.usermodel.HSSFHyperlink;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
-import org.jetbrains.annotations.*;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFHyperlink;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -21,8 +26,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 // UI imports
@@ -50,12 +53,15 @@ class tldr implements ActionListener {
   private static ArrayList<Thread> threads = new ArrayList<>();
   private static File CSV = null;
   private static Workbook HSSF = null;
+  private static File HSSFFile;
   private static String HSSFPath;
   private static OutputStream HSSFFileOut;
   private static Sheet HSSFSheet;
   private static File XSSFFile;
   private static Workbook XSSF = null;
   private static Sheet XSSFSheet;
+  private static String XSSFPath;
+  private static OutputStream XSSFFileOut;
   private static FileWriter fileWriter;
   private static PDDocument doc;
 
@@ -498,6 +504,8 @@ class tldr implements ActionListener {
 
       try {
         if (XSSF != null && XSSFFile.exists()) {
+          XSSFFileOut.close();
+          XSSF.close();
           desktop.open(XSSFFile);
         }
       } catch (IOException exception) {
@@ -506,9 +514,11 @@ class tldr implements ActionListener {
         exception.printStackTrace();
       }
 
-      File HSSFFile = new File(HSSFPath);
+      //File HSSFFile = new File(HSSFPath);
       try {
         if (HSSF != null && HSSFFile.exists()) {
+          HSSFFileOut.close();
+          HSSF.close();
           desktop.open(HSSFFile);
         }
       } catch (IOException exception) {
@@ -616,32 +626,51 @@ class tldr implements ActionListener {
           keywordforHSSF = keyword;
           ArrayList<Loc> l = hashMap.get(keyword);
 
-          for (int i = 2; i< l.size()+2; i++){
+          for (int i = 0; i < l.size(); i++) {
             Loc location = l.get(i);
             pageNumberforHSSF = location.getPage();
             lineNumberforHSSF = location.getLine();
+
+
             filePathforHSSF = location.getFilePath();
+            File fileHSSF = new File(filePathforHSSF);
 
-            link.setAddress(filePathforHSSF);
+            link.setAddress(fileHSSF.toURI().toString());
 
+            CellStyle wrapStyle = HSSF.createCellStyle();
+            wrapStyle.setWrapText(true);
 
-            Row next = HSSFSheet.createRow(i);
+            Row next = HSSFSheet.createRow(i + 2);
             next.createCell(0).setCellValue(fileNameforHSSF);
             next.createCell(1).setCellValue(keywordforHSSF);
             next.createCell(2).setCellValue(pageNumberforHSSF);
             next.createCell(3).setCellValue(lineNumberforHSSF);
-            next.createCell(4).setHyperlink(link);
+            //sets up the hyperlinked cell
+            Cell linked = next.createCell(4);
+            HSSFCellStyle hlinkstyle = (HSSFCellStyle) HSSF.createCellStyle();
+            HSSFFont hlinkfont = (HSSFFont) HSSF.createFont();
+            hlinkfont.setUnderline(HSSFFont.U_SINGLE);
+            hlinkfont.setColor(IndexedColors.BLUE.getIndex());
+            hlinkstyle.setFont(hlinkfont);
+            linked.setCellStyle(hlinkstyle);
+            linked.setCellValue(filePathforHSSF);
+            linked.setHyperlink(link);
 
-            try{
-              HSSF.write(HSSFFileOut);
-            }
-            catch(IOException e){
-              e.getMessage();
-              e.printStackTrace();
-            }
-      }
+
+          }
 
     }
+        //TODO: Not hardcode this
+        for(int i = 0; i< 4; i++){
+          HSSFSheet.autoSizeColumn(i);
+        }
+        try{
+          HSSFFileOut = new FileOutputStream(HSSFPath);
+          HSSF.write(HSSFFileOut);
+        }
+        catch(IOException e){
+          e.printStackTrace();
+        }
   }
 
 
@@ -663,8 +692,8 @@ class tldr implements ActionListener {
 
 
     CreationHelper createHelper = XSSF.getCreationHelper();
-    HSSFHyperlink link =
-            (HSSFHyperlink)createHelper.createHyperlink(HyperlinkType.FILE);
+    XSSFHyperlink link =
+            (XSSFHyperlink)createHelper.createHyperlink(HyperlinkType.FILE);
 
     if (hashMap != null) {
 
@@ -677,25 +706,55 @@ class tldr implements ActionListener {
         keywordforXSSF = keyword;
         ArrayList<Loc> l = hashMap.get(keyword);
 
-        for (int i = 2; i< l.size()+2; i++){
+        for (int i = 0; i< l.size(); i++){
           Loc location = l.get(i);
           pageNumberforXSSF = location.getPage();
           lineNumberforXSSF = location.getLine();
+
           filePathforXSSF = location.getFilePath();
+          File fileXSSF = new File(filePathforXSSF);
 
-          link.setAddress(filePathforXSSF);
+          link.setAddress(fileXSSF.toURI().toString());
 
+          CellStyle wrapStyle = XSSF.createCellStyle();
+          wrapStyle.setWrapText(true);
 
-          Row next = XSSFSheet.createRow(i);
+          Row next = XSSFSheet.createRow(i+2);
           next.createCell(0).setCellValue(fileNameforXSSF);
           next.createCell(1).setCellValue(keywordforXSSF);
           next.createCell(2).setCellValue(pageNumberforXSSF);
           next.createCell(3).setCellValue(lineNumberforXSSF);
-          next.createCell(4).setHyperlink(link);
+          //sets up the hyperlinked cell
+          Cell linked = next.createCell(4);
+          XSSFCellStyle hlinkstyle = (XSSFCellStyle)XSSF.createCellStyle();
+          XSSFFont hlinkfont = (XSSFFont) XSSF.createFont();
+          hlinkfont.setUnderline(XSSFFont.U_SINGLE);
+          hlinkfont.setColor(IndexedColors.BLUE.getIndex());
+          hlinkstyle.setFont(hlinkfont);
+          linked.setCellStyle(hlinkstyle);
+          linked.setCellValue(filePathforXSSF);
+          linked.setHyperlink(link);
+          //wraps all of the cells
+//          for (Cell cell : next) {
+//            cell.setCellStyle(wrapStyle);
+//          }
+
         }
 
       }
+      //TODO: Not hardcode this
+      for(int i = 0; i< 4; i++){
+        XSSFSheet.autoSizeColumn(i);
+      }
+      try{
+        XSSFFileOut = new FileOutputStream(XSSFPath);
+        XSSF.write(XSSFFileOut);
+      }
+      catch(IOException e){
+        e.printStackTrace();
+      }
     }
+
 
     //map is (key: keyword, value: Loc: page, line number, full path)
   }
@@ -709,11 +768,11 @@ class tldr implements ActionListener {
     //creates file with right name
     int indexOfPDF = toBeHSSF.getName().lastIndexOf(".pdf");
     HSSFPath = System.getProperty("user.home") + File.separator +
-            "Desktop" + File.separator + toBeHSSF.getName() + File.separator + toBeHSSF.getName().substring(0, indexOfPDF);
-
+            "Desktop" + File.separator + toBeHSSF.getName() + File.separator + toBeHSSF.getName().substring(0, indexOfPDF) + ".xls";
+    HSSFFile = new File(HSSFPath);
+    HSSF = new HSSFWorkbook();
     //creates workbook based on that file
 //    try {
-      HSSF = new HSSFWorkbook();
       formatHSSF();
 //    } catch (IOException exception) {
 //      print(exception.getMessage());
@@ -756,26 +815,25 @@ class tldr implements ActionListener {
     }
   }
 
+  //TODO: Think about making this with shorter titles?
   private void createXSSFFile(@NotNull File toBeXSSF) {     /*Creates a file of
-  type .XLXS with header
+  type .XLSX with header
       Input: PDF File with name that is wanted (Name inputted to search)
       Returns: path of XSSF File
       */
 
     //creates file with right name
     int indexOfPDF = toBeXSSF.getName().lastIndexOf(".pdf");
-    XSSFFile = new File(System.getProperty("user.home") + File.separator +
-            "Desktop" + File.separator + toBeXSSF.getName() + File.separator + toBeXSSF.getName().substring(0, indexOfPDF));
-
+    XSSFPath = System.getProperty("user.home") + File.separator +
+            "Desktop" + File.separator + toBeXSSF.getName() + File.separator + toBeXSSF.getName().substring(0, indexOfPDF)+ ".xlsx";
+    XSSFFile = new File(XSSFPath);
     //creates workbook based on that file
-    try {
-      XSSF = WorkbookFactory.create(XSSFFile);
-      formatXSSF();
-    } catch (IOException exception) {
-      print(exception.getMessage());
-      exception.printStackTrace();
+
+    XSSF = new XSSFWorkbook();
+    formatXSSF();
+
     }
-  }
+
 
   private static void formatXSSF() {
     /*
@@ -803,6 +861,13 @@ class tldr implements ActionListener {
     wrapStyle.setWrapText(true);
     for (Cell cell : firstRow) {
       cell.setCellStyle(wrapStyle);
+    }
+    try{
+      XSSFFileOut = new FileOutputStream(XSSFPath);
+      XSSF.write(XSSFFileOut);
+    }
+    catch(IOException e){
+      e.printStackTrace();
     }
   }
 

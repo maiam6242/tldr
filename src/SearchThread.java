@@ -274,6 +274,7 @@ public class SearchThread implements Runnable {
       } else {
         // Stores the width of the section of whitespace; this wil help us determine if that section was
         // a space or a section break
+          System.out.println("White space: " + difference);
         whiteSpaceStats.addValue(difference);
       }
     }

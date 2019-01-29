@@ -645,6 +645,7 @@ public class SearchThread implements Runnable {
       if(matchesWord(randomWord, keyword))
      {
         toBeReturned.add(keyword);
+        //return toBeReturned;
       }
     }
 
@@ -660,7 +661,19 @@ public class SearchThread implements Runnable {
     // this loop is used to check against the keywords that are one word
 //    System.out.println("Checking this word: " + word);
 
-    //TODO: Check the length then next X # of words, then go from there...
+    //if the words in multiword keyword don't start with the same first word
+    // as one of the words that have already been found, return just the one
+    // word
+    if(!toBeReturned.isEmpty()){
+      for(String phrase: multiWordKeywords){
+        String firstWord = phrase.split(" ")[0];
+        if(!matchesWord(firstWord,toBeReturned.get(0))){
+          return toBeReturned;
+        }
+      }
+    }
+
+    //TODO: Output now is only returns if both are found...
 
     //this loop is used to check against key words that are multiple words
     for (int g = 0; g < multiWordKeywords.size(); g++) {
@@ -734,8 +747,6 @@ public class SearchThread implements Runnable {
 //          System.out.println("Count is: " + count);
 //          System.out.println("m is: " + m);
         }
-        else
-          return null;
       }
 
       if (count == separateWordsFromPhrase.length){

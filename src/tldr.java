@@ -595,7 +595,7 @@ class tldr implements ActionListener {
         //map is (key: keyword, value: Loc: page, line number, full path)
   }
 
-  //TODO: TEST TEST TEST!!
+  //TODO: try to put in sorting mechanism?!
   private static void writeHSSFFile(HashMap<String, ArrayList<Loc>> mapforHSSF)
   {
     /*Writes .XLS file with the contents of the hashmap (name, line, page,
@@ -1361,7 +1361,7 @@ class tldr implements ActionListener {
 
     //creates a name for the file
     for (File file: files) {
-      fileName.append(file.getName().split("pdf"));
+      fileName.append(file.getName().split("pdf")[0]);
     }
 
 

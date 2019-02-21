@@ -330,6 +330,7 @@ class tldr implements ActionListener {
       2. Gets all user-selected keywords from preloaded list
       3. Searches file for keywords
      */
+
     if (event.getSource() == searchBtn) {
 //      if (testing) System.out.println("Search button clicked.");
       getInputtedKeywords();
@@ -337,7 +338,11 @@ class tldr implements ActionListener {
       if (keywords.size() > 0) {
         analyzeKeywords();
         try {
+          if(file!=null)
           searchKeywords();
+          else{
+            print("ERROR: Please input a file");
+          }
           } catch (Exception e) {
           print(e.getMessage());
           e.printStackTrace();
@@ -354,7 +359,10 @@ class tldr implements ActionListener {
      */
     if (event.getSource() == searchFileBtn) {
 //      if (testing) System.out.println("Open file button clicked.");
-      openSearchFile();
+
+        openSearchFile();
+
+
 
     }
 
@@ -1081,6 +1089,7 @@ class tldr implements ActionListener {
       print("Searching for following keywords: ");
       print(keywords);
       createThreads(separateContent());
+      makeTitleDirectory(SearchThread.fileName);
       createSummarySheet(file);
       runThreads();
     }
@@ -1261,8 +1270,7 @@ class tldr implements ActionListener {
     return null;
   }
 
-  private void openSearchFile()
-  {
+  private void openSearchFile() {
     /*
       Creates file dialog so user can select a PDF file.
      */
@@ -1273,15 +1281,17 @@ class tldr implements ActionListener {
     fileDialog.setVisible(true);
 
     // Gets selected file
-    if (fileDialog.getFile().contains(".pdf"))
-
-    {
-      String path = fileDialog.getDirectory() + fileDialog.getFile();
-      file = new File(path);
-      print("Selected File: " + file.getName());
+    if(fileDialog.getFile()!=null){
+      if (fileDialog.getFile().contains(".pdf")) {
+        String path = fileDialog.getDirectory() + fileDialog.getFile();
+        file = new File(path);
+        print("Selected File: " + file.getName());
+      }
+    }
+    else{
+      print("ERROR: Please input a file");
     }
   }
-
   private void openKeywordsFile()
   {
     /*
@@ -1460,6 +1470,32 @@ class tldr implements ActionListener {
     }
 
     System.exit(0);
+
+  }
+  private String makeTitleDirectory(String title)
+  {
+    /* Creates a directory in the users desktop folder under the name of the
+    title doc
+  Inputs: Name of the Directory to be created
+  Returns: Path of the directory
+    */
+    Path path = Paths.get(System.getProperty("user.home"),"Desktop", title);
+    if(testing)
+      System.out.print("Path: " + path);
+
+    try{
+      Files.createDirectories(path);}
+    catch (IOException e){
+      e.printStackTrace();
+    }
+    if(Files.isDirectory(path)){
+      return path.toString();
+    }
+
+    else
+      tldr.print("Sorry directory was not created");
+    return makeTitleDirectory(title);
+
 
   }
 }

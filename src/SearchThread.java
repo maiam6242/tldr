@@ -5,6 +5,7 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +34,7 @@ public class SearchThread implements Runnable {
 
 
 
+  public static int progress = 0;
   private static int totalNumberInstances = 0;
 
   private final int WHITE = 0;
@@ -73,7 +75,7 @@ public class SearchThread implements Runnable {
 
     this.fileName = fileName;
     //makes desktop directory with filename to put all other folders into
-    makeTitleDirectory(fileName);
+
 
     renderer = new PDFRenderer(doc);
     try {
@@ -91,7 +93,8 @@ public class SearchThread implements Runnable {
 
   public void run()
   {
-
+    progress++;
+    System.out.println("Progress: "+progress);
     for (int pgNum : pageNums) {
       if(testing)
         System.out.println("Currently analyzing page " + pgNum);
@@ -110,9 +113,25 @@ public class SearchThread implements Runnable {
         for (int lineIndex = 0; lineIndex < linesFromPage.size(); lineIndex++) {
           String textLine = linesFromPage.get(lineIndex);
           findKeywordsInLine(textLine, pgNum, lineIndex);
+
         }
       }
     }
+    System.out.println("Tyring to debug");
+
+//    try {
+//      SwingUtilities.invokeLater(new Runnable() {
+//        public void run() {
+//          System.out.println("Am I here?!");
+//          System.out.println("Is the main thread EDT? " + SwingUtilities.isEventDispatchThread());
+//          tldr.progressBar.setValue(100*SearchThread.progress/tldr.threads.size());
+//
+//        }
+//      });
+//    }
+//    catch(Exception e){
+//      e.printStackTrace();
+//    }
 
     takeSnapshots();
 
@@ -882,40 +901,11 @@ public class SearchThread implements Runnable {
     return null;
   }
 
-  private String makeTitleDirectory(String title)
-  {
-    /* Creates a directory in the users home folder
-  Inputs: Name of the Directory to be created
-  Returns: Path of the directory
-    */
-    Path path = Paths.get(System.getProperty("user.home"),"Desktop", title);
-
-    if(testing)
-      System.out.print("Path: " + path + " ");
-
-    if(!Files.isDirectory(path))
-    try{
-      Files.createDirectories(path);}
-    catch (IOException e){
-      e.printStackTrace();
-    }
-    else
-      tldr.print("Directory with this title already exists");
-
-    if(Files.isDirectory(path)){
-      return path.toString();
-    }
-
-    else
-      tldr.print("Sorry directory was not created");
-    return makeTitleDirectory(title);
-
-  }
 
   @Nullable
   private String makeDirectory(String word, String title)
   {
-    /* Creates a directory in the users home folder under the name of the
+    /* Creates a directory in the users desktop folder under the name of the
     title doc
   Inputs: Name of the Directory to be created
   Returns: Path of the directory

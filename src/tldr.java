@@ -1,3 +1,4 @@
+import org.apache.pdfbox.multipdf.Splitter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
@@ -24,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.stream.Stream;
 
 // UI imports
@@ -42,6 +44,7 @@ class tldr implements ActionListener {
   private static JButton searchFileBtn;
   private static JButton textFileBtn;
   private static JButton mergeBtn;
+  private static JButton splitBtn;
   private static JTextArea console;
   private static StringBuffer currText = new StringBuffer();
   private static ArrayList<String> keywords = new ArrayList<>();
@@ -295,6 +298,15 @@ class tldr implements ActionListener {
     contentPane.add(mergeBtn, gbc_button);
     mergeBtn.addActionListener(this);
 
+    // Creates button for merging files
+    // Initializes merging files button
+    splitBtn = new JButton("Split PDF");
+    // Configures position of merging files button within grid bag layout
+    gbc_button.gridy = 19;
+    // Adds merging files button to content pane
+    contentPane.add(splitBtn, gbc_button);
+    splitBtn.addActionListener(this);
+
   }
 
   private void initializeConsole() {
@@ -388,6 +400,10 @@ class tldr implements ActionListener {
     if (event.getSource() == mergeBtn) {
 //      if (testing) System.out.println("Merge files button clicked.");
       mergePDFFiles();
+    }
+
+    if(event.getSource() == splitBtn) {
+      splitPDF();
     }
 
   }
@@ -1200,6 +1216,7 @@ class tldr implements ActionListener {
   private void createThreads(ArrayList<ArrayList<Integer>> pageGroups)
   {
     if(testing)
+
     System.out.println("Creating threads");
     // TODO: Implement create threads method
 
@@ -1212,7 +1229,7 @@ class tldr implements ActionListener {
                   file.getAbsolutePath(), file.getName())));
         }
         if(testing)
-        System.out.println("Created threads: " + threads.size());
+        print("Created threads: " + threads.size());
       }
     }
     catch(Exception exception)
@@ -1423,6 +1440,66 @@ class tldr implements ActionListener {
   }
 
   @NotNull
+  private void splitPDF(){
+
+    fileDialog = new FileDialog(frame, "Open Files to Split");
+    fileDialog.setFile("*.pdf");
+    fileDialog.setMultipleMode(true);
+    fileDialog.setVisible(true);
+
+   File fileToBeSplit =  fileDialog.getFiles()[0];
+
+    Splitter splitter = new Splitter();
+    splitter.setSplitAtPage(200);
+    ArrayList<PDDocument> Documents = new ArrayList<>();
+
+    try {
+      PDDocument fileToSplit = PDDocument.load(fileToBeSplit);
+      Documents =
+              (ArrayList<PDDocument>) splitter.split(fileToSplit);
+      Iterator<PDDocument> iterator = Documents.listIterator();
+
+
+    }
+    catch(IOException e){
+      e.printStackTrace();
+    }
+
+    File file2;
+    for(int i = 1; i<Documents.size(); i++) {
+
+
+      file2 = makeFile("Desktop" + File.separator +
+              fileToBeSplit.getName() + File.separator + fileToBeSplit.getName() + i,".pdf");
+
+       if(!file2.getParentFile().exists())
+         file2.getParentFile().mkdirs();
+      try{
+      file2.createNewFile();
+      Documents.get(i).save(file2);
+      System.out.println(file2.exists());}
+      catch(IOException e){
+        e.printStackTrace();
+      }
+//     if(!file2.exists()){
+//       try{
+//       file2.createNewFile();}
+//       catch(IOException e){
+//         e.printStackTrace();
+//       }
+//       file2.setExecutable(true);
+//       file2.setReadable(true);
+//
+      System.out.println(file2.getAbsolutePath());
+
+    }
+
+    }
+
+
+
+
+  @NotNull
   @Contract("_, _ -> new")
   private File makeFile(String fileName, String fileExtension)
   {
@@ -1431,7 +1508,7 @@ class tldr implements ActionListener {
          Returns: newly made File
        */
 
-      return new File(System.getProperty("user.home")+ File.separator + fileName + fileExtension);
+      return new File(System.getProperty("user.home") + File.separator + fileName + fileExtension);
 
   }
 
@@ -1481,6 +1558,7 @@ class tldr implements ActionListener {
     */
     Path path = Paths.get(System.getProperty("user.home"),"Desktop", title);
     if(testing)
+      print("Path: " + path);
       System.out.print("Path: " + path);
 
     try{
@@ -1495,6 +1573,35 @@ class tldr implements ActionListener {
     else
       tldr.print("Sorry directory was not created");
     return makeTitleDirectory(title);
+
+
+  }
+  private String makeDirectory(String word, String title)
+  {
+    /* Creates a directory in the users desktop folder under the name of the
+    title doc
+  Inputs: Name of the Directory to be created
+  Returns: Path of the directory
+    */
+    Path path = Paths.get(System.getProperty("user.home"),"Desktop", title,
+            word);
+    if(testing)
+      System.out.print("Path: " + path);
+
+    try{
+      Files.createDirectories(path);}
+    catch (IOException e){
+      e.printStackTrace();
+    }
+
+
+    if(Files.isDirectory(path)){
+      return path.toString();
+    }
+
+    else
+      tldr.print("Sorry directory was not created");
+    return makeDirectory(word, title);
 
 
   }

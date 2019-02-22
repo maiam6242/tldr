@@ -13,4 +13,6 @@ public class SectionBreak extends LayoutFeature {
     {
         return "Section break between row " + startIndex() + " and " + endIndex();
     }
+
+    public int width() { return endIndex - startIndex; };
 }

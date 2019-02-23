@@ -21,7 +21,7 @@ public class SearchThread implements Runnable {
   private ArrayList<Integer> pageNums = new ArrayList<>();
   private static ArrayList<String> keywords = new ArrayList<>();
   private PDDocument doc;
-  public static String fileName;
+  static String fileName;
   private PDFRenderer renderer;
   private HashMap<String, ArrayList<Loc>> map = new HashMap<>();
   private PDFTextStripper textStripper;
@@ -31,17 +31,18 @@ public class SearchThread implements Runnable {
   private String[] wordsFromLine;
   private boolean testing = tldr.testing;
   private ArrayList<String> linesFromPage;
+  private int height = 0;
 
 
 
-  public static int progress = 0;
+  private static int progress = 0;
   private static int totalNumberInstances = 0;
 
   private final int WHITE = 0;
   private final int BLACK = 1;
 
   SearchThread(ArrayList<Integer> pageNums,
-                @NotNull ArrayList<String> keywords, String filePath, String fileName)
+                @NotNull ArrayList<String> keywords)
   {
     /*
      * Parameters:
@@ -67,13 +68,13 @@ public class SearchThread implements Runnable {
     }
 
     try {
-      this.doc = PDDocument.load(new File(filePath));
+      this.doc = PDDocument.load(new File(tldr.file.getAbsolutePath()));
 
     } catch (IOException e) {
       e.printStackTrace();
     }
 
-    this.fileName = fileName;
+    SearchThread.fileName = tldr.file.getName();
     //makes desktop directory with filename to put all other folders into
 
 
@@ -164,6 +165,7 @@ public class SearchThread implements Runnable {
 
       // Converts the page to an image
       BufferedImage pgImg = renderer.renderImageWithDPI(pageNum-1, 300);
+      height = pgImg.getHeight();
 
       // Finds all points where the rows in the image change from all-white to not-all-white and vice versa
       ArrayList<LineChange> lineChanges = findLineChanges(pgImg);
@@ -293,7 +295,7 @@ public class SearchThread implements Runnable {
       } else {
         // Stores the width of the section of whitespace; this wil help us determine if that section was
         // a space or a section break
-          System.out.println("White space: " + difference);
+//          System.out.println("White space: " + difference);
         whiteSpaceStats.addValue(difference);
       }
     }
@@ -367,7 +369,7 @@ public class SearchThread implements Runnable {
      * Print the list of Lines for each page by iterating through pageLines.
      */
 
-    System.out.println("Printing page lines");
+//    System.out.println("Printing page lines");
     for (ArrayList<Line> lines : pageLines) {
       print(lines);
     }
@@ -505,38 +507,62 @@ public class SearchThread implements Runnable {
       // Checks for valid index found for the start section break
       // We check if startMinIndex - 1 is greater than zero and not just startMinIndex because we end up retrieving the
       // Section Break at (startMinIndex - 1) in the list of section breaks
-      if ((startMinIndex - 1) > 0) {
         // Retrieves the section break before the closest one before the Line in order to increase the context of the snapshot
         // TODO: Consider just going a few extra rows before the startMinIndex rather than an entire additional sectionBreak?
         //  Perhaps we could just go a half-section-break afterwards. We can determine what the width of a sectionBreak
         //  is and use that?
-        startSectionBreak = sectionBreaks.get(startMinIndex - 1);
-      } else {
+//        System.out.println("Start Min Index: " + startMinIndex);
+        if (startMinIndex > 0)
+        {
+          SectionBreak minSectionBreak = sectionBreaks.get(startMinIndex);
+          int width = (int) 0.5*minSectionBreak.width();
+          int startIndex = minSectionBreak.startIndex() - width;
+          int endIndex = minSectionBreak.endIndex();
+          if (startIndex > 0) {
+            startSectionBreak = new SectionBreak(startIndex, endIndex);
+          }
+        }
+        else {
         // If not valid, default to the first section break found
         startSectionBreak = sectionBreaks.get(0);
       }
 
-      // Retrieves the endSectionBreak from the list of section breaks
+      // Retrieves the endSectionBreak from the list of section break
       SectionBreak endSectionBreak = null;
       // Checks for valid index found for the end section break
       // We check that (endMinInex + 1) is within valid bounds and not endMinIndex, because we end up retrieving the
       // SectionBreak at (endMinIndex + 1) in the list of section breaks
-      if ((endMinIndex + 1) > 0 && (endMinIndex + 1) < sectionBreaks.size() - 1) {
         // Retrieves the section break after the closest one after the Line in order to increase the context of the snapshot
         // TODO: See startMinIndex TODO above
-        endSectionBreak = sectionBreaks.get(endMinIndex + 1);
-      } else {
+//      System.out.println("End Min Index: " + endMinIndex);
+        if (endMinIndex > 0)
+        {
+          SectionBreak minSectionBreak = sectionBreaks.get(endMinIndex);
+          int width = (int) 0.5*minSectionBreak.width();
+          int startIndex = minSectionBreak.startIndex();
+          int endIndex = minSectionBreak.endIndex() + width;
+          if (endIndex < height) {
+            endSectionBreak = new SectionBreak(startIndex, endIndex);
+          }
+        }
+        else {
         endSectionBreak = sectionBreaks.get(sectionBreaks.size() - 1);
       }
 
       // Retrieves the bounds of the snapshot; the starting is the end of the previous section break and the ending is
       // the start of the following section break
-      int startIndex = startSectionBreak.endIndex();
-      int endIndex = endSectionBreak.startIndex();
+      int snapshotStartIndex = 0;
+      if (startSectionBreak != null) {
+        snapshotStartIndex = startSectionBreak.endIndex();
+      }
+      int snapshotEndIndex = 0;
+      if (endSectionBreak != null) {
+        snapshotEndIndex = endSectionBreak.startIndex();
+      }
 
       // Updates the line with the snapshot boundaries
       // Now these boundaries can be retrieved from the Line when it is time to take a snapshot of the line
-      line.setSnapshotBoundaries(startIndex, endIndex);
+      line.setSnapshotBoundaries(snapshotStartIndex, snapshotEndIndex);
     }
 
     return lines;
@@ -695,9 +721,7 @@ public class SearchThread implements Runnable {
     //TODO: Output now is only returns if both are found...
 
     //this loop is used to check against key words that are multiple words
-    for (int g = 0; g < multiWordKeywords.size(); g++) {
-      String keyPhrase = multiWordKeywords.get(g);
-
+    for (String keyPhrase : multiWordKeywords) {
       //split the phrase into an array of separate words
       String[] separateWordsFromPhrase = keyPhrase.split(" ");
 
@@ -705,46 +729,41 @@ public class SearchThread implements Runnable {
 
       String[] substringFromLine = new String[separateWordsFromPhrase.length];
 
-      if(matchesWord(randomWord, separateWordsFromPhrase[0])){
+      if (matchesWord(randomWord, separateWordsFromPhrase[0])) {
         count++;
-        if(testing){
-        System.out.println("Count is: " + count);
-        System.out.println("Matching word is: " + randomWord + " and " + separateWordsFromPhrase[0]);
-        System.out.println("separateWordsFromPhrase[1]: " + separateWordsFromPhrase[1]);
-        System.out.println("substringFromLine[1]: " + substringFromLine[1]);
-      }
-      }
-
-      else
+        if (testing) {
+          System.out.println("Count is: " + count);
+          System.out.println("Matching word is: " + randomWord + " and " + separateWordsFromPhrase[0]);
+          System.out.println("separateWordsFromPhrase[1]: " + separateWordsFromPhrase[1]);
+          System.out.println("substringFromLine[1]: " + substringFromLine[1]);
+        }
+      } else
         return null;
       //TODO: CHANGE THIS FOR MULTI THAT START WITH SAME WORD
-
 
 
       //fills the array of substring from line, this is a count starting at 0
       // of how many are in the array
       int wordsIn = 0;
 
-      for (int i = 0; wordsIn < separateWordsFromPhrase.length; i++){
+      for (int i = 0; wordsIn < separateWordsFromPhrase.length; i++) {
         //this fills the entire string of words, if the phrase has three
         // words starting with "the" the first word in this array would also
         // be "the"
 
-        if(i + positionOfWord < wordsFromLine.length)
-        {
+        if (i + positionOfWord < wordsFromLine.length) {
 
-        String wordToBePutIn = wordsFromLine[positionOfWord + i];
-        substringFromLine[wordsIn] = wordToBePutIn;
-        wordsIn++;
-        }
-        else {
+          String wordToBePutIn = wordsFromLine[positionOfWord + i];
+          substringFromLine[wordsIn] = wordToBePutIn;
+          wordsIn++;
+        } else {
           i = -1;
           positionOfWord = 0;
           numOtherLines++;
           String text = linesFromPage.get(line + numOtherLines);
 
-          if(!testing)
-          System.out.println("text from next line: " + text);
+          if (!testing)
+            System.out.println("text from next line: " + text);
 
           wordsFromLine = text.split(" ");
         }
@@ -752,26 +771,26 @@ public class SearchThread implements Runnable {
 
       }
 
-      if(!testing){
-        if(wordsIn != separateWordsFromPhrase.length){
+      if (!testing) {
+        if (wordsIn != separateWordsFromPhrase.length) {
           tldr.print("Something wrong with keyword matching loops");
         }
       }
 
       //check that the arrays match
-      for(int m = 1; m < substringFromLine.length; m++){
-        if(matchesWord(substringFromLine[m], separateWordsFromPhrase[m])){
-          count ++;
+      for (int m = 1; m < substringFromLine.length; m++) {
+        if (matchesWord(substringFromLine[m], separateWordsFromPhrase[m])) {
+          count++;
 //          System.out.println();
 //          System.out.println("Count is: " + count);
 //          System.out.println("m is: " + m);
         }
       }
 
-      if (count == separateWordsFromPhrase.length){
+      if (count == separateWordsFromPhrase.length) {
 
-        if(testing){
-          System.out.println("keyphrase: "+ keyPhrase);
+        if (testing) {
+          System.out.println("keyphrase: " + keyPhrase);
         }
 
         toBeReturned.add(keyPhrase);
@@ -852,12 +871,12 @@ public class SearchThread implements Runnable {
           if (filePath != null)
             loc.setFilePath(filePath);
 
-          if(testing)
-            System.out.println();
-            System.out.println();
-            System.out.println();
-            System.out.println();
-            System.out.println();
+//          if(testing)
+//            System.out.println();
+//            System.out.println();
+//            System.out.println();
+//            System.out.println();
+//            System.out.println();
             System.out.println("map.get(key).get(0).getFilePath(): "+map.get(key).get(0).getFilePath());
         }
       }
@@ -874,14 +893,19 @@ public class SearchThread implements Runnable {
   private String snapshotLine(@NotNull Line line, String keyword, int lineNum)
   {
     int page = line.page();
+    System.out.println("Snapshotting line " + lineNum + "on page " + page);
     try {
       BufferedImage pgImg = renderer.renderImageWithDPI((page-1), 300);
       int startIndex = line.startSnapshotIndex();
       int endIndex = line.endSnapshotIndex();
-//      System.out.println("[ " + startIndex + ", " + endIndex + "]");
-//      System.out.println("Height = " + pgImg.getHeight());
+      System.out.println("[ " + startIndex + ", " + endIndex + "] for snapshot on line " + lineNum + " of page " + page);
+      System.out.println("Height = " + pgImg.getHeight());
       if (endIndex == 0) {
-//        System.out.println("End index was 0");
+        System.out.println("End index was 0");
+        endIndex = pgImg.getHeight();
+      }
+      if (endIndex == startIndex) {
+        System.out.println("End index was equal to the start index");
         endIndex = pgImg.getHeight();
       }
       int imHeight = endIndex - startIndex;
